@@ -31,7 +31,8 @@ func (r *patientRepository) List(ctx context.Context, page shared.PageRequest) (
 	const listQuery = `
 		SELECT NroDocumento, ApellidoPaterno, ApellidoMaterno, PrimerNombre,
 		       SegundoNombre, TercerNombre
-		FROM pacientes
+		FROM pacientes 
+		WHERE NroDocumento is not null 
 		ORDER BY NroDocumento
 		OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY`
 
