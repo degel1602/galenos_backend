@@ -1,0 +1,114 @@
+{
+	"info": {
+		"name": "Galenos Pro - Appointments API",
+		"description": "Colección para la REST API en Go (arquitectura hexagonal) del sistema hospitalario Galenos Pro. Incluye el módulo de Citas Médicas y la consulta paginada de Pacientes (SELECT NroDocumento, ApellidoPaterno, ApellidoMaterno, PrimerNombre, SegundoNombre, TercerNombre FROM pacientes).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+		{ "key": "appointmentId", "value": "", "type": "string" }
+	],
+	"item": [
+		{
+			"name": "Pacientes",
+			"item": [
+				{
+					"name": "Listar pacientes (paginado)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/pacientes?page=1&pageSize=20",
+							"host": [ "{{baseUrl}}" ],
+							"path": [ "api", "v1", "pacientes" ],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "pageSize", "value": "20" }
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/pacientes?page=1&pageSize=20",
+									"host": [ "{{baseUrl}}" ],
+									"path": [ "api", "v1", "pacientes" ],
+									"query": [
+										{ "key": "page", "value": "1" },
+										{ "key": "pageSize", "value": "20" }
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{ "key": "Content-Type", "value": "application/json" }
+							],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [\n      {\n        \"documentNumber\": \"70123456\",\n        \"paternalSurname\": \"GARCIA\",\n        \"maternalSurname\": \"LOPEZ\",\n        \"firstName\": \"MARIA\",\n        \"secondName\": \"ELENA\",\n        \"thirdName\": \"\"\n      }\n    ],\n    \"page\": 1,\n    \"pageSize\": 20,\n    \"totalItems\": 1,\n    \"totalPages\": 1\n  }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Citas Médicas",
+			"item": [
+				{
+					"name": "Agendar cita",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const body = pm.response.json();",
+									"    pm.collectionVariables.set('appointmentId', body.data.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"patientId\": \"11111111-1111-1111-1111-111111111111\",\n  \"doctorId\": \"22222222-2222-2222-2222-222222222222\",\n  \"startsAt\": \"2026-08-01T15:00:00Z\",\n  \"endsAt\": \"2026-08-01T15:30:00Z\",\n  \"reason\": \"Control general\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointments",
+							"host": [ "{{baseUrl}}" ],
+							"path": [ "api", "v1", "appointments" ]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener cita por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointments/{{appointmentId}}",
+							"host": [ "{{baseUrl}}" ],
+							"path": [ "api", "v1", "appointments", "{{appointmentId}}" ]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
