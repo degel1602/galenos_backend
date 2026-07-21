@@ -1,0 +1,51 @@
+package httpadapter
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/galenos-pro/appointments-api/internal/domain"
+	"github.com/galenos-pro/appointments-api/internal/ports/input"
+)
+
+// AuthHandler expone el puerto de entrada input.AuthService.
+type AuthHandler struct {
+	service input.AuthService
+}
+
+// NewAuthHandler inyecta el caso de uso en el adaptador HTTP.
+func NewAuthHandler(service input.AuthService) *AuthHandler {
+	return &AuthHandler{service: service}
+}
+
+type loginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// Login maneja POST /api/v1/auth/login y retorna un JWT Bearer que debe
+// enviarse en el header "Authorization: Bearer <token>" del resto de
+// peticiones.
+func (h *AuthHandler) Login(c *gin.Context) {
+	var req loginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "INVALID_REQUEST", "username y password son requeridos")
+		return
+	}
+
+	token, err := h.service.Login(c.Request.Context(), req.Username, req.Password)
+	if err != nil {
+		if err == domain.ErrInvalidCredentials {
+			respondError(c, http.StatusUnauthorized, "INVALID_CREDENTIALS", err.Error())
+			return
+		}
+		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, gin.H{
+		"accessToken": token,
+		"tokenType":   "Bearer",
+	})
+}

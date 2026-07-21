@@ -54,11 +54,13 @@ func run() error {
 	// --- Núcleo de dominio: casos de uso implementando los puertos de entrada ---
 	appointmentService := usecase.NewAppointmentUseCase(appointmentRepo)
 	patientService := usecase.NewPatientUseCase(patientRepo)
+	authService := usecase.NewAuthUseCase(cfg.APIUsername, cfg.APIPassword, cfg.JWTSecret, cfg.JWTExpiration)
 
 	// --- Adaptador de entrada: HTTP/REST para Angular ---
 	appointmentHandler := httpadapter.NewAppointmentHandler(appointmentService)
 	patientHandler := httpadapter.NewPatientHandler(patientService)
-	router := httpadapter.NewRouter(appointmentHandler, patientHandler, cfg.AllowedOrigins)
+	authHandler := httpadapter.NewAuthHandler(authService)
+	router := httpadapter.NewRouter(appointmentHandler, patientHandler, authHandler, authService, cfg.AllowedOrigins)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.ServerPort,

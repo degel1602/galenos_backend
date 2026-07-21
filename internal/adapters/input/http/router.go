@@ -5,11 +5,15 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	"github.com/galenos-pro/appointments-api/internal/ports/input"
 )
 
 // NewRouter arma el árbol de rutas de la REST API, incluyendo CORS para que
-// el frontend Angular pueda consumirla desde otro origen.
-func NewRouter(appointmentHandler *AppointmentHandler, patientHandler *PatientHandler, allowedOrigins []string) *gin.Engine {
+// el frontend Angular pueda consumirla desde otro origen. Todas las rutas
+// de negocio requieren un Bearer token JWT (obtenido vía POST
+// /api/v1/auth/login), excepto el propio endpoint de login.
+func NewRouter(appointmentHandler *AppointmentHandler, patientHandler *PatientHandler, authHandler *AuthHandler, authService input.AuthService, allowedOrigins []string) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery(), gin.Logger())
 
@@ -23,16 +27,25 @@ func NewRouter(appointmentHandler *AppointmentHandler, patientHandler *PatientHa
 
 	v1 := router.Group("/api/v1")
 	{
-		appointments := v1.Group("/appointments")
+		auth := v1.Group("/auth")
 		{
-			appointments.POST("", appointmentHandler.Create)
-			appointments.GET("/:id", appointmentHandler.GetByID)
+			auth.POST("/login", authHandler.Login)
 		}
 
-		pacientes := v1.Group("/pacientes")
+		protected := v1.Group("")
+		protected.Use(RequireBearerToken(authService))
 		{
-			pacientes.GET("", patientHandler.List)
-			pacientes.GET("/:numDocumento", patientHandler.GetByDocumentNumber)
+			appointments := protected.Group("/appointments")
+			{
+				appointments.POST("", appointmentHandler.Create)
+				appointments.GET("/:id", appointmentHandler.GetByID)
+			}
+
+			pacientes := protected.Group("/pacientes")
+			{
+				pacientes.GET("", patientHandler.List)
+				pacientes.GET("/:numDocumento", patientHandler.GetByDocumentNumber)
+			}
 		}
 	}
 

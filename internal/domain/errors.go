@@ -18,4 +18,7 @@ var (
 	ErrInvalidAppointmentID              = errors.New("appointment id is required")
 	ErrInvalidDocumentNumber             = errors.New("document number is required")
 	ErrPatientNotFound                   = errors.New("patient not found")
+	ErrInvalidCredentials                = errors.New("invalid username or password")
+	ErrMissingToken                      = errors.New("bearer token is required")
+	ErrInvalidToken                      = errors.New("token is invalid or expired")
 )
