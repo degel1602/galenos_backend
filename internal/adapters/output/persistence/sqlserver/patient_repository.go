@@ -74,3 +74,48 @@ func (r *patientRepository) List(ctx context.Context, page shared.PageRequest) (
 
 	return patients, total, nil
 }
+
+// GetByDocumentNumber invoca el procedimiento almacenado sp_listarPaciente,
+// que recibe @NumDocumento varchar(18) y retorna el paciente cuyo número de
+// documento coincide. El nombre del procedimiento se pasa como texto de
+// consulta y el parámetro va nombrado (@NumDocumento -> "NumDocumento"), lo
+// que hace que el driver mssql lo despache como una llamada RPC en vez de
+// concatenar SQL, evitando cualquier inyección.
+func (r *patientRepository) GetByDocumentNumber(ctx context.Context, documentNumber string) (*domain.Patient, error) {
+	const procedure = `sp_listarPaciente`
+
+	rows, err := r.db.QueryContext(ctx, procedure, sql.Named("NumDocumento", documentNumber))
+	if err != nil {
+		return nil, fmt.Errorf("calling sp_listarPaciente: %w", err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("iterating sp_listarPaciente result: %w", err)
+		}
+		return nil, domain.ErrPatientNotFound
+	}
+
+	var (
+		patient         domain.Patient
+		maternalSurname sql.NullString
+		secondName      sql.NullString
+		thirdName       sql.NullString
+	)
+	if err := rows.Scan(
+		&patient.DocumentNumber,
+		&patient.PaternalSurname,
+		&maternalSurname,
+		&patient.FirstName,
+		&secondName,
+		&thirdName,
+	); err != nil {
+		return nil, fmt.Errorf("scanning sp_listarPaciente row: %w", err)
+	}
+	patient.MaternalSurname = maternalSurname.String
+	patient.SecondName = secondName.String
+	patient.ThirdName = thirdName.String
+
+	return &patient, nil
+}

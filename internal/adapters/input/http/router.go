@@ -32,6 +32,7 @@ func NewRouter(appointmentHandler *AppointmentHandler, patientHandler *PatientHa
 		pacientes := v1.Group("/pacientes")
 		{
 			pacientes.GET("", patientHandler.List)
+			pacientes.GET("/:numDocumento", patientHandler.GetByDocumentNumber)
 		}
 	}
 

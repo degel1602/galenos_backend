@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/galenos-pro/appointments-api/internal/domain"
 	"github.com/galenos-pro/appointments-api/internal/ports/input"
 	"github.com/galenos-pro/appointments-api/internal/ports/shared"
 )
@@ -34,6 +35,26 @@ func (h *PatientHandler) List(c *gin.Context) {
 	}
 
 	respondSuccess(c, http.StatusOK, result)
+}
+
+// GetByDocumentNumber maneja GET /api/v1/pacientes/:numDocumento.
+func (h *PatientHandler) GetByDocumentNumber(c *gin.Context) {
+	documentNumber := c.Param("numDocumento")
+
+	patient, err := h.service.GetByDocumentNumber(c.Request.Context(), documentNumber)
+	if err != nil {
+		switch err {
+		case domain.ErrInvalidDocumentNumber:
+			respondError(c, http.StatusBadRequest, "INVALID_DOCUMENT_NUMBER", err.Error())
+		case domain.ErrPatientNotFound:
+			respondError(c, http.StatusNotFound, "PATIENT_NOT_FOUND", err.Error())
+		default:
+			respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		}
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, patient)
 }
 
 func queryInt(c *gin.Context, key string, fallback int) int {

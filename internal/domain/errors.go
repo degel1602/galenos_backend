@@ -16,4 +16,6 @@ var (
 	ErrAppointmentNotFound               = errors.New("appointment not found")
 	ErrDoctorNotAvailable                = errors.New("doctor is not available in the requested time slot")
 	ErrInvalidAppointmentID              = errors.New("appointment id is required")
+	ErrInvalidDocumentNumber             = errors.New("document number is required")
+	ErrPatientNotFound                   = errors.New("patient not found")
 )

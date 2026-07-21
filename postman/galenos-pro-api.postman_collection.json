@@ -1,12 +1,13 @@
 {
 	"info": {
 		"name": "Galenos Pro - Appointments API",
-		"description": "Colección para la REST API en Go (arquitectura hexagonal) del sistema hospitalario Galenos Pro. Incluye el módulo de Citas Médicas y la consulta paginada de Pacientes (SELECT NroDocumento, ApellidoPaterno, ApellidoMaterno, PrimerNombre, SegundoNombre, TercerNombre FROM pacientes).",
+		"description": "Colección para la REST API en Go (arquitectura hexagonal) del sistema hospitalario Galenos Pro. Incluye el módulo de Citas Médicas y la consulta de Pacientes: listado paginado (SELECT ... FROM pacientes) y búsqueda por número de documento (EXEC sp_listarPaciente @NumDocumento).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
 		{ "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
-		{ "key": "appointmentId", "value": "", "type": "string" }
+		{ "key": "appointmentId", "value": "", "type": "string" },
+		{ "key": "numDocumento", "value": "70123456", "type": "string" }
 	],
 	"item": [
 		{
@@ -51,6 +52,58 @@
 								{ "key": "Content-Type", "value": "application/json" }
 							],
 							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [\n      {\n        \"documentNumber\": \"70123456\",\n        \"paternalSurname\": \"GARCIA\",\n        \"maternalSurname\": \"LOPEZ\",\n        \"firstName\": \"MARIA\",\n        \"secondName\": \"ELENA\",\n        \"thirdName\": \"\"\n      }\n    ],\n    \"page\": 1,\n    \"pageSize\": 20,\n    \"totalItems\": 1,\n    \"totalPages\": 1\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Buscar paciente por número de documento",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/pacientes/{{numDocumento}}",
+							"host": [ "{{baseUrl}}" ],
+							"path": [ "api", "v1", "pacientes", "{{numDocumento}}" ]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/pacientes/{{numDocumento}}",
+									"host": [ "{{baseUrl}}" ],
+									"path": [ "api", "v1", "pacientes", "{{numDocumento}}" ]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{ "key": "Content-Type", "value": "application/json" }
+							],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"documentNumber\": \"70123456\",\n    \"paternalSurname\": \"GARCIA\",\n    \"maternalSurname\": \"LOPEZ\",\n    \"firstName\": \"MARIA\",\n    \"secondName\": \"ELENA\",\n    \"thirdName\": \"\"\n  }\n}"
+						},
+						{
+							"name": "404 Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/pacientes/{{numDocumento}}",
+									"host": [ "{{baseUrl}}" ],
+									"path": [ "api", "v1", "pacientes", "{{numDocumento}}" ]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{ "key": "Content-Type", "value": "application/json" }
+							],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"PATIENT_NOT_FOUND\",\n    \"message\": \"patient not found\"\n  }\n}"
 						}
 					]
 				}
