@@ -3,6 +3,12 @@
 // con los puertos que el dominio define.
 package main
 
+// @title Galenos Pro Appointments API
+// @version 1.0
+// @description REST API del sistema hospitalario Galenos Pro. Arquitectura hexagonal, persiste en SQL Server 2022.
+// @host localhost:8080
+// @BasePath /api/v1
+
 import (
 	"context"
 	"log"
@@ -14,8 +20,11 @@ import (
 
 	"github.com/joho/godotenv"
 
+	"github.com/galenos-pro/appointments-api/docs"
 	httpadapter "github.com/galenos-pro/appointments-api/internal/adapters/input/http"
 	"github.com/galenos-pro/appointments-api/internal/adapters/output/persistence/sqlserver"
+	"github.com/galenos-pro/appointments-api/internal/adapters/output/reniec"
+	"github.com/galenos-pro/appointments-api/internal/adapters/output/sis"
 	"github.com/galenos-pro/appointments-api/internal/config"
 	"github.com/galenos-pro/appointments-api/internal/usecase"
 )
@@ -50,15 +59,56 @@ func run() error {
 
 	appointmentRepo := sqlserver.NewAppointmentRepository(db)
 	patientRepo := sqlserver.NewPatientRepository(db)
+	catalogRepo := sqlserver.NewCatalogRepository(db)
+	triageRepo := sqlserver.NewTriageRepository(db)
+
+	// --- Adaptador de salida: servicio externo RENIEC ---
+	reniecClient := reniec.New(reniec.Config{
+		App:     cfg.ReniecApp,
+		Usuario: cfg.ReniecUsuario,
+		Clave:   cfg.ReniecClave,
+		URL:     cfg.ReniecURL,
+		Timeout: cfg.ReniecTimeout,
+	})
+
+	// --- Adaptador de salida: servicio externo SIS ---
+	sisClient := sis.New(sis.Config{
+		Usuario:       cfg.SISUsuario,
+		Clave:         cfg.SISClave,
+		URL:           cfg.SISURL,
+		DNIAutorizado: cfg.SISDNIAutorizado,
+		Timeout:       cfg.SISTimeout,
+	})
 
 	// --- Núcleo de dominio: casos de uso implementando los puertos de entrada ---
 	appointmentService := usecase.NewAppointmentUseCase(appointmentRepo)
 	patientService := usecase.NewPatientUseCase(patientRepo)
+	catalogService := usecase.NewCatalogUseCase(catalogRepo)
+	reniecService := usecase.NewReniecUseCase(reniecClient)
+	sisService := usecase.NewSisUseCase(sisClient)
+	triageService := usecase.NewTriageUseCase(triageRepo)
+
+	// El host de Swagger se ajusta en runtime al IP detectado de la
+	// máquina (o al configurado en SERVER_HOST) para que otros equipos de
+	// la red consuman la API por IP en lugar de localhost.
+	docs.SwaggerInfo.Host = cfg.ServerHost + ":" + cfg.ServerPort
 
 	// --- Adaptador de entrada: HTTP/REST para Angular ---
 	appointmentHandler := httpadapter.NewAppointmentHandler(appointmentService)
 	patientHandler := httpadapter.NewPatientHandler(patientService)
-	router := httpadapter.NewRouter(appointmentHandler, patientHandler, cfg.AllowedOrigins)
+	catalogHandler := httpadapter.NewCatalogHandler(catalogService)
+	reniecHandler := httpadapter.NewReniecHandler(reniecService)
+	sisHandler := httpadapter.NewSisHandler(sisService)
+	triageHandler := httpadapter.NewTriageHandler(triageService)
+	router := httpadapter.NewRouter(
+		appointmentHandler,
+		patientHandler,
+		catalogHandler,
+		reniecHandler,
+		sisHandler,
+		triageHandler,
+		cfg.AllowedOrigins,
+	)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.ServerPort,
@@ -67,6 +117,8 @@ func run() error {
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
+
+	log.Printf("listening on http://%s:%s (swagger: http://%s:%s/swagger/index.html)", cfg.ServerHost, cfg.ServerPort, cfg.ServerHost, cfg.ServerPort)
 
 	serverErr := make(chan error, 1)
 	go func() {

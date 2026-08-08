@@ -22,6 +22,16 @@ func NewPatientHandler(service input.PatientService) *PatientHandler {
 }
 
 // List maneja GET /api/v1/pacientes?page=1&pageSize=20.
+//
+// @Summary Lista pacientes paginados
+// @Description Devuelve una página de pacientes ordenada, con datos de paginación.
+// @Tags Pacientes
+// @Produce json
+// @Param page query int false "Número de página (default 1)"
+// @Param pageSize query int false "Tamaño de página (default 20, máximo 100)"
+// @Success 200 {object} apiResponse{data=pageResponsePatients}
+// @Failure 500 {object} apiResponse{error=apiError} "Error interno"
+// @Router /pacientes [get]
 func (h *PatientHandler) List(c *gin.Context) {
 	page := shared.NewPageRequest(
 		queryInt(c, "page", 1),
@@ -37,15 +47,129 @@ func (h *PatientHandler) List(c *gin.Context) {
 	respondSuccess(c, http.StatusOK, result)
 }
 
-// GetByDocumentNumber maneja GET /api/v1/pacientes/:numDocumento.
-func (h *PatientHandler) GetByDocumentNumber(c *gin.Context) {
-	documentNumber := c.Param("numDocumento")
+// Get maneja GET /api/v1/pacientes/:idOrDoc. Detecta el tipo de
+// identificador del path param: si es numérico busca el detalle por id
+// (SP webPacientesListarIdPaciente); si no, busca por número de documento
+// (SP sp_listarPaciente). Es la fusión de los endpoints de FastAPI y del
+// Go original para no romper el frontend.
+//
+// @Summary Busca un paciente por id o por número de documento
+// @Description Si el path param es numérico invoca webPacientesListarIdPaciente (detalle); en caso contrario sp_listarPaciente.
+// @Tags Pacientes
+// @Produce json
+// @Param idOrDoc path string true "Id o número de documento del paciente"
+// @Success 200 {object} apiResponse{data=domain.PatientDetail}
+// @Failure 400 {object} apiResponse{error=apiError} "Identificador inválido"
+// @Failure 404 {object} apiResponse{error=apiError} "Paciente no encontrado"
+// @Router /pacientes/{idOrDoc} [get]
+func (h *PatientHandler) Get(c *gin.Context) {
+	param := c.Param("idOrDoc")
+	if param == "" {
+		respondError(c, http.StatusBadRequest, "INVALID_PATIENT_ID", domain.ErrInvalidDocumentNumber.Error())
+		return
+	}
 
-	patient, err := h.service.GetByDocumentNumber(c.Request.Context(), documentNumber)
+	if id, err := strconv.ParseInt(param, 10, 64); err == nil {
+		detail, derr := h.service.GetByID(c.Request.Context(), id)
+		if derr != nil {
+			h.respondGetError(c, derr)
+			return
+		}
+		respondSuccess(c, http.StatusOK, detail)
+		return
+	}
+
+	patient, err := h.service.GetByDocumentNumber(c.Request.Context(), param)
+	if err != nil {
+		h.respondGetError(c, err)
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, patient)
+}
+
+// respondGetError traduce los errores de los casos de uso de consulta.
+func (h *PatientHandler) respondGetError(c *gin.Context, err error) {
+	switch err {
+	case domain.ErrInvalidDocumentNumber, domain.ErrInvalidPatientID:
+		respondError(c, http.StatusBadRequest, "INVALID_PATIENT_ID", err.Error())
+	case domain.ErrPatientNotFound:
+		respondError(c, http.StatusNotFound, "PATIENT_NOT_FOUND", err.Error())
+	default:
+		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+	}
+}
+
+// Update maneja PUT /api/v1/pacientes/:id.
+//
+// @Summary Modifica un paciente
+// @Description Actualiza los datos editables de un paciente (SP usp_go_ModificarPaciente) y devuelve el detalle actualizado.
+// @Tags Pacientes
+// @Accept json
+// @Produce json
+// @Param id path int true "Id del paciente"
+// @Param request body updatePatientRequest true "Datos editables del paciente"
+// @Success 200 {object} apiResponse{data=domain.PatientDetail}
+// @Failure 400 {object} apiResponse{error=apiError} "Validación inválida"
+// @Failure 404 {object} apiResponse{error=apiError} "Paciente no encontrado"
+// @Router /pacientes/{id} [put]
+func (h *PatientHandler) Update(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		respondError(c, http.StatusBadRequest, "INVALID_PATIENT_ID", domain.ErrInvalidPatientID.Error())
+		return
+	}
+
+	var req updatePatientRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+		return
+	}
+
+	detail, err := h.service.Update(c.Request.Context(), id, req.toDomain())
+	if err != nil {
+		switch err {
+		case domain.ErrInvalidPatientID:
+			respondError(c, http.StatusBadRequest, "INVALID_PATIENT_ID", err.Error())
+		case domain.ErrPatientNotFound:
+			respondError(c, http.StatusNotFound, "PATIENT_NOT_FOUND", err.Error())
+		default:
+			respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		}
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, detail)
+}
+
+// GetByDocumentAndType maneja GET
+// /api/v1/pacientes/por-documento?nroDocumento=&idTipoDocIdentidad=.
+//
+// @Summary Busca un paciente por número y tipo de documento
+// @Description Invoca el SP usp_go_ListarPacientePorNroDocyTipo con el número y el tipo de documento.
+// @Tags Pacientes
+// @Produce json
+// @Param nroDocumento query string true "Número de documento del paciente"
+// @Param idTipoDocIdentidad query int true "Id del tipo de documento de identidad"
+// @Success 200 {object} apiResponse{data=domain.Patient}
+// @Failure 400 {object} apiResponse{error=apiError} "Parámetros inválidos"
+// @Failure 404 {object} apiResponse{error=apiError} "Paciente no encontrado"
+// @Router /pacientes/por-documento [get]
+func (h *PatientHandler) GetByDocumentAndType(c *gin.Context) {
+	documentNumber := c.Query("nroDocumento")
+	docTypeID, err := strconv.ParseInt(c.Query("idTipoDocIdentidad"), 10, 64)
+	if err != nil {
+		respondError(c, http.StatusBadRequest, "INVALID_DOCUMENT_TYPE", domain.ErrInvalidDocumentType.Error())
+		return
+	}
+
+	patient, err := h.service.GetByDocumentNumberAndType(c.Request.Context(), documentNumber, docTypeID)
 	if err != nil {
 		switch err {
 		case domain.ErrInvalidDocumentNumber:
 			respondError(c, http.StatusBadRequest, "INVALID_DOCUMENT_NUMBER", err.Error())
+		case domain.ErrInvalidDocumentType:
+			respondError(c, http.StatusBadRequest, "INVALID_DOCUMENT_TYPE", err.Error())
 		case domain.ErrPatientNotFound:
 			respondError(c, http.StatusNotFound, "PATIENT_NOT_FOUND", err.Error())
 		default:
@@ -55,6 +179,41 @@ func (h *PatientHandler) GetByDocumentNumber(c *gin.Context) {
 	}
 
 	respondSuccess(c, http.StatusOK, patient)
+}
+
+// Search maneja GET /api/v1/pacientes/buscar?documento=&hc=&paterno=&materno=&nombres=.
+//
+// @Summary Busca pacientes aplicando filtros opcionales
+// @Description Invoca el procedimiento almacenado usp_go_listarpacientes. Los filtros vacíos se ignoran.
+// @Tags Pacientes
+// @Produce json
+// @Param documento query string false "Número de documento del paciente"
+// @Param hc query string false "Número de historia clínica"
+// @Param paterno query string false "Apellido paterno"
+// @Param materno query string false "Apellido materno"
+// @Param nombres query string false "Primer nombre"
+// @Success 200 {object} apiResponse{data=[]domain.Patient}
+// @Failure 500 {object} apiResponse{error=apiError} "Error interno"
+// @Router /pacientes/buscar [get]
+func (h *PatientHandler) Search(c *gin.Context) {
+	params := shared.PatientSearchParams{
+		DocumentNumber:  c.Query("documento"),
+		HistoryNumber:   c.Query("hc"),
+		PaternalSurname: c.Query("paterno"),
+		MaternalSurname: c.Query("materno"),
+		Names:           c.Query("nombres"),
+	}
+
+	result, err := h.service.Search(c.Request.Context(), params)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+
+	if result == nil {
+		result = make([]domain.Patient, 0)
+	}
+	respondSuccess(c, http.StatusOK, result)
 }
 
 func queryInt(c *gin.Context, key string, fallback int) int {
