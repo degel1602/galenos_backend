@@ -5,6 +5,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -14,15 +15,22 @@ import (
 // Config agrupa toda la configuración externa de la aplicación.
 type Config struct {
 	ServerPort        string
+	ServerHost        string
 	SQLServerDSN      string
 	AllowedOrigins    []string
 	DBMaxOpenConns    int
 	DBMaxIdleConns    int
 	DBConnMaxLifetime time.Duration
-	JWTSecret         string
-	JWTExpiration     time.Duration
-	APIUsername       string
-	APIPassword       string
+	ReniecApp         string
+	ReniecUsuario     string
+	ReniecClave       string
+	ReniecURL         string
+	ReniecTimeout     time.Duration
+	SISUsuario        string
+	SISClave          string
+	SISURL            string
+	SISDNIAutorizado  string
+	SISTimeout        time.Duration
 }
 
 // Load lee la configuración desde el entorno aplicando valores por defecto
@@ -50,16 +58,74 @@ func Load() (*Config, error) {
 
 	return &Config{
 		ServerPort:        envOrDefault("SERVER_PORT", "8080"),
+		ServerHost:        envOrDefault("SERVER_HOST", defaultServerHost()),
 		SQLServerDSN:      dsn,
-		AllowedOrigins:    strings.Split(envOrDefault("ALLOWED_ORIGINS", "http://localhost:4200"), ","),
+		AllowedOrigins:    allowedOriginsWithServer(envOrDefault("ALLOWED_ORIGINS", "http://localhost:4200"), envOrDefault("SERVER_PORT", "8080"), envOrDefault("SERVER_HOST", defaultServerHost())),
 		DBMaxOpenConns:    envIntOrDefault("DB_MAX_OPEN_CONNS", 25),
 		DBMaxIdleConns:    envIntOrDefault("DB_MAX_IDLE_CONNS", 10),
 		DBConnMaxLifetime: envDurationOrDefault("DB_CONN_MAX_LIFETIME", 5*time.Minute),
-		JWTSecret:         jwtSecret,
-		JWTExpiration:     envDurationOrDefault("JWT_EXPIRATION", 24*time.Hour),
-		APIUsername:       apiUsername,
-		APIPassword:       apiPassword,
+		ReniecApp:         envOrDefault("RENIEC_APP", "HNSEB"),
+		ReniecUsuario:     envOrDefault("RENIEC_USUARIO", "44602631"),
+		ReniecClave:       os.Getenv("RENIEC_CLAVE"),
+		ReniecURL:         envOrDefault("RENIEC_URL", "https://wsvmin.minsa.gob.pe/wsreniecmq/serviciomq.asmx"),
+		ReniecTimeout:     envDurationOrDefault("RENIEC_TIMEOUT", 30*time.Second),
+		SISUsuario:        envOrDefault("SIS_USUARIO", "HNAL"),
+		SISClave:          os.Getenv("SIS_CLAVE"),
+		SISURL:            envOrDefault("SIS_URL", "http://app.sis.gob.pe/sisWSAFI/Service.asmx"),
+		SISDNIAutorizado:  envOrDefault("SIS_DNI_AUTORIZADO", ""),
+		SISTimeout:        envDurationOrDefault("SIS_TIMEOUT", 30*time.Second),
 	}, nil
+}
+
+// defaultServerHost devuelve el IP de la interfaz de red principal para
+// que otros usuarios de la red local puedan consumir la API (en lugar de
+// localhost). Si no se puede detectar, retorna localhost.
+func defaultServerHost() string {
+	host := localIPv4()
+	if host == "" {
+		return "localhost"
+	}
+	return host
+}
+
+// localIPv4 resuelve el IP IPv4 saliente consultando la interfaz por
+// defecto (conexión UDP sin tráfico real). Retorna vacío si falla.
+func localIPv4() string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return ""
+	}
+	defer conn.Close()
+
+	if addr, ok := conn.LocalAddr().(*net.UDPAddr); ok {
+		return addr.IP.String()
+	}
+	return ""
+}
+
+// allowedOriginsWithServer agrega el origen propio de la API (IP
+// configurado y localhost) a la lista de orígenes permitidos, de modo que
+// Swagger y clientes que apuntan a la propia máquina no fallen por CORS.
+func allowedOriginsWithServer(csv, port, host string) []string {
+	origins := strings.Split(csv, ",")
+	for _, o := range origins {
+		o = strings.TrimSpace(o)
+		if o == "" {
+			continue
+		}
+		if o == "http://"+host+":"+port || o == "http://localhost:"+port {
+			return origins
+		}
+	}
+
+	serverOrigin := "http://" + host + ":" + port
+	if !strings.Contains(csv, serverOrigin) {
+		origins = append(origins, serverOrigin)
+	}
+	if host != "localhost" && !strings.Contains(csv, "http://localhost:"+port) {
+		origins = append(origins, "http://localhost:"+port)
+	}
+	return origins
 }
 
 func envOrDefault(key, fallback string) string {

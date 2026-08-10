@@ -22,6 +22,17 @@ func NewAppointmentHandler(service input.AppointmentService) *AppointmentHandler
 }
 
 // Create maneja POST /api/v1/appointments.
+//
+// @Summary Agenda una nueva cita médica
+// @Description Valida los datos del paciente, médico y horario, y agenda la cita si el médico está disponible.
+// @Tags Appointments
+// @Accept json
+// @Produce json
+// @Param request body createAppointmentRequest true "Datos de la cita a agendar"
+// @Success 201 {object} apiResponse{data=domain.Appointment}
+// @Failure 400 {object} apiResponse{error=apiError} "Validación inválida"
+// @Failure 409 {object} apiResponse{error=apiError} "El médico no está disponible en ese horario"
+// @Router /appointments [post]
 func (h *AppointmentHandler) Create(c *gin.Context) {
 	var req createAppointmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -46,6 +57,15 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 }
 
 // GetByID maneja GET /api/v1/appointments/:id.
+//
+// @Summary Obtiene una cita médica por id
+// @Description Devuelve la cita identificada por su id.
+// @Tags Appointments
+// @Produce json
+// @Param id path string true "ID de la cita"
+// @Success 200 {object} apiResponse{data=domain.Appointment}
+// @Failure 404 {object} apiResponse{error=apiError} "Cita no encontrada"
+// @Router /appointments/{id} [get]
 func (h *AppointmentHandler) GetByID(c *gin.Context) {
 	appointment, err := h.service.GetByID(c.Request.Context(), c.Param("id"))
 	if err != nil {

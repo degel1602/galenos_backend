@@ -122,3 +122,300 @@ func (r *patientRepository) GetByDocumentNumber(ctx context.Context, documentNum
 
 	return &patient, nil
 }
+
+// GetByDocumentNumberAndType invoca el procedimiento almacenado
+// usp_go_ListarPacientePorNroDocyTipo, que recibe @NroDocumento y
+// @IdTipoDocIdentidad y retorna IdPaciente, NroDocumento,
+// NroHistoriaClinica, ApellidoPaterno, ApellidoMaterno, PrimerNombre y
+// SegundoNombre del paciente cuyo número de documento coincide. Los
+// parámetros van nombrados, por lo que el driver mssql los despacha como
+// una llamada RPC, sin concatenar SQL.
+func (r *patientRepository) GetByDocumentNumberAndType(ctx context.Context, documentNumber string, documentTypeID int64) (*domain.Patient, error) {
+	const procedure = `usp_go_ListarPacientePorNroDocyTipo`
+
+	rows, err := r.db.QueryContext(ctx, procedure,
+		sql.Named("NroDocumento", documentNumber),
+		sql.Named("IdTipoDocIdentidad", documentTypeID),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("calling usp_go_ListarPacientePorNroDocyTipo: %w", err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("iterating usp_go_ListarPacientePorNroDocyTipo result: %w", err)
+		}
+		return nil, domain.ErrPatientNotFound
+	}
+
+	var (
+		patient           domain.Patient
+		historyNumber     sql.NullString
+		maternalSurname   sql.NullString
+		secondName        sql.NullString
+		birthDate         sql.NullTime
+		homeDistrictID    sql.NullInt64
+		homeCenterID      sql.NullInt64
+		sexTypeID         sql.NullInt64
+		maritalStatusID   sql.NullInt64
+		educationDegreeID sql.NullInt64
+		homeAddress       sql.NullString
+		phone             sql.NullString
+	)
+	if err := rows.Scan(
+		&patient.PatientID,
+		&patient.DocumentNumber,
+		&historyNumber,
+		&patient.PaternalSurname,
+		&maternalSurname,
+		&patient.FirstName,
+		&secondName,
+		&birthDate,
+		&homeDistrictID,
+		&homeCenterID,
+		&sexTypeID,
+		&maritalStatusID,
+		&educationDegreeID,
+		&homeAddress,
+		&phone,
+	); err != nil {
+		return nil, fmt.Errorf("scanning usp_go_ListarPacientePorNroDocyTipo row: %w", err)
+	}
+	patient.HistoryNumber = historyNumber.String
+	patient.MaternalSurname = maternalSurname.String
+	patient.SecondName = secondName.String
+	if birthDate.Valid {
+		d := birthDate.Time
+		patient.DateOfBirth = &d
+	}
+	patient.HomeDistrictID = nullableInt64Ptr(homeDistrictID)
+	patient.HomeCenterID = nullableInt64Ptr(homeCenterID)
+	patient.SexTypeID = nullableInt64Ptr(sexTypeID)
+	patient.MaritalStatusID = nullableInt64Ptr(maritalStatusID)
+	patient.EducationDegreeID = nullableInt64Ptr(educationDegreeID)
+	if homeAddress.Valid {
+		patient.HomeAddress = &homeAddress.String
+	}
+	if phone.Valid {
+		patient.Phone = &phone.String
+	}
+
+	return &patient, nil
+}
+
+// Search invoca el procedimiento almacenado usp_go_listarpacientes con los
+// filtros de búsqueda (@Nrodoc, @NroHc, @ApellidoPaterno,
+// @ApellidoMaterno, @Nombres). Un filtro vacío se envía como cadena vacía,
+// que el SP interpreta como "no filtrar por este campo". El nombre del SP se
+// pasa como texto de consulta y los parámetros van nombrados, por lo que el
+// driver mssql los despacha como una llamada RPC, sin concatenar SQL.
+func (r *patientRepository) Search(ctx context.Context, params shared.PatientSearchParams) ([]domain.Patient, error) {
+	const procedure = `usp_go_listarpacientes`
+
+	rows, err := r.db.QueryContext(ctx, procedure,
+		sql.Named("Nrodoc", params.DocumentNumber),
+		sql.Named("NroHc", params.HistoryNumber),
+		sql.Named("ApellidoPaterno", params.PaternalSurname),
+		sql.Named("ApellidoMaterno", params.MaternalSurname),
+		sql.Named("Nombres", params.Names),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("calling usp_go_listarpacientes: %w", err)
+	}
+	defer rows.Close()
+
+	patients := make([]domain.Patient, 0)
+	for rows.Next() {
+		var (
+			patient       domain.Patient
+			historyNumber sql.NullString
+			birthDate     sql.NullTime
+		)
+		if err := rows.Scan(
+			&patient.PatientID,
+			&patient.DocumentNumber,
+			&historyNumber,
+			&patient.PaternalSurname,
+			&patient.MaternalSurname,
+			&patient.FirstName,
+			&birthDate,
+		); err != nil {
+			return nil, fmt.Errorf("scanning usp_go_listarpacientes row: %w", err)
+		}
+		patient.HistoryNumber = historyNumber.String
+		if birthDate.Valid {
+			d := birthDate.Time
+			patient.DateOfBirth = &d
+		}
+		patients = append(patients, patient)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating usp_go_listarpacientes rows: %w", err)
+	}
+
+	return patients, nil
+}
+
+// GetByID invoca el procedimiento almacenado webPacientesListarIdPaciente
+// con el id del paciente y mapea sus columnas (nombres conocidos en runtime)
+// al detalle completo. Retorna domain.ErrPatientNotFound si no hay registros.
+func (r *patientRepository) GetByID(ctx context.Context, id int64) (*domain.PatientDetail, error) {
+	const procedure = `webPacientesListarIdPaciente`
+
+	rows, err := r.db.QueryContext(ctx, procedure, sql.Named("IdPaciente", id))
+	if err != nil {
+		return nil, fmt.Errorf("calling webPacientesListarIdPaciente: %w", err)
+	}
+	defer rows.Close()
+
+	maps, err := rowsToMaps(rows)
+	if err != nil {
+		return nil, fmt.Errorf("reading patient detail: %w", err)
+	}
+	if len(maps) == 0 {
+		return nil, domain.ErrPatientNotFound
+	}
+
+	m := maps[0]
+	detail := domain.PatientDetail{
+		PatientID:             derefInt64(rowInt64(m, "IdPaciente")),
+		DocumentNumber:        rowString(m, "NroDocumento"),
+		HistoryNumber:         rowString(m, "NroHistoriaClinica"),
+		PaternalSurname:       rowString(m, "ApellidoPaterno"),
+		MaternalSurname:       rowString(m, "ApellidoMaterno"),
+		FirstName:             rowString(m, "PrimerNombre"),
+		SecondName:            rowString(m, "SegundoNombre"),
+		ThirdName:             rowString(m, "TercerNombre"),
+		Phone:                 rowString(m, "Telefono"),
+		HomeAddress:           rowString(m, "DireccionDomicilio"),
+		AutoGenerated:         rowString(m, "Autogenerado"),
+		SexTypeID:             rowInt64(m, "IdTipoSexo"),
+		OriginID:              rowInt64(m, "IdProcedencia"),
+		EducationDegreeID:     rowInt64(m, "IdGradoInstruccion"),
+		MaritalStatusID:       rowInt64(m, "IdEstadoCivil"),
+		DocIdentityID:         rowInt64(m, "IdDocIdentidad"),
+		OccupationTypeID:      rowInt64(m, "IdTipoOcupacion"),
+		BirthCenterID:         rowInt64(m, "IdCentroPobladoNacimiento"),
+		HomeCenterID:          rowInt64(m, "IdCentroPobladoDomicilio"),
+		FatherName:            rowString(m, "NombrePadre"),
+		MotherName:            rowString(m, "NombreMadre"),
+		NumberingTypeID:       rowInt64(m, "IdTipoNumeracion"),
+		OriginCenterID:        rowInt64(m, "IdCentroPobladoProcedencia"),
+		Observation:           rowString(m, "Observacion"),
+		HomeCountryID:         rowInt64(m, "IdPaisDomicilio"),
+		OriginCountryID:       rowInt64(m, "IdPaisProcedencia"),
+		BirthCountryID:        rowInt64(m, "IdPaisNacimiento"),
+		OriginDistrictID:      rowInt64(m, "IdDistritoProcedencia"),
+		HomeDistrictID:        rowInt64(m, "IdDistritoDomicilio"),
+		BirthDistrictID:       rowInt64(m, "IdDistritoNacimiento"),
+		FamilyRecord:          rowString(m, "FichaFamiliar"),
+		EthnicityID:           rowString(m, "IdEtnia"),
+		BloodType:             rowString(m, "GrupoSanguineo"),
+		RhFactor:              rowString(m, "FactorRh"),
+		LanguageID:            rowInt64(m, "IdIdioma"),
+		Email:                 rowString(m, "Email"),
+		MotherDocument:        rowString(m, "madreDocumento"),
+		MotherPaternalSurname: rowString(m, "madreApellidoPaterno"),
+		MotherMaternalSurname: rowString(m, "madreApellidoMaterno"),
+		MotherFirstName:       rowString(m, "madrePrimerNombre"),
+		MotherSecondName:      rowString(m, "madreSegundoNombre"),
+		ChildOrderNumber:      rowInt64(m, "NroOrdenHijo"),
+		MotherDocType:         rowString(m, "madreTipoDocumento"),
+		Sector:                rowString(m, "Sector"),
+		Sectorist:             rowString(m, "Sectorista"),
+		BirthRecordNumber:     rowString(m, "NumPartida"),
+		EcoGenCaseNumber:      rowString(m, "NumCasoEcoGen"),
+		XRayCaseNumber:        rowString(m, "NumCasoRayosX"),
+		EcogObsCaseNumber:     rowString(m, "NumCasoEcogObs"),
+		StateID:               rowInt64(m, "IdEstado"),
+		Cellphone:             rowString(m, "celular"),
+		InsuranceTypeID:       rowInt64(m, "IdTipoSeguro"),
+		PatientPhoto:          rowString(m, "FotoPaciente"),
+		PatientSignature:      rowString(m, "FirmaPaciente"),
+	}
+
+	if v := rowTime(m, "FechaNacimiento"); v != nil {
+		detail.DateOfBirth = v
+	}
+	if v := rowBool(m, "UsoWebReniec"); v != nil {
+		detail.UsesWebReniec = v
+	}
+	if v := boolToInt64(rowBool(m, "Dispacidad")); v != nil {
+		detail.DisabilityID = v
+	}
+	if v := boolToInt64(rowBool(m, "Incapacidad")); v != nil {
+		detail.IncapacityID = v
+	}
+
+	return &detail, nil
+}
+
+// Update invoca el procedimiento almacenado usp_go_ModificarPaciente con los
+// campos editables. El parámetro IdPaciente se fija desde la ruta; los
+// campos no enviados se pasan como NULL.
+func (r *patientRepository) Update(ctx context.Context, id int64, update domain.PatientUpdate) error {
+	const procedure = `usp_go_ModificarPaciente`
+
+	_, err := r.db.ExecContext(ctx, procedure,
+		sql.Named("IdPaisNacimiento", update.BirthCountryID),
+		sql.Named("ApellidoMaterno", update.MaternalSurname),
+		sql.Named("DireccionDomicilio", update.HomeAddress),
+		sql.Named("IdPaisProcedencia", update.OriginCountryID),
+		sql.Named("IdPaciente", id),
+		sql.Named("ApellidoPaterno", update.PaternalSurname),
+		sql.Named("PrimerNombre", update.FirstName),
+		sql.Named("SegundoNombre", update.SecondName),
+		sql.Named("TercerNombre", update.ThirdName),
+		sql.Named("FechaNacimiento", update.DateOfBirth),
+		sql.Named("NroDocumento", update.DocumentNumber),
+		sql.Named("Telefono", update.Phone),
+		sql.Named("celular", update.Cellphone),
+		sql.Named("Autogenerado", update.AutoGenerated),
+		sql.Named("IdTipoSexo", update.SexTypeID),
+		sql.Named("IdProcedencia", update.OriginID),
+		sql.Named("IdGradoInstruccion", update.EducationDegreeID),
+		sql.Named("IdEstadoCivil", update.MaritalStatusID),
+		sql.Named("IdDocIdentidad", update.DocIdentityID),
+		sql.Named("IdTipoOcupacion", update.OccupationTypeID),
+		sql.Named("IdCentroPobladoDomicilio", update.HomeCenterID),
+		sql.Named("NombrePadre", update.FatherName),
+		sql.Named("NombreMadre", update.MotherName),
+		sql.Named("IdPaisDomicilio", update.HomeCountryID),
+		sql.Named("NroHistoriaClinica", update.HistoryNumber),
+		sql.Named("IdCentroPobladoNacimiento", update.BirthCenterID),
+		sql.Named("IdCentroPobladoProcedencia", update.OriginCenterID),
+		sql.Named("IdDistritoProcedencia", update.OriginDistrictID),
+		sql.Named("IdDistritoDomicilio", update.HomeDistrictID),
+		sql.Named("IdDistritoNacimiento", update.BirthDistrictID),
+		sql.Named("IdEtnia", update.EthnicityID),
+		sql.Named("IdIdioma", update.LanguageID),
+		sql.Named("Email", update.Email),
+		sql.Named("Dispacidad", update.DisabilityID),
+		sql.Named("Incapacidad", update.IncapacityID),
+		sql.Named("IdUsuarioAuditoria", update.AuditUserID),
+	)
+	if err != nil {
+		return fmt.Errorf("calling usp_go_ModificarPaciente: %w", err)
+	}
+
+	return nil
+}
+
+// derefInt64 devuelve 0 cuando el puntero es nil.
+func derefInt64(p *int64) int64 {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+// nullableInt64Ptr devuelve nil cuando el valor SQL es NULL; de lo contrario
+// un puntero al valor.
+func nullableInt64Ptr(n sql.NullInt64) *int64 {
+	if !n.Valid {
+		return nil
+	}
+	v := n.Int64
+	return &v
+}

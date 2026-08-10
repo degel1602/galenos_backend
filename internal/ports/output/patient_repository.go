@@ -17,4 +17,23 @@ type PatientRepository interface {
 	// invocando el procedimiento almacenado sp_listarPaciente. Retorna
 	// domain.ErrPatientNotFound si no existe ningún registro.
 	GetByDocumentNumber(ctx context.Context, documentNumber string) (*domain.Patient, error)
+
+	// GetByDocumentNumberAndType busca un paciente por número y tipo de
+	// documento invocando el procedimiento almacenado
+	// usp_go_ListarPacientePorNroDocyTipo. Retorna domain.ErrPatientNotFound
+	// si no existe ningún registro.
+	GetByDocumentNumberAndType(ctx context.Context, documentNumber string, documentTypeID int64) (*domain.Patient, error)
+
+	// Search lista pacientes que coinciden con los filtros opcionales
+	// invocando el procedimiento almacenado usp_go_listarpacientes.
+	Search(ctx context.Context, params shared.PatientSearchParams) ([]domain.Patient, error)
+
+	// GetByID devuelve el detalle completo de un paciente invocando el
+	// procedimiento almacenado webPacientesListarIdPaciente. Retorna
+	// domain.ErrPatientNotFound si no existe ningún registro.
+	GetByID(ctx context.Context, id int64) (*domain.PatientDetail, error)
+
+	// Update modifica un paciente invocando el procedimiento almacenado
+	// usp_go_ModificarPaciente. Los campos nil se envían como NULL.
+	Update(ctx context.Context, id int64, update domain.PatientUpdate) error
 }

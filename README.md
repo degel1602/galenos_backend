@@ -62,15 +62,28 @@ Al arrancar, la API hace `PING` a SQL Server; si el host no es alcanzable (red/V
 
 Base: `http://localhost:8080/api/v1`
 
-| Método | Ruta | Auth | Descripción |
-|---|---|---|---|
-| `POST` | `/auth/login` | No | Autentica con `username`/`password` (contra `API_USERNAME`/`API_PASSWORD`) y retorna un JWT (`accessToken`) |
-| `POST` | `/appointments` | Sí | Agenda una nueva cita médica |
-| `GET` | `/appointments/:id` | Sí | Obtiene una cita por id |
-| `GET` | `/pacientes?page=1&pageSize=20` | Sí | Lista pacientes paginados (`NroDocumento`, `ApellidoPaterno`, `ApellidoMaterno`, `PrimerNombre`, `SegundoNombre`, `TercerNombre`) |
-| `GET` | `/pacientes/:numDocumento` | Sí | Busca un paciente por número de documento (`EXEC sp_listarPaciente @NumDocumento`) |
-
-Las rutas marcadas "Sí" requieren el header `Authorization: Bearer <accessToken>` obtenido en el login; si falta o el token es inválido/expiró, responden `401` con código `MISSING_TOKEN` o `INVALID_TOKEN`.
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/appointments` | Agenda una nueva cita médica |
+| `GET` | `/appointments/:id` | Obtiene una cita por id |
+| `GET` | `/pacientes?page=1&pageSize=20` | Lista pacientes paginados (`NroDocumento`, `ApellidoPaterno`, `ApellidoMaterno`, `PrimerNombre`, `SegundoNombre`, `TercerNombre`) |
+| `GET` | `/pacientes/buscar?documento=&hc=&paterno=&materno=&nombres=` | Busca pacientes por filtros (SP `usp_go_listarpacientes`) |
+| `GET` | `/pacientes/:idOrDoc` | Detalle por id (SP `webPacientesListarIdPaciente`) si es numérico, o por documento (SP `sp_listarPaciente`) |
+| `PUT` | `/pacientes/:id` | Modifica un paciente (SP `usp_go_ModificarPaciente`) |
+| `GET` | `/etnias` | Catálogo de etnias (SP `ups_go_ListarEtnias`) |
+| `GET` | `/idiomas` | Catálogo de idiomas (SP `ups_go_ListarIdiomas`) |
+| `GET` | `/tipos-sexo` | Catálogo de sexos (SP `usp_go_ListarTiposSexos`) |
+| `GET` | `/estados-civil` | Catálogo de estados civiles (SP `usp_go_ListarEstadosCivil`) |
+| `GET` | `/grados-instruccion` | Catálogo de grados de instrucción (SP `usp_go_ListarGradoInstruccion`) |
+| `GET` | `/ocupaciones` | Catálogo de ocupaciones (SP `usp_go_ListarOcupaciones`) |
+| `GET` | `/tipos-documentos` | Catálogo de tipos de documento (SP `usp_go_ListarTiposDocumentos`) |
+| `GET` | `/departamentos` | Catálogo de departamentos (SP `usp_go_ListarDepartamentos`) |
+| `GET` | `/provincias/:id` | Provincias de un departamento (SP `usp_go_ListarProvincias`) |
+| `GET` | `/distritos/:id` | Distritos de una provincia (SP `usp_go_ListarDistritos`) |
+| `GET` | `/centros-poblados/:id` | Centros poblados de un distrito (SP `usp_go_ListarCentrosPoblados`) |
+| `GET` | `/paises` | Catálogo de países (SP `usp_go_ListarPaises`) |
+| `GET` | `/reniec/:nrodoc?operacion=completo` | Consulta RENIEC (SOAP externo, `basico` \| `completo`) |
+| `GET` | `/health` | Estado de la API |
 
 Todas las respuestas usan el sobre estándar:
 

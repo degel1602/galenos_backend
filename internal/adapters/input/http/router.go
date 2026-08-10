@@ -1,19 +1,28 @@
 package httpadapter
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/galenos-pro/appointments-api/internal/ports/input"
+	_ "github.com/galenos-pro/appointments-api/docs"
 )
 
 // NewRouter arma el árbol de rutas de la REST API, incluyendo CORS para que
-// el frontend Angular pueda consumirla desde otro origen. Todas las rutas
-// de negocio requieren un Bearer token JWT (obtenido vía POST
-// /api/v1/auth/login), excepto el propio endpoint de login.
-func NewRouter(appointmentHandler *AppointmentHandler, patientHandler *PatientHandler, authHandler *AuthHandler, authService input.AuthService, allowedOrigins []string) *gin.Engine {
+// el frontend Angular pueda consumirla desde otro origen.
+func NewRouter(
+	appointmentHandler *AppointmentHandler,
+	patientHandler *PatientHandler,
+	catalogHandler *CatalogHandler,
+	reniecHandler *ReniecHandler,
+	sisHandler *SisHandler,
+	triageHandler *TriageHandler,
+	allowedOrigins []string,
+) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery(), gin.Logger())
 
@@ -35,19 +44,66 @@ func NewRouter(appointmentHandler *AppointmentHandler, patientHandler *PatientHa
 		protected := v1.Group("")
 		protected.Use(RequireBearerToken(authService))
 		{
-			appointments := protected.Group("/appointments")
-			{
-				appointments.POST("", appointmentHandler.Create)
-				appointments.GET("/:id", appointmentHandler.GetByID)
-			}
+			pacientes.GET("", patientHandler.List)
+			pacientes.GET("/buscar", patientHandler.Search)
+			pacientes.GET("/por-documento", patientHandler.GetByDocumentAndType)
+			pacientes.GET("/:idOrDoc", patientHandler.Get)
+			pacientes.PUT("/:id", patientHandler.Update)
+		}
 
-			pacientes := protected.Group("/pacientes")
-			{
-				pacientes.GET("", patientHandler.List)
-				pacientes.GET("/:numDocumento", patientHandler.GetByDocumentNumber)
-			}
+		etnias := v1.Group("/etnias")
+		{
+			etnias.GET("", catalogHandler.ListEtnias)
+		}
+
+		idiomas := v1.Group("/idiomas")
+		{
+			idiomas.GET("", catalogHandler.ListIdiomas)
+		}
+
+		v1.GET("/tipos-sexo", catalogHandler.ListTipoSexos)
+		v1.GET("/estados-civil", catalogHandler.ListEstadosCivil)
+		v1.GET("/grados-instruccion", catalogHandler.ListGradosInstruccion)
+		v1.GET("/ocupaciones", catalogHandler.ListOcupaciones)
+		v1.GET("/tipos-documentos", catalogHandler.ListTiposDocumentos)
+
+		v1.GET("/departamentos", catalogHandler.ListDepartamentos)
+		v1.GET("/provincias/:id", catalogHandler.ListProvincias)
+		v1.GET("/distritos/:id", catalogHandler.ListDistritos)
+		v1.GET("/centros-poblados/:id", catalogHandler.ListCentrosPoblados)
+		v1.GET("/paises", catalogHandler.ListPaises)
+		v1.GET("/estados-llego-paciente", catalogHandler.ListEstadosLlegoPaciente)
+		v1.GET("/fuentes-financiamiento", catalogHandler.ListFuentesFinanciamiento)
+		v1.GET("/servicios/:idTipoServicio", catalogHandler.ListServicios)
+		v1.GET("/datos-institucion", catalogHandler.GetDatosInstitucion)
+		v1.GET("/especialidades", catalogHandler.ListEspecialidades)
+
+		reniec := v1.Group("/reniec")
+		{
+			reniec.GET("/:nrodoc", reniecHandler.Consultar)
+		}
+
+		sis := v1.Group("/sis")
+		{
+			sis.GET("/afiliado/:nrodoc", sisHandler.ConsultarAfiliado)
+		}
+
+		triaje := v1.Group("/triaje")
+		{
+			triaje.GET("", triageHandler.List)
+			triaje.GET("/pendientes-admision", triageHandler.ListPendingAdmission)
+			triaje.GET("/reporte", triageHandler.GetReporte)
+			triaje.GET("/ficha-admision", triageHandler.GetFichaAdmision)
+			triaje.POST("", triageHandler.Create)
+			triaje.POST("/admision", triageHandler.CreateAdmission)
 		}
 	}
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }

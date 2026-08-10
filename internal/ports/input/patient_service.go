@@ -13,4 +13,20 @@ type PatientService interface {
 
 	// GetByDocumentNumber busca un paciente por su número de documento.
 	GetByDocumentNumber(ctx context.Context, documentNumber string) (domain.Patient, error)
+
+	// GetByDocumentNumberAndType busca un paciente por número y tipo de
+	// documento invocando el SP usp_go_ListarPacientePorNroDocyTipo.
+	GetByDocumentNumberAndType(ctx context.Context, documentNumber string, documentTypeID int64) (domain.Patient, error)
+
+	// Search lista pacientes combinando filtros opcionales (documento, HC,
+	// apellidos, nombres) invocando el SP usp_go_listarpacientes.
+	Search(ctx context.Context, params shared.PatientSearchParams) ([]domain.Patient, error)
+
+	// GetByID devuelve el detalle completo de un paciente por su id
+	// invocando el SP webPacientesListarIdPaciente.
+	GetByID(ctx context.Context, id int64) (domain.PatientDetail, error)
+
+	// Update modifica los datos editables de un paciente invocando el SP
+	// usp_go_ModificarPaciente y devuelve el detalle actualizado.
+	Update(ctx context.Context, id int64, update domain.PatientUpdate) (domain.PatientDetail, error)
 }

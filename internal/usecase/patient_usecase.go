@@ -44,3 +44,64 @@ func (uc *patientUseCase) GetByDocumentNumber(ctx context.Context, documentNumbe
 
 	return *patient, nil
 }
+
+func (uc *patientUseCase) GetByDocumentNumberAndType(ctx context.Context, documentNumber string, documentTypeID int64) (domain.Patient, error) {
+	documentNumber = strings.TrimSpace(documentNumber)
+	if documentNumber == "" {
+		return domain.Patient{}, domain.ErrInvalidDocumentNumber
+	}
+	if documentTypeID <= 0 {
+		return domain.Patient{}, domain.ErrInvalidDocumentType
+	}
+
+	patient, err := uc.repo.GetByDocumentNumberAndType(ctx, documentNumber, documentTypeID)
+	if err != nil {
+		if err == domain.ErrPatientNotFound {
+			return domain.Patient{}, err
+		}
+		return domain.Patient{}, fmt.Errorf("getting patient by document number and type: %w", err)
+	}
+
+	return *patient, nil
+}
+
+func (uc *patientUseCase) Search(ctx context.Context, params shared.PatientSearchParams) ([]domain.Patient, error) {
+	patients, err := uc.repo.Search(ctx, params)
+	if err != nil {
+		return nil, fmt.Errorf("searching patients: %w", err)
+	}
+	return patients, nil
+}
+
+func (uc *patientUseCase) GetByID(ctx context.Context, id int64) (domain.PatientDetail, error) {
+	if id <= 0 {
+		return domain.PatientDetail{}, domain.ErrInvalidPatientID
+	}
+
+	patient, err := uc.repo.GetByID(ctx, id)
+	if err != nil {
+		if err == domain.ErrPatientNotFound {
+			return domain.PatientDetail{}, err
+		}
+		return domain.PatientDetail{}, fmt.Errorf("getting patient by id: %w", err)
+	}
+
+	return *patient, nil
+}
+
+func (uc *patientUseCase) Update(ctx context.Context, id int64, update domain.PatientUpdate) (domain.PatientDetail, error) {
+	if id <= 0 {
+		return domain.PatientDetail{}, domain.ErrInvalidPatientID
+	}
+
+	if err := uc.repo.Update(ctx, id, update); err != nil {
+		return domain.PatientDetail{}, fmt.Errorf("updating patient: %w", err)
+	}
+
+	patient, err := uc.repo.GetByID(ctx, id)
+	if err != nil {
+		return domain.PatientDetail{}, fmt.Errorf("getting updated patient: %w", err)
+	}
+
+	return *patient, nil
+}

@@ -1,0 +1,3286 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API del sistema hospitalario Galenos Pro. Arquitectura hexagonal, persiste en SQL Server 2022.",
+        "title": "Galenos Pro Appointments API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/appointments": {
+            "post": {
+                "description": "Valida los datos del paciente, médico y horario, y agenda la cita si el médico está disponible.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Agenda una nueva cita médica",
+                "parameters": [
+                    {
+                        "description": "Datos de la cita a agendar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_input_http.createAppointmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Appointment"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Validación inválida",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "409": {
+                        "description": "El médico no está disponible en ese horario",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/appointments/{id}": {
+            "get": {
+                "description": "Devuelve la cita identificada por su id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Obtiene una cita médica por id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la cita",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Appointment"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Cita no encontrada",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/centros-poblados/{idDistrito}": {
+            "get": {
+                "description": "Devuelve los centros poblados de un distrito (SP usp_go_ListarCentrosPoblados).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista centros poblados por distrito",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id del distrito",
+                        "name": "idDistrito",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.CentroPoblado"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Id inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/datos-institucion": {
+            "get": {
+                "description": "Devuelve los datos de la institución (SP webParametrosDatosInstitucion).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Obtiene los datos de la institución",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.DatosInstitucion"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/departamentos": {
+            "get": {
+                "description": "Devuelve el catálogo de departamentos (SP usp_go_ListarDepartamentos).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista departamentos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Departamento"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/distritos/{idProvincia}": {
+            "get": {
+                "description": "Devuelve los distritos de una provincia (SP usp_go_ListarDistritos).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista distritos por provincia",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la provincia",
+                        "name": "idProvincia",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Distrito"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Id inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/especialidades": {
+            "get": {
+                "description": "Devuelve el catálogo de especialidades (SP usp_go_ListarEspecialidades).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista especialidades",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Especialidad"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/estados-civil": {
+            "get": {
+                "description": "Devuelve el catálogo de estados civiles (SP usp_go_ListarEstadosCivil).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista estados civiles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoEstadoCivil"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/estados-llego-paciente": {
+            "get": {
+                "description": "Devuelve el catálogo de estados de llegada del paciente (SP usp_go_listarEstadosLlegoPaciente).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista estados de llegada del paciente",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.EstadoLlegoPaciente"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/etnias": {
+            "get": {
+                "description": "Devuelve el catálogo de etnias (SP ups_go_ListarEtnias).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista etnias",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Etnia"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/fuentes-financiamiento": {
+            "get": {
+                "description": "Devuelve el catálogo de fuentes de financiamiento (SP usp_go_ListarFuentesFinanciamiento).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista fuentes de financiamiento",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.FuenteFinanciamiento"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/grados-instruccion": {
+            "get": {
+                "description": "Devuelve el catálogo de grados de instrucción (SP usp_go_ListarGradoInstruccion).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista grados de instrucción",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoGradoInstruccion"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/idiomas": {
+            "get": {
+                "description": "Devuelve el catálogo de idiomas (SP ups_go_ListarIdiomas).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista idiomas",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Idioma"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/ocupaciones": {
+            "get": {
+                "description": "Devuelve el catálogo de ocupaciones (SP usp_go_ListarOcupaciones).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista ocupaciones",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoOcupacion"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pacientes": {
+            "get": {
+                "description": "Devuelve una página de pacientes ordenada, con datos de paginación.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pacientes"
+                ],
+                "summary": "Lista pacientes paginados",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Número de página (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Tamaño de página (default 20, máximo 100)",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.pageResponsePatients"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pacientes/buscar": {
+            "get": {
+                "description": "Invoca el procedimiento almacenado usp_go_listarpacientes. Los filtros vacíos se ignoran.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pacientes"
+                ],
+                "summary": "Busca pacientes aplicando filtros opcionales",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Número de documento del paciente",
+                        "name": "documento",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Número de historia clínica",
+                        "name": "hc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Apellido paterno",
+                        "name": "paterno",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Apellido materno",
+                        "name": "materno",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Primer nombre",
+                        "name": "nombres",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Patient"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pacientes/por-documento": {
+            "get": {
+                "description": "Invoca el SP usp_go_ListarPacientePorNroDocyTipo con el número y el tipo de documento.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pacientes"
+                ],
+                "summary": "Busca un paciente por número y tipo de documento",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Número de documento del paciente",
+                        "name": "nroDocumento",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id del tipo de documento de identidad",
+                        "name": "idTipoDocIdentidad",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Patient"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Paciente no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pacientes/{idOrDoc}": {
+            "get": {
+                "description": "Si el path param es numérico invoca webPacientesListarIdPaciente (detalle); en caso contrario sp_listarPaciente.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pacientes"
+                ],
+                "summary": "Busca un paciente por id o por número de documento",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id o número de documento del paciente",
+                        "name": "idOrDoc",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.PatientDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Identificador inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Paciente no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/pacientes/{id}": {
+            "put": {
+                "description": "Actualiza los datos editables de un paciente (SP usp_go_ModificarPaciente) y devuelve el detalle actualizado.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pacientes"
+                ],
+                "summary": "Modifica un paciente",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id del paciente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos editables del paciente",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_input_http.updatePatientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.PatientDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Validación inválida",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Paciente no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/paises": {
+            "get": {
+                "description": "Devuelve el catálogo de países (SP usp_go_ListarPaises).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista países",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Pais"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/provincias/{idDepartamento}": {
+            "get": {
+                "description": "Devuelve las provincias de un departamento (SP usp_go_ListarProvincias).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista provincias por departamento",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id del departamento",
+                        "name": "idDepartamento",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Provincia"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Id inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reniec/{nrodoc}": {
+            "get": {
+                "description": "Invoca el servicio SOAP externo de RENIEC. La operación por defecto es \"completo\".",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reniec"
+                ],
+                "summary": "Consulta datos de una persona en RENIEC",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Número de documento (DNI)",
+                        "name": "nrodoc",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Operación: basico | completo (default completo)",
+                        "name": "operacion",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.ReniecResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "502": {
+                        "description": "Error al consultar RENIEC",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/servicios/{idTipoServicio}": {
+            "get": {
+                "description": "Devuelve los servicios de un tipo (SP usp_go_ListarServicios).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista servicios por tipo de servicio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id del tipo de servicio",
+                        "name": "idTipoServicio",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Servicio"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Id inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/afiliado/{nrodoc}": {
+            "get": {
+                "description": "Invoca el servicio SOAP externo del SIS (GetSession + ConsultarAfiliadoFuaE) para traer los datos del afiliado.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Consulta el paciente afiliado en el SIS",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Número de documento del afiliado",
+                        "name": "nrodoc",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Tipo de documento: 1 = DNI (default), 3 = Carnet de Extranjería",
+                        "name": "strTipoDocumento",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "intOpcion del WS (tipo de consulta contratado; default 1)",
+                        "name": "intOpcion",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "strDisa del WS",
+                        "name": "strDisa",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "strTipoFormato del WS",
+                        "name": "strTipoFormato",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "strNroContrato del WS",
+                        "name": "strNroContrato",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "strCorrelativo del WS",
+                        "name": "strCorrelativo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.SisAfiliado"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "502": {
+                        "description": "Error al consultar el SIS",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/tipos-documentos": {
+            "get": {
+                "description": "Devuelve el catálogo de tipos de documento (SP usp_go_ListarTiposDocumentos).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista tipos de documento de identidad",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoDocumento"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/tipos-sexo": {
+            "get": {
+                "description": "Devuelve el catálogo de sexos (SP usp_go_ListarTiposSexos).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Catalogos"
+                ],
+                "summary": "Lista tipos de sexo",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoSexo"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje": {
+            "get": {
+                "description": "Devuelve los triajes del período filtrado (SP ListarTriaje_Emergencia). El filtro de texto se aplica en el SP; si no se envía, se pasa vacío.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Lista los triajes registrados",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fecha inicial (YYYY-MM-DD)",
+                        "name": "fini",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha final (YYYY-MM-DD)",
+                        "name": "ffin",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Texto de búsqueda",
+                        "name": "filtro",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Servicio de derivación (-100 para todos)",
+                        "name": "derivadoAServicio",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Estado del triaje",
+                        "name": "idEstado",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar los triajes",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Persiste el triaje del paciente invocando el SP webTab_PacienteTriajeAgregar. Devuelve el @Resultado informado por el procedimiento.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Registra un triaje de paciente",
+                "parameters": [
+                    {
+                        "description": "Datos del triaje a registrar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_input_http.createTriajeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado informado por el SP",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al registrar el triaje",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje/admision": {
+            "post": {
+                "description": "Crea la atención (admisión) de un paciente desde su triaje invocando el SP WebCrearAtencionDesdeTriaje. Devuelve el @Resultado informado por el procedimiento.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Admisiona un paciente con triaje",
+                "parameters": [
+                    {
+                        "description": "Datos de la admisión a partir del triaje",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_input_http.createAdmissionFromTriageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado informado por el SP",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al admisionar al paciente",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje/ficha-admision": {
+            "get": {
+                "description": "Devuelve los datos del paciente y datos adicionales para generar la ficha de admisión (SP webFichaEmergencia).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Obtiene la ficha de admisión de un paciente",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la cuenta de atención",
+                        "name": "idCuentaAtencion",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al obtener la ficha",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje/pendientes-admision": {
+            "get": {
+                "description": "Devuelve los pacientes con triaje que aún no han sido admisionados para una fecha (SP webGestionAtencion_E_H_BusquedaFiltrar). Los filtros opcionales se envían como 0 para no aplicarlos.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Lista pacientes con triaje sin admisión",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fecha (YYYY-MM-DD)",
+                        "name": "fecha",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Texto de búsqueda (documento o nombre)",
+                        "name": "filtro",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Número de cuenta de atención (0 = todos)",
+                        "name": "nroCta",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id departamento (0 = todos)",
+                        "name": "idDepartamento",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id especialidad (0 = todas)",
+                        "name": "idEspecialidad",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id servicio (0 = todos)",
+                        "name": "idServicio",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id tipo de servicio",
+                        "name": "idTipoServicio",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar los triajes sin admisión",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje/reporte": {
+            "get": {
+                "description": "Devuelve el reporte de triaje (SP WebSelectReporteTriaje). Si el filtro no se aplica, enviar -100.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Genera el reporte de triaje",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id del triaje (-100 para todos)",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id del paciente (-100 para todos)",
+                        "name": "idPaciente",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al generar el reporte",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_galenos-pro_appointments-api_internal_domain.Appointment": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "doctorId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "patientId": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "slot": {
+                    "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TimeSlot"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.AppointmentStatus"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.AppointmentStatus": {
+            "type": "string",
+            "enum": [
+                "SCHEDULED",
+                "CONFIRMED",
+                "CANCELLED",
+                "COMPLETED"
+            ],
+            "x-enum-varnames": [
+                "StatusScheduled",
+                "StatusConfirmed",
+                "StatusCancelled",
+                "StatusCompleted"
+            ]
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.CentroPoblado": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.DatosInstitucion": {
+            "type": "object",
+            "properties": {
+                "codRenaes": {
+                    "type": "string"
+                },
+                "codigo": {
+                    "type": "string"
+                },
+                "direccion": {
+                    "type": "string"
+                },
+                "logoHospi": {
+                    "type": "string"
+                },
+                "logoMinsa": {
+                    "type": "string"
+                },
+                "nombre": {
+                    "type": "string"
+                },
+                "rucEess": {
+                    "type": "string"
+                },
+                "telefono": {
+                    "type": "string"
+                },
+                "ubigeoHosp": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Departamento": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Distrito": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Especialidad": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.EstadoLlegoPaciente": {
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Etnia": {
+            "type": "object",
+            "properties": {
+                "codigo": {
+                    "type": "string"
+                },
+                "descripcion": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.FuenteFinanciamiento": {
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string"
+                },
+                "idFuenteFinanciamiento": {
+                    "type": "integer"
+                },
+                "idTipoFinanciamiento": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Idioma": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "lengua": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Pais": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Patient": {
+            "type": "object",
+            "properties": {
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "documentNumber": {
+                    "type": "string"
+                },
+                "educationDegreeId": {
+                    "type": "integer"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "historyNumber": {
+                    "type": "string"
+                },
+                "homeAddress": {
+                    "type": "string"
+                },
+                "homeCenterId": {
+                    "type": "integer"
+                },
+                "homeDistrictId": {
+                    "type": "integer"
+                },
+                "maritalStatusId": {
+                    "type": "integer"
+                },
+                "maternalSurname": {
+                    "type": "string"
+                },
+                "paternalSurname": {
+                    "type": "string"
+                },
+                "patientId": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "secondName": {
+                    "type": "string"
+                },
+                "sexTypeId": {
+                    "type": "integer"
+                },
+                "thirdName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.PatientDetail": {
+            "type": "object",
+            "properties": {
+                "autoGenerated": {
+                    "type": "string"
+                },
+                "birthCenterId": {
+                    "type": "integer"
+                },
+                "birthCountryId": {
+                    "type": "integer"
+                },
+                "birthDistrictId": {
+                    "type": "integer"
+                },
+                "birthRecordNumber": {
+                    "type": "string"
+                },
+                "bloodType": {
+                    "type": "string"
+                },
+                "cellphone": {
+                    "type": "string"
+                },
+                "childOrderNumber": {
+                    "type": "integer"
+                },
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "disabilityId": {
+                    "type": "integer"
+                },
+                "docIdentityId": {
+                    "type": "integer"
+                },
+                "documentNumber": {
+                    "type": "string"
+                },
+                "ecoGenCaseNumber": {
+                    "type": "string"
+                },
+                "ecogObsCaseNumber": {
+                    "type": "string"
+                },
+                "educationDegreeId": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "ethnicityId": {
+                    "type": "string"
+                },
+                "familyRecord": {
+                    "type": "string"
+                },
+                "fatherName": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "historyNumber": {
+                    "type": "string"
+                },
+                "homeAddress": {
+                    "type": "string"
+                },
+                "homeCenterId": {
+                    "type": "integer"
+                },
+                "homeCountryId": {
+                    "type": "integer"
+                },
+                "homeDistrictId": {
+                    "type": "integer"
+                },
+                "incapacityId": {
+                    "type": "integer"
+                },
+                "insuranceTypeId": {
+                    "type": "integer"
+                },
+                "languageId": {
+                    "type": "integer"
+                },
+                "maritalStatusId": {
+                    "type": "integer"
+                },
+                "maternalSurname": {
+                    "type": "string"
+                },
+                "motherDocType": {
+                    "type": "string"
+                },
+                "motherDocument": {
+                    "type": "string"
+                },
+                "motherFirstName": {
+                    "type": "string"
+                },
+                "motherMaternalSurname": {
+                    "type": "string"
+                },
+                "motherName": {
+                    "type": "string"
+                },
+                "motherPaternalSurname": {
+                    "type": "string"
+                },
+                "motherSecondName": {
+                    "type": "string"
+                },
+                "numberingTypeId": {
+                    "type": "integer"
+                },
+                "observation": {
+                    "type": "string"
+                },
+                "occupationTypeId": {
+                    "type": "integer"
+                },
+                "originCenterId": {
+                    "type": "integer"
+                },
+                "originCountryId": {
+                    "type": "integer"
+                },
+                "originDistrictId": {
+                    "type": "integer"
+                },
+                "originId": {
+                    "type": "integer"
+                },
+                "paternalSurname": {
+                    "type": "string"
+                },
+                "patientId": {
+                    "type": "integer"
+                },
+                "patientPhoto": {
+                    "type": "string"
+                },
+                "patientSignature": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "rhFactor": {
+                    "type": "string"
+                },
+                "secondName": {
+                    "type": "string"
+                },
+                "sector": {
+                    "type": "string"
+                },
+                "sectorist": {
+                    "type": "string"
+                },
+                "sexTypeId": {
+                    "type": "integer"
+                },
+                "stateId": {
+                    "type": "integer"
+                },
+                "thirdName": {
+                    "type": "string"
+                },
+                "usesWebReniec": {
+                    "type": "boolean"
+                },
+                "xRayCaseNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Provincia": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.ReniecDatos": {
+            "type": "object",
+            "properties": {
+                "apellidoMaterno": {
+                    "type": "string"
+                },
+                "apellidoPaterno": {
+                    "type": "string"
+                },
+                "fechaNacimiento": {
+                    "type": "string"
+                },
+                "nombres": {
+                    "type": "string"
+                },
+                "primerNombre": {
+                    "type": "string"
+                },
+                "segundoNombre": {
+                    "type": "string"
+                },
+                "sexo": {
+                    "type": "string"
+                },
+                "tercerNombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.ReniecResult": {
+            "type": "object",
+            "properties": {
+                "datos": {
+                    "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.ReniecDatos"
+                },
+                "dni": {
+                    "type": "string"
+                },
+                "operacion": {
+                    "type": "string"
+                },
+                "resultado": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.Servicio": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.SisAfiliado": {
+            "type": "object",
+            "properties": {
+                "apeMaterno": {
+                    "type": "string"
+                },
+                "apePaterno": {
+                    "type": "string"
+                },
+                "contrato": {
+                    "type": "string"
+                },
+                "correlativo": {
+                    "type": "string"
+                },
+                "descEESS": {
+                    "type": "string"
+                },
+                "descEessUbigeo": {
+                    "type": "string"
+                },
+                "descTipoSeguro": {
+                    "type": "string"
+                },
+                "direccion": {
+                    "type": "string"
+                },
+                "disa": {
+                    "type": "string"
+                },
+                "eess": {
+                    "type": "string"
+                },
+                "eessUbigeo": {
+                    "type": "string"
+                },
+                "estado": {
+                    "type": "string"
+                },
+                "fecAfiliacion": {
+                    "type": "string"
+                },
+                "fecCaducidad": {
+                    "type": "string"
+                },
+                "fecNacimiento": {
+                    "type": "string"
+                },
+                "genero": {
+                    "type": "string"
+                },
+                "idError": {
+                    "type": "string"
+                },
+                "idGrupoPoblacional": {
+                    "type": "string"
+                },
+                "idNumReg": {
+                    "type": "string"
+                },
+                "idPlan": {
+                    "type": "string"
+                },
+                "idUbigeo": {
+                    "type": "string"
+                },
+                "msgConfidencial": {
+                    "type": "string"
+                },
+                "nombres": {
+                    "type": "string"
+                },
+                "nroContrato": {
+                    "type": "string"
+                },
+                "nroDocumento": {
+                    "type": "string"
+                },
+                "regimen": {
+                    "type": "string"
+                },
+                "resultado": {
+                    "type": "string"
+                },
+                "tabla": {
+                    "type": "string"
+                },
+                "tipoDocumento": {
+                    "type": "string"
+                },
+                "tipoFormato": {
+                    "type": "string"
+                },
+                "tipoSeguro": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.TimeSlot": {
+            "type": "object",
+            "properties": {
+                "endsAt": {
+                    "type": "string"
+                },
+                "startsAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.TipoDocumento": {
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.TipoEstadoCivil": {
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.TipoGradoInstruccion": {
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.TipoOcupacion": {
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_galenos-pro_appointments-api_internal_domain.TipoSexo": {
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_adapters_input_http.apiError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_adapters_input_http.apiResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "internal_adapters_input_http.createAdmissionFromTriageRequest": {
+            "type": "object",
+            "required": [
+                "idPacienteTriaje",
+                "idTriaje"
+            ],
+            "properties": {
+                "direccionPaciente": {
+                    "type": "string"
+                },
+                "idEmpleado": {
+                    "type": "integer"
+                },
+                "idPacienteTriaje": {
+                    "type": "integer"
+                },
+                "idTriaje": {
+                    "type": "integer"
+                },
+                "nombreAcompanante": {
+                    "type": "string"
+                },
+                "observacion": {
+                    "type": "string"
+                },
+                "telefonoAcompanante": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_adapters_input_http.createAppointmentRequest": {
+            "type": "object",
+            "required": [
+                "doctorId",
+                "endsAt",
+                "patientId",
+                "reason",
+                "startsAt"
+            ],
+            "properties": {
+                "doctorId": {
+                    "type": "string"
+                },
+                "endsAt": {
+                    "type": "string"
+                },
+                "patientId": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "startsAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_adapters_input_http.createTriajeRequest": {
+            "type": "object",
+            "properties": {
+                "apellidoMaterno": {
+                    "type": "string"
+                },
+                "apellidoPaterno": {
+                    "type": "string"
+                },
+                "direccion": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "escalaDolor": {
+                    "type": "integer"
+                },
+                "escalaGlasgow": {
+                    "type": "integer"
+                },
+                "fechaNacimiento": {
+                    "type": "string"
+                },
+                "fiO2": {
+                    "type": "integer"
+                },
+                "foto": {
+                    "type": "string"
+                },
+                "frecCardiaca": {
+                    "type": "integer"
+                },
+                "frecRespiratoria": {
+                    "type": "integer"
+                },
+                "gestante": {
+                    "type": "integer"
+                },
+                "idComunidadDomicilio": {
+                    "type": "integer"
+                },
+                "idDepartamentoDomicilio": {
+                    "type": "integer"
+                },
+                "idDistritoDomicilio": {
+                    "type": "integer"
+                },
+                "idDocIdentidad": {
+                    "type": "integer"
+                },
+                "idEmpleado": {
+                    "type": "integer"
+                },
+                "idEsAccidenteTransito": {
+                    "type": "integer"
+                },
+                "idEstadoCivil": {
+                    "type": "integer"
+                },
+                "idEstadollego": {
+                    "type": "integer"
+                },
+                "idFuenteFinanciamiento": {
+                    "type": "integer"
+                },
+                "idProvinciaDomicilio": {
+                    "type": "integer"
+                },
+                "idServicio": {
+                    "type": "integer"
+                },
+                "idSexo": {
+                    "type": "integer"
+                },
+                "idTipoPrioridad": {
+                    "type": "integer"
+                },
+                "idTriaje": {
+                    "type": "integer"
+                },
+                "imc": {
+                    "type": "number"
+                },
+                "motivo": {
+                    "type": "string"
+                },
+                "nroDocumento": {
+                    "type": "string"
+                },
+                "peso": {
+                    "type": "number"
+                },
+                "presionArterial": {
+                    "type": "string"
+                },
+                "primerNombre": {
+                    "type": "string"
+                },
+                "saturacion": {
+                    "type": "integer"
+                },
+                "segundoNombre": {
+                    "type": "string"
+                },
+                "talla": {
+                    "type": "number"
+                },
+                "telefono": {
+                    "type": "string"
+                },
+                "temperatura": {
+                    "type": "number"
+                },
+                "tercerNombre": {
+                    "type": "string"
+                },
+                "tiempoEvolucionCantidad": {
+                    "type": "integer"
+                },
+                "tiempoEvolucionCantidadUnidad": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_adapters_input_http.pageResponsePatients": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Patient"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "totalItems": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_adapters_input_http.updatePatientRequest": {
+            "type": "object",
+            "properties": {
+                "auditUserId": {
+                    "type": "integer"
+                },
+                "autoGenerated": {
+                    "type": "string"
+                },
+                "birthCenterId": {
+                    "type": "integer"
+                },
+                "birthCountryId": {
+                    "type": "integer"
+                },
+                "birthDistrictId": {
+                    "type": "integer"
+                },
+                "cellphone": {
+                    "type": "string"
+                },
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "disabilityId": {
+                    "type": "integer"
+                },
+                "docIdentityId": {
+                    "type": "integer"
+                },
+                "documentNumber": {
+                    "type": "string"
+                },
+                "educationDegreeId": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "ethnicityId": {
+                    "type": "string"
+                },
+                "fatherName": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "historyNumber": {
+                    "type": "integer"
+                },
+                "homeAddress": {
+                    "type": "string"
+                },
+                "homeCenterId": {
+                    "type": "integer"
+                },
+                "homeCountryId": {
+                    "type": "integer"
+                },
+                "homeDistrictId": {
+                    "type": "integer"
+                },
+                "incapacityId": {
+                    "type": "integer"
+                },
+                "languageId": {
+                    "type": "integer"
+                },
+                "maritalStatusId": {
+                    "type": "integer"
+                },
+                "maternalSurname": {
+                    "type": "string"
+                },
+                "motherName": {
+                    "type": "string"
+                },
+                "occupationTypeId": {
+                    "type": "integer"
+                },
+                "originCenterId": {
+                    "type": "integer"
+                },
+                "originCountryId": {
+                    "type": "integer"
+                },
+                "originDistrictId": {
+                    "type": "integer"
+                },
+                "originId": {
+                    "type": "integer"
+                },
+                "paternalSurname": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "secondName": {
+                    "type": "string"
+                },
+                "sexTypeId": {
+                    "type": "integer"
+                },
+                "thirdName": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
