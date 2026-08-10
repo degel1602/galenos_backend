@@ -1,19 +1,16 @@
-package input
+package output
 
 import (
 	"context"
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
-	"github.com/galenos-pro/appointments-api/internal/ports/shared"
 )
 
-// SisService es el puerto de entrada para consultar el servicio SIS.
-type SisService interface {
-	// ConsultarAfiliado trae el paciente afiliado por su número de documento.
-	ConsultarAfiliado(ctx context.Context, params shared.SISAfiliadoParams) (domain.SisAfiliado, error)
-
+// SisRepository es el puerto de salida para persistir las afiliaciones SIS
+// de los pacientes asegurados contra la base de datos.
+type SisRepository interface {
 	// GestionarAfiliacion guarda o actualiza una afiliación SIS invocando
-	// el SP webSisFiliacionesGestionar.
+	// el procedimiento almacenado webSisFiliacionesGestionar.
 	GestionarAfiliacion(ctx context.Context, afiliacion *domain.SisAfiliacion) error
 
 	// ForzarGuardadoFua fuerza el guardado del FUA de una cuenta de
@@ -21,11 +18,11 @@ type SisService interface {
 	ForzarGuardadoFua(ctx context.Context, idCuentaAtencion int64) error
 
 	// AgregarFua agrega el FUA de una cuenta de atención invocando el SP
-	// usp_go_webFUAgregar. Retorna el @Respuesta del SP.
+	// usp_go_webFUAgregar. Retorna el valor del parámetro de salida @Respuesta.
 	AgregarFua(ctx context.Context, idCuentaAtencion, idEmpleado int64, nombrePc string) (string, error)
 
 	// GetFuaImprimir consulta los datos del FUA para imprimir invocando el
-	// SP webFuaImprimirIdCuentaAtencion. Retorna nil si el SP no devuelve filas.
+	// SP webFuaImprimirIdCuentaAtencion.
 	GetFuaImprimir(ctx context.Context, idCuentaAtencion int64) (*map[string]any, error)
 
 	// ListDiagnosticos consulta los diagnósticos de una atención invocando el

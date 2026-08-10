@@ -61,6 +61,7 @@ func run() error {
 	patientRepo := sqlserver.NewPatientRepository(db)
 	catalogRepo := sqlserver.NewCatalogRepository(db)
 	triageRepo := sqlserver.NewTriageRepository(db)
+	sisRepo := sqlserver.NewSisRepository(db)
 
 	// --- Adaptador de salida: servicio externo RENIEC ---
 	reniecClient := reniec.New(reniec.Config{
@@ -85,7 +86,7 @@ func run() error {
 	patientService := usecase.NewPatientUseCase(patientRepo)
 	catalogService := usecase.NewCatalogUseCase(catalogRepo)
 	reniecService := usecase.NewReniecUseCase(reniecClient)
-	sisService := usecase.NewSisUseCase(sisClient)
+	sisService := usecase.NewSisUseCase(sisClient, sisRepo)
 	triageService := usecase.NewTriageUseCase(triageRepo)
 
 	// El host de Swagger se ajusta en runtime al IP detectado de la
