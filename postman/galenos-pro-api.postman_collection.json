@@ -1,15 +1,115 @@
 {
 	"info": {
 		"name": "Galenos Pro - Appointments API",
-		"description": "Colección para la REST API en Go (arquitectura hexagonal) del sistema hospitalario Galenos Pro. Incluye el módulo de Citas Médicas y la consulta de Pacientes: listado paginado (SELECT ... FROM pacientes) y búsqueda por número de documento (EXEC sp_listarPaciente @NumDocumento).",
+		"description": "Colección para la REST API en Go (arquitectura hexagonal) del sistema hospitalario Galenos Pro. Incluye autenticación con Bearer token JWT, el módulo de Citas Médicas y la consulta de Pacientes: listado paginado (SELECT ... FROM pacientes) y búsqueda por número de documento (EXEC sp_listarPaciente @NumDocumento). Todas las rutas requieren el header Authorization: Bearer <token> obtenido en Autenticación > Login, salvo el propio login.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{ "key": "token", "value": "{{accessToken}}", "type": "string" }
+		]
 	},
 	"variable": [
 		{ "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
 		{ "key": "appointmentId", "value": "", "type": "string" },
-		{ "key": "numDocumento", "value": "70123456", "type": "string" }
+		{ "key": "numDocumento", "value": "70123456", "type": "string" },
+		{ "key": "username", "value": "admin", "type": "string" },
+		{ "key": "password", "value": "change-me", "type": "string" },
+		{ "key": "accessToken", "value": "", "type": "string" }
 	],
 	"item": [
+		{
+			"name": "Autenticación",
+			"item": [
+				{
+					"name": "Login",
+					"auth": { "type": "noauth" },
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const body = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', body.data.accessToken);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": [ "{{baseUrl}}" ],
+							"path": [ "api", "v1", "auth", "login" ]
+						}
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/login",
+									"host": [ "{{baseUrl}}" ],
+									"path": [ "api", "v1", "auth", "login" ]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{ "key": "Content-Type", "value": "application/json" }
+							],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"tokenType\": \"Bearer\"\n  }\n}"
+						},
+						{
+							"name": "401 Unauthorized",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"incorrecta\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/login",
+									"host": [ "{{baseUrl}}" ],
+									"path": [ "api", "v1", "auth", "login" ]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{ "key": "Content-Type", "value": "application/json" }
+							],
+							"body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"INVALID_CREDENTIALS\",\n    \"message\": \"invalid username or password\"\n  }\n}"
+						}
+					]
+				}
+			]
+		},
 		{
 			"name": "Pacientes",
 			"item": [

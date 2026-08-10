@@ -42,11 +42,10 @@ Copia `.env.example` a `.env` y ajusta los valores (el `.env` real con credencia
 | `DB_MAX_OPEN_CONNS` | Máximo de conexiones abiertas del pool | `25` |
 | `DB_MAX_IDLE_CONNS` | Máximo de conexiones inactivas del pool | `10` |
 | `DB_CONN_MAX_LIFETIME` | Tiempo de vida máximo de una conexión | `5m` |
-| `RENIEC_APP` | Aplicación para credenciales RENIEC | `HNSEB` |
-| `RENIEC_USUARIO` | Usuario RENIEC | `44602631` |
-| `RENIEC_CLAVE` | Clave RENIEC (requerida para `/reniec/*`) | *(vacía)* |
-| `RENIEC_URL` | Endpoint SOAP de RENIEC | `https://wsvmin.minsa.gob.pe/wsreniecmq/serviciomq.asmx` |
-| `RENIEC_TIMEOUT` | Timeout de la llamada SOAP | `30s` |
+| `JWT_SECRET` | Secreto usado para firmar y validar los JWT (HS256) | *(requerida)* |
+| `JWT_EXPIRATION` | Tiempo de expiración del token emitido en el login | `24h` |
+| `API_USERNAME` | Usuario válido para `POST /auth/login` | *(requerida)* |
+| `API_PASSWORD` | Contraseña válida para `POST /auth/login` | *(requerida)* |
 
 `main.go` carga `.env` automáticamente si existe (vía `godotenv`), útil solo para desarrollo local.
 
@@ -95,7 +94,7 @@ Todas las respuestas usan el sobre estándar:
 
 ## Colección Postman
 
-`postman/galenos-pro-api.postman_collection.json` — importar en Postman. Variable `baseUrl` apunta a `http://localhost:8080` por defecto.
+`postman/galenos-pro-api.postman_collection.json` — importar en Postman. Variable `baseUrl` apunta a `http://localhost:8080` por defecto. Ejecutar primero **Autenticación > Login** (usa las variables `username`/`password`): su test script guarda el JWT en la variable de colección `accessToken`, que el resto de peticiones reutiliza automáticamente vía Bearer Auth a nivel de colección.
 
 ## Notas
 

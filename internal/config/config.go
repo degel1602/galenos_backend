@@ -41,6 +41,21 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("SQLSERVER_DSN environment variable is required")
 	}
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET environment variable is required")
+	}
+
+	apiUsername := os.Getenv("API_USERNAME")
+	if apiUsername == "" {
+		return nil, fmt.Errorf("API_USERNAME environment variable is required")
+	}
+
+	apiPassword := os.Getenv("API_PASSWORD")
+	if apiPassword == "" {
+		return nil, fmt.Errorf("API_PASSWORD environment variable is required")
+	}
+
 	return &Config{
 		ServerPort:        envOrDefault("SERVER_PORT", "8080"),
 		ServerHost:        envOrDefault("SERVER_HOST", defaultServerHost()),

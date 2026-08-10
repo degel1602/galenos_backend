@@ -36,13 +36,13 @@ func NewRouter(
 
 	v1 := router.Group("/api/v1")
 	{
-		appointments := v1.Group("/appointments")
+		auth := v1.Group("/auth")
 		{
-			appointments.POST("", appointmentHandler.Create)
-			appointments.GET("/:id", appointmentHandler.GetByID)
+			auth.POST("/login", authHandler.Login)
 		}
 
-		pacientes := v1.Group("/pacientes")
+		protected := v1.Group("")
+		protected.Use(RequireBearerToken(authService))
 		{
 			pacientes.GET("", patientHandler.List)
 			pacientes.GET("/buscar", patientHandler.Search)
