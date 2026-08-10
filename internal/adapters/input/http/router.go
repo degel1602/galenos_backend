@@ -86,6 +86,14 @@ func NewRouter(
 		sis := v1.Group("/sis")
 		{
 			sis.GET("/afiliado/:nrodoc", sisHandler.ConsultarAfiliado)
+			sis.POST("/filiaciones", sisHandler.GestionarAfiliacion)
+			sis.POST("/fua", sisHandler.ForzarGuardadoFua)
+			sis.POST("/fua/agregar", sisHandler.AgregarFua)
+			sis.GET("/fua/imprimir", sisHandler.GetFuaImprimir)
+			sis.GET("/diagnosticos", sisHandler.ListDiagnosticos)
+			sis.GET("/medicamentos", sisHandler.ListMedicamentos)
+			sis.GET("/procedimientos", sisHandler.ListProcedimientos)
+			sis.GET("/consumo", sisHandler.ListConsumo)
 		}
 
 		triaje := v1.Group("/triaje")

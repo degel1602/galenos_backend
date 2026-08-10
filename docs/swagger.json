@@ -1645,6 +1645,649 @@
                 }
             }
         },
+        "/sis/consumo": {
+            "get": {
+                "description": "Invoca el SP webFactOrdenServicioDetaDesFinaListarIdcuenta con el id de la cuenta de atención.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Lista el detalle de consumo de una atención",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la cuenta de atención",
+                        "name": "idCuentaAtencion",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de consumos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetro inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar el consumo",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/diagnosticos": {
+            "get": {
+                "description": "Invoca el SP webAtencionesDiagnosticosIdAtencion con el id de la atención.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Lista los diagnósticos de una atención",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la atención",
+                        "name": "idAtencion",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de diagnósticos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetro inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar los diagnósticos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/filiaciones": {
+            "post": {
+                "description": "Persiste la afiliación SIS del paciente invocando el SP webSisFiliacionesGestionar.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Guarda la afiliación SIS de un paciente asegurado",
+                "parameters": [
+                    {
+                        "description": "Datos de la afiliación SIS a guardar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_input_http.sisAfiliacionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Afiliación guardada",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al guardar la afiliación",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/fua": {
+            "post": {
+                "description": "Invoca el SP webSisFuaAtencionForzarGuardado para forzar la generación/guardado del FUA.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Fuerza el guardado del FUA de una cuenta de atención",
+                "parameters": [
+                    {
+                        "description": "Id de la cuenta de atención",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_input_http.sisFuaForzarGuardadoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "FUA guardado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al guardar el FUA",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/fua/agregar": {
+            "post": {
+                "description": "Invoca el SP usp_go_webFUAgregar para registrar el FUA. Devuelve el @Respuesta del procedimiento.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Agrega el FUA de una cuenta de atención",
+                "parameters": [
+                    {
+                        "description": "Datos para agregar el FUA",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_input_http.sisFuaAgregarRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Respuesta del SP",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al agregar el FUA",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/fua/imprimir": {
+            "get": {
+                "description": "Invoca el SP webFuaImprimirIdCuentaAtencion con el id de la cuenta de atención. Devuelve los datos del FUA.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Consulta los datos del FUA para imprimir",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la cuenta de atención",
+                        "name": "idCuentaAtencion",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos del FUA",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetro inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al consultar el FUA",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/medicamentos": {
+            "get": {
+                "description": "Invoca el SP webMedicamentosListarIdCuentaAtencion con el id de la cuenta de atención.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Lista los medicamentos de una atención",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la cuenta de atención",
+                        "name": "idCuentaAtencion",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de medicamentos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetro inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar los medicamentos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/sis/procedimientos": {
+            "get": {
+                "description": "Invoca el SP webProcedimientoListarIdCuentaAtencion con el id de la cuenta de atención.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SIS"
+                ],
+                "summary": "Lista los procedimientos de una atención",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la cuenta de atención",
+                        "name": "idCuentaAtencion",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de procedimientos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetro inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar los procedimientos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/tipos-documentos": {
             "get": {
                 "description": "Devuelve el catálogo de tipos de documento (SP usp_go_ListarTiposDocumentos).",
@@ -3168,6 +3811,134 @@
                     "type": "integer"
                 },
                 "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_adapters_input_http.sisAfiliacionRequest": {
+            "type": "object",
+            "properties": {
+                "afiliacionDisa": {
+                    "type": "string"
+                },
+                "afiliacionFecha": {
+                    "type": "string"
+                },
+                "afiliacionNroFormato": {
+                    "type": "string"
+                },
+                "afiliacionNroIntegrante": {
+                    "type": "string"
+                },
+                "afiliacionTipoFormato": {
+                    "type": "string"
+                },
+                "codigo": {
+                    "type": "string"
+                },
+                "codigoEstablAdscripcion": {
+                    "type": "string"
+                },
+                "contrato": {
+                    "type": "string"
+                },
+                "descEESS": {
+                    "type": "string"
+                },
+                "descEessUbigeo": {
+                    "type": "string"
+                },
+                "descTipoSeguro": {
+                    "type": "string"
+                },
+                "documentoNumero": {
+                    "type": "string"
+                },
+                "documentoTipo": {
+                    "type": "string"
+                },
+                "estado": {
+                    "type": "string"
+                },
+                "fBaja": {
+                    "type": "string"
+                },
+                "fBajaOk": {
+                    "type": "string"
+                },
+                "fNacimiento": {
+                    "type": "string"
+                },
+                "genero": {
+                    "type": "string"
+                },
+                "idDistritoDomicilio": {
+                    "type": "string"
+                },
+                "idGrupoPoblacional": {
+                    "type": "string"
+                },
+                "idPlan": {
+                    "type": "string"
+                },
+                "idSiasis": {
+                    "type": "integer"
+                },
+                "idUsuarioAuditoria": {
+                    "type": "integer"
+                },
+                "materno": {
+                    "type": "string"
+                },
+                "motivoBaja": {
+                    "type": "string"
+                },
+                "msgConfidencial": {
+                    "type": "string"
+                },
+                "oNombres": {
+                    "type": "string"
+                },
+                "pNombre": {
+                    "type": "string"
+                },
+                "paterno": {
+                    "type": "string"
+                },
+                "regimen": {
+                    "type": "string"
+                },
+                "tipoSeguro": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_adapters_input_http.sisFuaAgregarRequest": {
+            "type": "object",
+            "required": [
+                "idCuentaAtencion",
+                "idEmpleado",
+                "nombrePc"
+            ],
+            "properties": {
+                "idCuentaAtencion": {
+                    "type": "integer"
+                },
+                "idEmpleado": {
+                    "type": "integer"
+                },
+                "nombrePc": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_adapters_input_http.sisFuaForzarGuardadoRequest": {
+            "type": "object",
+            "required": [
+                "idCuentaAtencion"
+            ],
+            "properties": {
+                "idCuentaAtencion": {
                     "type": "integer"
                 }
             }

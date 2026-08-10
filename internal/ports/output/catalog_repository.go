@@ -23,7 +23,7 @@ type CatalogRepository interface {
 	ListDistritos(ctx context.Context, idProvincia int64) ([]domain.Distrito, error)
 	ListCentrosPoblados(ctx context.Context, idDistrito int64) ([]domain.CentroPoblado, error)
 	ListPaises(ctx context.Context) ([]domain.Pais, error)
-ListEstadosLlegoPaciente(ctx context.Context) ([]domain.EstadoLlegoPaciente, error)
+	ListEstadosLlegoPaciente(ctx context.Context) ([]domain.EstadoLlegoPaciente, error)
 	ListFuentesFinanciamiento(ctx context.Context) ([]domain.FuenteFinanciamiento, error)
 	ListServicios(ctx context.Context, idTipoServicio int64) ([]domain.Servicio, error)
 	ListEspecialidades(ctx context.Context) ([]domain.Especialidad, error)
