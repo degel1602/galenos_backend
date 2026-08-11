@@ -17,7 +17,7 @@ type createAppointmentRequest struct {
 }
 
 // pageResponsePatients describe la respuesta paginada de pacientes para Swagger.
-type pageResponsePatients = shared.PageResponse[domain.Patient]
+type pageResponsePatients = shared.PageResponse[patientResponse]
 
 // updatePatientRequest es el cuerpo de PUT /api/v1/pacientes/:id. Repite los
 // campos editables de domain.PatientUpdate para que el binding de Gin sea
@@ -58,6 +58,108 @@ type updatePatientRequest struct {
 	DisabilityID      *int64     `json:"disabilityId"`
 	IncapacityID      *int64     `json:"incapacityId"`
 	AuditUserID       *int64     `json:"auditUserId"`
+}
+
+// sisAfiliacionRequest es el cuerpo de POST /api/v1/sis/filiaciones.
+// Replica los campos del SP webSisFiliacionesGestionar; los campos
+// opcionales son punteros para enviar NULL cuando no se incluyen.
+type sisAfiliacionRequest struct {
+	IDSiasis                *int64     `json:"idSiasis"`
+	Codigo                  *string    `json:"codigo"`
+	AfiliacionDisa          *string    `json:"afiliacionDisa"`
+	TipoFormato             *string    `json:"afiliacionTipoFormato"`
+	NroFormato              *string    `json:"afiliacionNroFormato"`
+	NroIntegrante           *string    `json:"afiliacionNroIntegrante"`
+	DocumentoTipo           *string    `json:"documentoTipo"`
+	CodigoEstablAdscripcion *string    `json:"codigoEstablAdscripcion"`
+	AfiliacionFecha         *time.Time `json:"afiliacionFecha"`
+	Paterno                 *string    `json:"paterno"`
+	Materno                 *string    `json:"materno"`
+	PNombre                 *string    `json:"pNombre"`
+	ONombres                *string    `json:"oNombres"`
+	Genero                  *string    `json:"genero"`
+	FNacimiento             *time.Time `json:"fNacimiento"`
+	IdDistritoDomicilio     *string    `json:"idDistritoDomicilio"`
+	Estado                  *string    `json:"estado"`
+	Fbaja                   *string    `json:"fBaja"`
+	DocumentoNumero         *string    `json:"documentoNumero"`
+	MotivoBaja              *string    `json:"motivoBaja"`
+	FbajaOK                 *time.Time `json:"fBajaOk"`
+	DescEESS                *string    `json:"descEESS"`
+	DescEESSUbigeo          *string    `json:"descEessUbigeo"`
+	Regimen                 *string    `json:"regimen"`
+	TipoSeguro              *string    `json:"tipoSeguro"`
+	DescTipoSeguro          *string    `json:"descTipoSeguro"`
+	Contrato                *string    `json:"contrato"`
+	IdPlan                  *string    `json:"idPlan"`
+	IdGrupoPoblacional      *string    `json:"idGrupoPoblacional"`
+	MsgConfidencial         *string    `json:"msgConfidencial"`
+	IdUsuarioAuditoria      *int64     `json:"idUsuarioAuditoria"`
+}
+
+// toDomain mapea el request HTTP al objeto de dominio para el SP.
+func (r sisAfiliacionRequest) toDomain() *domain.SisAfiliacion {
+	return &domain.SisAfiliacion{
+		IDSiasis:                r.IDSiasis,
+		Codigo:                  r.Codigo,
+		AfiliacionDisa:          r.AfiliacionDisa,
+		TipoFormato:             r.TipoFormato,
+		NroFormato:              r.NroFormato,
+		NroIntegrante:           r.NroIntegrante,
+		DocumentoTipo:           r.DocumentoTipo,
+		CodigoEstablAdscripcion: r.CodigoEstablAdscripcion,
+		AfiliacionFecha:         r.AfiliacionFecha,
+		Paterno:                 r.Paterno,
+		Materno:                 r.Materno,
+		PNombre:                 r.PNombre,
+		ONombres:                r.ONombres,
+		Genero:                  r.Genero,
+		FNacimiento:             r.FNacimiento,
+		IdDistritoDomicilio:     r.IdDistritoDomicilio,
+		Estado:                  r.Estado,
+		Fbaja:                   r.Fbaja,
+		DocumentoNumero:         r.DocumentoNumero,
+		MotivoBaja:              r.MotivoBaja,
+		FbajaOK:                 r.FbajaOK,
+		DescEESS:                r.DescEESS,
+		DescEESSUbigeo:          r.DescEESSUbigeo,
+		Regimen:                 r.Regimen,
+		TipoSeguro:              r.TipoSeguro,
+		DescTipoSeguro:          r.DescTipoSeguro,
+		Contrato:                r.Contrato,
+		IdPlan:                  r.IdPlan,
+		IdGrupoPoblacional:      r.IdGrupoPoblacional,
+		MsgConfidencial:         r.MsgConfidencial,
+		IdUsuarioAuditoria:      r.IdUsuarioAuditoria,
+	}
+}
+
+// sisFuaForzarGuardadoRequest es el cuerpo de POST /api/v1/sis/fua.
+type sisFuaForzarGuardadoRequest struct {
+	IdCuentaAtencion int64 `json:"idCuentaAtencion" binding:"required"`
+}
+
+// sisFuaImprimirParams son los parámetros de GET /api/v1/sis/fua/imprimir.
+type sisFuaImprimirParams struct {
+	IdCuentaAtencion int64 `form:"idCuentaAtencion" binding:"required"`
+}
+
+// sisDiagnosticosParams son los parámetros de GET /api/v1/sis/diagnosticos.
+type sisDiagnosticosParams struct {
+	IdAtencion int64 `form:"idAtencion" binding:"required"`
+}
+
+// sisCuentaAtencionParams agrupa los parámetros de los listados que usan el
+// id de la cuenta de atención (GET /api/v1/sis/medicamentos y procedimientos).
+type sisCuentaAtencionParams struct {
+	IdCuentaAtencion int64 `form:"idCuentaAtencion" binding:"required"`
+}
+
+// sisFuaAgregarRequest es el cuerpo de POST /api/v1/sis/fua/agregar.
+type sisFuaAgregarRequest struct {
+	IdCuentaAtencion int64  `json:"idCuentaAtencion" binding:"required"`
+	IdEmpleado       int64  `json:"idEmpleado" binding:"required"`
+	NombrePc         string `json:"nombrePc" binding:"omitempty"`
 }
 
 // createTriajeRequest es el cuerpo de POST /api/v1/triaje. Cada campo es

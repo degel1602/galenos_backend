@@ -29,13 +29,17 @@ func NewCatalogHandler(service input.CatalogService) *CatalogHandler {
 // @Success 200 {object} apiResponse{data=[]domain.Etnia}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /etnias [get]
-func (h *CatalogHandler) ListEtnias(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toEtniaResponse(it))
+	}
+	func (h *CatalogHandler) ListEtnias(c *gin.Context) {
 	items, err := h.service.ListEtnias(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListIdiomas maneja GET /api/v1/idiomas.
@@ -47,13 +51,17 @@ func (h *CatalogHandler) ListEtnias(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.Idioma}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /idiomas [get]
-func (h *CatalogHandler) ListIdiomas(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toIdiomaResponse(it))
+	}
+	func (h *CatalogHandler) ListIdiomas(c *gin.Context) {
 	items, err := h.service.ListIdiomas(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListTipoSexos maneja GET /api/v1/tipos-sexo.
@@ -65,13 +73,17 @@ func (h *CatalogHandler) ListIdiomas(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.TipoSexo}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /tipos-sexo [get]
-func (h *CatalogHandler) ListTipoSexos(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toTipoSexoResponse(it))
+	}
+	func (h *CatalogHandler) ListTipoSexos(c *gin.Context) {
 	items, err := h.service.ListTipoSexos(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListEstadosCivil maneja GET /api/v1/estados-civil.
@@ -83,13 +95,17 @@ func (h *CatalogHandler) ListTipoSexos(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.TipoEstadoCivil}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /estados-civil [get]
-func (h *CatalogHandler) ListEstadosCivil(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toTipoEstadoCivilResponse(it))
+	}
+	func (h *CatalogHandler) ListEstadosCivil(c *gin.Context) {
 	items, err := h.service.ListEstadosCivil(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListGradosInstruccion maneja GET /api/v1/grados-instruccion.
@@ -101,13 +117,17 @@ func (h *CatalogHandler) ListEstadosCivil(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.TipoGradoInstruccion}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /grados-instruccion [get]
-func (h *CatalogHandler) ListGradosInstruccion(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toTipoGradoInstruccionResponse(it))
+	}
+	func (h *CatalogHandler) ListGradosInstruccion(c *gin.Context) {
 	items, err := h.service.ListGradosInstruccion(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListOcupaciones maneja GET /api/v1/ocupaciones.
@@ -119,13 +139,17 @@ func (h *CatalogHandler) ListGradosInstruccion(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.TipoOcupacion}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /ocupaciones [get]
-func (h *CatalogHandler) ListOcupaciones(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toTipoOcupacionResponse(it))
+	}
+	func (h *CatalogHandler) ListOcupaciones(c *gin.Context) {
 	items, err := h.service.ListOcupaciones(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListTiposDocumentos maneja GET /api/v1/tipos-documentos.
@@ -137,13 +161,17 @@ func (h *CatalogHandler) ListOcupaciones(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.TipoDocumento}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /tipos-documentos [get]
-func (h *CatalogHandler) ListTiposDocumentos(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toTipoDocumentoResponse(it))
+	}
+	func (h *CatalogHandler) ListTiposDocumentos(c *gin.Context) {
 	items, err := h.service.ListTiposDocumentos(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListDepartamentos maneja GET /api/v1/departamentos.
@@ -155,13 +183,17 @@ func (h *CatalogHandler) ListTiposDocumentos(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.Departamento}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /departamentos [get]
-func (h *CatalogHandler) ListDepartamentos(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toDepartamentoResponse(it))
+	}
+	func (h *CatalogHandler) ListDepartamentos(c *gin.Context) {
 	items, err := h.service.ListDepartamentos(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListProvincias maneja GET /api/v1/provincias/:idDepartamento.
@@ -175,7 +207,11 @@ func (h *CatalogHandler) ListDepartamentos(c *gin.Context) {
 // @Failure 400 {object} apiResponse{error=apiError} "Id inválido"
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /provincias/{idDepartamento} [get]
-func (h *CatalogHandler) ListProvincias(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toProvinciaResponse(it))
+	}
+	func (h *CatalogHandler) ListProvincias(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
 		return
@@ -185,7 +221,7 @@ func (h *CatalogHandler) ListProvincias(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListDistritos maneja GET /api/v1/distritos/:idProvincia.
@@ -199,7 +235,11 @@ func (h *CatalogHandler) ListProvincias(c *gin.Context) {
 // @Failure 400 {object} apiResponse{error=apiError} "Id inválido"
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /distritos/{idProvincia} [get]
-func (h *CatalogHandler) ListDistritos(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toDistritoResponse(it))
+	}
+	func (h *CatalogHandler) ListDistritos(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
 		return
@@ -209,7 +249,7 @@ func (h *CatalogHandler) ListDistritos(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListCentrosPoblados maneja GET /api/v1/centros-poblados/:idDistrito.
@@ -223,7 +263,11 @@ func (h *CatalogHandler) ListDistritos(c *gin.Context) {
 // @Failure 400 {object} apiResponse{error=apiError} "Id inválido"
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /centros-poblados/{idDistrito} [get]
-func (h *CatalogHandler) ListCentrosPoblados(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toCentroPobladoResponse(it))
+	}
+	func (h *CatalogHandler) ListCentrosPoblados(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
 		return
@@ -233,7 +277,7 @@ func (h *CatalogHandler) ListCentrosPoblados(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListPaises maneja GET /api/v1/paises.
@@ -245,13 +289,17 @@ func (h *CatalogHandler) ListCentrosPoblados(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.Pais}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /paises [get]
-func (h *CatalogHandler) ListPaises(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toPaisResponse(it))
+	}
+	func (h *CatalogHandler) ListPaises(c *gin.Context) {
 	items, err := h.service.ListPaises(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListEstadosLlegoPaciente maneja GET /api/v1/estados-llego-paciente.
@@ -263,13 +311,17 @@ func (h *CatalogHandler) ListPaises(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.EstadoLlegoPaciente}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /estados-llego-paciente [get]
-func (h *CatalogHandler) ListEstadosLlegoPaciente(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toEstadoLlegoPacienteResponse(it))
+	}
+	func (h *CatalogHandler) ListEstadosLlegoPaciente(c *gin.Context) {
 	items, err := h.service.ListEstadosLlegoPaciente(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListFuentesFinanciamiento maneja GET /api/v1/fuentes-financiamiento.
@@ -281,13 +333,17 @@ func (h *CatalogHandler) ListEstadosLlegoPaciente(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.FuenteFinanciamiento}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /fuentes-financiamiento [get]
-func (h *CatalogHandler) ListFuentesFinanciamiento(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toFuenteFinanciamientoResponse(it))
+	}
+	func (h *CatalogHandler) ListFuentesFinanciamiento(c *gin.Context) {
 	items, err := h.service.ListFuentesFinanciamiento(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // ListServicios maneja GET /api/v1/servicios/:idTipoServicio.
@@ -301,7 +357,11 @@ func (h *CatalogHandler) ListFuentesFinanciamiento(c *gin.Context) {
 // @Failure 400 {object} apiResponse{error=apiError} "Id inválido"
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /servicios/{idTipoServicio} [get]
-func (h *CatalogHandler) ListServicios(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toServicioResponse(it))
+	}
+	func (h *CatalogHandler) ListServicios(c *gin.Context) {
 	idTipoServicio, err := strconv.ParseInt(c.Param("idTipoServicio"), 10, 64)
 	if err != nil || idTipoServicio <= 0 {
 		respondError(c, http.StatusBadRequest, "INVALID_ID", "id inválido")
@@ -312,7 +372,7 @@ func (h *CatalogHandler) ListServicios(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // GetDatosInstitucion maneja GET /api/v1/datos-institucion.
@@ -330,7 +390,7 @@ func (h *CatalogHandler) GetDatosInstitucion(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, item)
+	respondSuccess(c, http.StatusOK, toDatosInstitucionResponse(item))
 }
 
 // ListEspecialidades maneja GET /api/v1/especialidades.
@@ -342,13 +402,17 @@ func (h *CatalogHandler) GetDatosInstitucion(c *gin.Context) {
 // @Success 200 {object} apiResponse{data=[]domain.Especialidad}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /especialidades [get]
-func (h *CatalogHandler) ListEspecialidades(c *gin.Context) {
+	dtoItems := make([]any, 0, len(items))
+	for _, it := range items {
+		dtoItems = append(dtoItems, toEspecialidadResponse(it))
+	}
+	func (h *CatalogHandler) ListEspecialidades(c *gin.Context) {
 	items, err := h.service.ListEspecialidades(c.Request.Context())
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
-	respondSuccess(c, http.StatusOK, items)
+	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
 // parseID extrae y valida el path param "id" como entero.

@@ -5,11 +5,11 @@ package domain
 // WebCrearAtencionDesdeTriaje. Los campos opcionales son punteros para
 // distinguir "no enviado" (NULL) de un valor cero.
 type AdmisionDesdeTriaje struct {
-	IDTriaje            *int64  `json:"idTriaje"`
-	IDPacienteTriaje    *int64  `json:"idPacienteTriaje"`
-	IDEmpleado          *int64  `json:"idEmpleado"`
-	NombreAcompanante   *string `json:"nombreAcompanante"`
-	TelefonoAcompanante *string `json:"telefonoAcompanante"`
-	DireccionPaciente   *string `json:"direccionPaciente"`
-	Observacion         *string `json:"observacion"`
+	IDTriaje            *int64
+	IDPacienteTriaje    *int64
+	IDEmpleado          *int64
+	NombreAcompanante   *string
+	TelefonoAcompanante *string
+	DireccionPaciente   *string
+	Observacion         *string
 }

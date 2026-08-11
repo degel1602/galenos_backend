@@ -1,6 +1,6 @@
 module github.com/galenos-pro/appointments-api
 
-go 1.25.7
+go 1.27.0
 
 require (
 	github.com/gin-contrib/cors v1.7.7

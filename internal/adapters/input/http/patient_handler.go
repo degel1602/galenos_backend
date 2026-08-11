@@ -44,7 +44,20 @@ func (h *PatientHandler) List(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, result)
+	dtoResult := shared.PageResponse[patientResponse]{
+		Items:      make([]patientResponse, len(result.Items)),
+		Total:      result.Total,
+		Page:       result.Page,
+		PageSize:   result.PageSize,
+		TotalPages: result.TotalPages,
+		HasNext:    result.HasNext,
+		HasPrev:    result.HasPrev,
+	}
+	for i, p := range result.Items {
+		dtoResult.Items[i] = toPatientResponse(p)
+	}
+
+	respondSuccess(c, http.StatusOK, dtoResult)
 }
 
 // Get maneja GET /api/v1/pacientes/:idOrDoc. Detecta el tipo de
@@ -75,7 +88,7 @@ func (h *PatientHandler) Get(c *gin.Context) {
 			h.respondGetError(c, derr)
 			return
 		}
-		respondSuccess(c, http.StatusOK, detail)
+		respondSuccess(c, http.StatusOK, toPatientDetailResponse(detail))
 		return
 	}
 
@@ -85,7 +98,7 @@ func (h *PatientHandler) Get(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, patient)
+	respondSuccess(c, http.StatusOK, toPatientResponse(patient))
 }
 
 // respondGetError traduce los errores de los casos de uso de consulta.
@@ -139,7 +152,7 @@ func (h *PatientHandler) Update(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, detail)
+	respondSuccess(c, http.StatusOK, toPatientDetailResponse(detail))
 }
 
 // GetByDocumentAndType maneja GET
@@ -178,7 +191,7 @@ func (h *PatientHandler) GetByDocumentAndType(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, patient)
+	respondSuccess(c, http.StatusOK, toPatientResponse(patient))
 }
 
 // Search maneja GET /api/v1/pacientes/buscar?documento=&hc=&paterno=&materno=&nombres=.
@@ -210,10 +223,12 @@ func (h *PatientHandler) Search(c *gin.Context) {
 		return
 	}
 
-	if result == nil {
-		result = make([]domain.Patient, 0)
+	dtoResult := make([]patientResponse, 0, len(result))
+	for _, p := range result {
+		dtoResult = append(dtoResult, toPatientResponse(p))
 	}
-	respondSuccess(c, http.StatusOK, result)
+
+	respondSuccess(c, http.StatusOK, dtoResult)
 }
 
 func queryInt(c *gin.Context, key string, fallback int) int {

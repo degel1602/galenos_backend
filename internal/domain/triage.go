@@ -7,44 +7,44 @@ import "time"
 // opcionales son punteros para distinguir "no enviado" (NULL) de un valor
 // cero; el SP decide cómo interpretarlos.
 type Triage struct {
-	IDTriaje                  *int64     `json:"idTriaje"`
-	DocIdentityID             *int64     `json:"idDocIdentidad"`
-	DocumentNumber            *string    `json:"nroDocumento"`
-	PaternalSurname           *string    `json:"apellidoPaterno"`
-	MaternalSurname           *string    `json:"apellidoMaterno"`
-	FirstName                 *string    `json:"primerNombre"`
-	SecondName                *string    `json:"segundoNombre"`
-	ThirdName                 *string    `json:"tercerNombre"`
-	SexTypeID                 *int64     `json:"idSexo"`
-	DateOfBirth               *time.Time `json:"fechaNacimiento"`
-	Phone                     *string    `json:"telefono"`
-	HomeDepartmentID          *int64     `json:"idDepartamentoDomicilio"`
-	HomeProvinceID            *int64     `json:"idProvinciaDomicilio"`
-	HomeDistrictID            *int64     `json:"idDistritoDomicilio"`
-	HomeCommunityID           *int64     `json:"idComunidadDomicilio"`
-	HomeAddress               *string    `json:"direccion"`
-	IsTrafficAccident         *int64     `json:"esAccidenteTransito"`
-	FundingSourceID           *int64     `json:"idFuenteFinanciamiento"`
-	Email                     *string    `json:"email"`
-	MaritalStatusID           *int64     `json:"idEstadoCivil"`
-	HeartRate                 *int64     `json:"frecCardiaca"`
-	Temperature               *float64   `json:"temperatura"`
-	BloodPressure             *string    `json:"presionArterial"`
-	OxygenSaturation          *int64     `json:"saturacion"`
-	RespiratoryRate           *int64     `json:"frecRespiratoria"`
-	FiO2                      *int64     `json:"fiO2"`
-	Weight                    *float64   `json:"peso"`
-	Height                    *float64   `json:"talla"`
-	BMI                       *float64   `json:"imc"`
-	EvolutionTimeQuantity     *int64     `json:"tiempoEvolucionCantidad"`
-	EvolutionTimeQuantityUnit *string    `json:"tiempoEvolucionCantidadUnidad"`
-	PainScale                 *int64     `json:"escalaDolor"`
-	GlasgowScale              *int64     `json:"escalaGlasgow"`
-	PriorityTypeID            *int64     `json:"idTipoPrioridad"`
-	ServiceID                 *int64     `json:"idServicio"`
-	Motivo                    *string    `json:"motivo"`
-	IsPregnant                *int64     `json:"idGestante"`
-	ArrivalStateID            *int64     `json:"idEstadollego"`
-	Photo                     *string    `json:"foto"`
-	EmployeeID                *int64     `json:"idEmpleado"`
+	IDTriaje                  *int64
+	DocIdentityID             *int64
+	DocumentNumber            *string
+	PaternalSurname           *string
+	MaternalSurname           *string
+	FirstName                 *string
+	SecondName                *string
+	ThirdName                 *string
+	SexTypeID                 *int64
+	DateOfBirth               *time.Time
+	Phone                     *string
+	HomeDepartmentID          *int64
+	HomeProvinceID            *int64
+	HomeDistrictID            *int64
+	HomeCommunityID           *int64
+	HomeAddress               *string
+	IsTrafficAccident         *int64
+	FundingSourceID           *int64
+	Email                     *string
+	MaritalStatusID           *int64
+	HeartRate                 *int64
+	Temperature               *float64
+	BloodPressure             *string
+	OxygenSaturation          *int64
+	RespiratoryRate           *int64
+	FiO2                      *int64
+	Weight                    *float64
+	Height                    *float64
+	BMI                       *float64
+	EvolutionTimeQuantity     *int64
+	EvolutionTimeQuantityUnit *string
+	PainScale                 *int64
+	GlasgowScale              *int64
+	PriorityTypeID            *int64
+	ServiceID                 *int64
+	Motivo                    *string
+	IsPregnant                *int64
+	ArrivalStateID            *int64
+	Photo                     *string
+	EmployeeID                *int64
 }

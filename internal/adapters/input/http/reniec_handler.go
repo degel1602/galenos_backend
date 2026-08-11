@@ -51,5 +51,5 @@ func (h *ReniecHandler) Consultar(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, result)
+	respondSuccess(c, http.StatusOK, toReniecResultResponse(result))
 }

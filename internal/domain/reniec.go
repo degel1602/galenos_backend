@@ -5,22 +5,22 @@ package domain
 // operación: basico o completo) y Datos agrupa los campos ya interpretados con
 // un layout estable para que el consumidor no dependa de índices del arreglo.
 type ReniecResult struct {
-	DNI       string      `json:"dni"`
-	Operacion string      `json:"operacion"`
-	Resultado []string    `json:"resultado"`
-	Datos     ReniecDatos `json:"datos"`
+	DNI       string
+	Operacion string
+	Resultado []string
+	Datos     ReniecDatos
 }
 
 // ReniecDatos agrupa los datos de la persona extraídos de la respuesta de
 // RENIEC con un layout estable (independiente de la operación SOAP). Sexo
 // queda vacío si el servicio no lo devuelve o no puede inferirse.
 type ReniecDatos struct {
-	ApellidoPaterno string `json:"apellidoPaterno"`
-	ApellidoMaterno string `json:"apellidoMaterno"`
-	Nombres         string `json:"nombres"`
-	PrimerNombre    string `json:"primerNombre"`
-	SegundoNombre   string `json:"segundoNombre"`
-	TercerNombre    string `json:"tercerNombre"`
-	FechaNacimiento string `json:"fechaNacimiento"`
-	Sexo            string `json:"sexo"`
+	ApellidoPaterno string
+	ApellidoMaterno string
+	Nombres         string
+	PrimerNombre    string
+	SegundoNombre   string
+	TercerNombre    string
+	FechaNacimiento string
+	Sexo            string
 }

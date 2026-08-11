@@ -577,6 +577,91 @@ definitions:
       totalPages:
         type: integer
     type: object
+  internal_adapters_input_http.sisAfiliacionRequest:
+    properties:
+      afiliacionDisa:
+        type: string
+      afiliacionFecha:
+        type: string
+      afiliacionNroFormato:
+        type: string
+      afiliacionNroIntegrante:
+        type: string
+      afiliacionTipoFormato:
+        type: string
+      codigo:
+        type: string
+      codigoEstablAdscripcion:
+        type: string
+      contrato:
+        type: string
+      descEESS:
+        type: string
+      descEessUbigeo:
+        type: string
+      descTipoSeguro:
+        type: string
+      documentoNumero:
+        type: string
+      documentoTipo:
+        type: string
+      estado:
+        type: string
+      fBaja:
+        type: string
+      fBajaOk:
+        type: string
+      fNacimiento:
+        type: string
+      genero:
+        type: string
+      idDistritoDomicilio:
+        type: string
+      idGrupoPoblacional:
+        type: string
+      idPlan:
+        type: string
+      idSiasis:
+        type: integer
+      idUsuarioAuditoria:
+        type: integer
+      materno:
+        type: string
+      motivoBaja:
+        type: string
+      msgConfidencial:
+        type: string
+      oNombres:
+        type: string
+      pNombre:
+        type: string
+      paterno:
+        type: string
+      regimen:
+        type: string
+      tipoSeguro:
+        type: string
+    type: object
+  internal_adapters_input_http.sisFuaAgregarRequest:
+    properties:
+      idCuentaAtencion:
+        type: integer
+      idEmpleado:
+        type: integer
+      nombrePc:
+        type: string
+    required:
+    - idCuentaAtencion
+    - idEmpleado
+    - nombrePc
+    type: object
+  internal_adapters_input_http.sisFuaForzarGuardadoRequest:
+    properties:
+      idCuentaAtencion:
+        type: integer
+    required:
+    - idCuentaAtencion
+    type: object
   internal_adapters_input_http.updatePatientRequest:
     properties:
       auditUserId:
@@ -1571,6 +1656,366 @@ paths:
                   $ref: '#/definitions/internal_adapters_input_http.apiError'
               type: object
       summary: Consulta el paciente afiliado en el SIS
+      tags:
+      - SIS
+  /sis/consumo:
+    get:
+      description: Invoca el SP webFactOrdenServicioDetaDesFinaListarIdcuenta con
+        el id de la cuenta de atención.
+      parameters:
+      - description: Id de la cuenta de atención
+        in: query
+        name: idCuentaAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de consumos
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "400":
+          description: Parámetro inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al listar el consumo
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Lista el detalle de consumo de una atención
+      tags:
+      - SIS
+  /sis/diagnosticos:
+    get:
+      description: Invoca el SP webAtencionesDiagnosticosIdAtencion con el id de la
+        atención.
+      parameters:
+      - description: Id de la atención
+        in: query
+        name: idAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de diagnósticos
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "400":
+          description: Parámetro inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al listar los diagnósticos
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Lista los diagnósticos de una atención
+      tags:
+      - SIS
+  /sis/filiaciones:
+    post:
+      consumes:
+      - application/json
+      description: Persiste la afiliación SIS del paciente invocando el SP webSisFiliacionesGestionar.
+      parameters:
+      - description: Datos de la afiliación SIS a guardar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_adapters_input_http.sisAfiliacionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Afiliación guardada
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Cuerpo inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al guardar la afiliación
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Guarda la afiliación SIS de un paciente asegurado
+      tags:
+      - SIS
+  /sis/fua:
+    post:
+      consumes:
+      - application/json
+      description: Invoca el SP webSisFuaAtencionForzarGuardado para forzar la generación/guardado
+        del FUA.
+      parameters:
+      - description: Id de la cuenta de atención
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_adapters_input_http.sisFuaForzarGuardadoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: FUA guardado
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Cuerpo inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al guardar el FUA
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Fuerza el guardado del FUA de una cuenta de atención
+      tags:
+      - SIS
+  /sis/fua/agregar:
+    post:
+      consumes:
+      - application/json
+      description: Invoca el SP usp_go_webFUAgregar para registrar el FUA. Devuelve el @Respuesta
+        del procedimiento.
+      parameters:
+      - description: Datos para agregar el FUA
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_adapters_input_http.sisFuaAgregarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Respuesta del SP
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Cuerpo inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al agregar el FUA
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Agrega el FUA de una cuenta de atención
+      tags:
+      - SIS
+  /sis/fua/imprimir:
+    get:
+      description: Invoca el SP webFuaImprimirIdCuentaAtencion con el id de la cuenta
+        de atención. Devuelve los datos del FUA.
+      parameters:
+      - description: Id de la cuenta de atención
+        in: query
+        name: idCuentaAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Datos del FUA
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Parámetro inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al consultar el FUA
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Consulta los datos del FUA para imprimir
+      tags:
+      - SIS
+  /sis/medicamentos:
+    get:
+      description: Invoca el SP webMedicamentosListarIdCuentaAtencion con el id de
+        la cuenta de atención.
+      parameters:
+      - description: Id de la cuenta de atención
+        in: query
+        name: idCuentaAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de medicamentos
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "400":
+          description: Parámetro inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al listar los medicamentos
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Lista los medicamentos de una atención
+      tags:
+      - SIS
+  /sis/procedimientos:
+    get:
+      description: Invoca el SP webProcedimientoListarIdCuentaAtencion con el id de
+        la cuenta de atención.
+      parameters:
+      - description: Id de la cuenta de atención
+        in: query
+        name: idCuentaAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de procedimientos
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "400":
+          description: Parámetro inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+        "500":
+          description: Error al listar los procedimientos
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_adapters_input_http.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/internal_adapters_input_http.apiError'
+              type: object
+      summary: Lista los procedimientos de una atención
       tags:
       - SIS
   /tipos-documentos:

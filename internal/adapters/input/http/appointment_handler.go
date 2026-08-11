@@ -53,7 +53,7 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusCreated, appointment)
+	respondSuccess(c, http.StatusCreated, toAppointmentResponse(appointment))
 }
 
 // GetByID maneja GET /api/v1/appointments/:id.
@@ -74,7 +74,7 @@ func (h *AppointmentHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, appointment)
+	respondSuccess(c, http.StatusOK, toAppointmentResponse(appointment))
 }
 
 // mapDomainError traduce errores de dominio a códigos HTTP. Los errores no

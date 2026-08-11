@@ -34,8 +34,8 @@ const (
 
 // TimeSlot es un Value Object: inmutable y validado en su construcción.
 type TimeSlot struct {
-	StartsAt time.Time `json:"startsAt"`
-	EndsAt   time.Time `json:"endsAt"`
+	StartsAt time.Time
+	EndsAt   time.Time
 }
 
 // NewTimeSlot valida que el rango horario sea coherente antes de crearlo.
@@ -52,14 +52,14 @@ func NewTimeSlot(startsAt, endsAt time.Time) (TimeSlot, error) {
 
 // Appointment es la entidad raíz del agregado "Cita Médica".
 type Appointment struct {
-	ID        AppointmentID     `json:"id"`
-	PatientID PatientID         `json:"patientId"`
-	DoctorID  DoctorID          `json:"doctorId"`
-	Slot      TimeSlot          `json:"slot"`
-	Status    AppointmentStatus `json:"status"`
-	Reason    string            `json:"reason"`
-	CreatedAt time.Time         `json:"createdAt"`
-	UpdatedAt time.Time         `json:"updatedAt"`
+	ID        AppointmentID
+	PatientID PatientID
+	DoctorID  DoctorID
+	Slot      TimeSlot
+	Status    AppointmentStatus
+	Reason    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 // NewAppointment construye una cita nueva aplicando las reglas de negocio
