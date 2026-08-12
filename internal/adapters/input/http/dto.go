@@ -320,3 +320,35 @@ func (r updatePatientRequest) toDomain() domain.PatientUpdate {
 		AuditUserID:       r.AuditUserID,
 	}
 }
+
+// EvolucionCreateRequest representa el payload recibido desde Angular
+// para registrar una nueva evolución médica SOAP.
+type EvolucionCreateRequest struct {
+	IDPaciente       int64                `json:"idPaciente" binding:"required"`
+	IDMedico         int64                `json:"idMedico" binding:"required"`
+	IDCita           *int64               `json:"idCita"`
+	MotivoAtencion   *string              `json:"motivoAtencion"`
+	DetalleMotivo    *string              `json:"detalleMotivo"`
+	SubjetivoDetalle *string              `json:"subjetivoDetalle"`
+	PresionArterial  *string              `json:"presionArterial"`
+	FrecCardiaca     *int                 `json:"frecCardiaca"`
+	FrecRespiratoria *int                 `json:"frecRespiratoria"`
+	Temperatura      *float64             `json:"temperatura"`
+	SaturacionO2     *int                 `json:"saturacionO2"`
+	Peso             *float64             `json:"peso"`
+	Talla            *float64             `json:"talla"`
+	IMC              *float64             `json:"imc"`
+	Glucemia         *int                 `json:"glucemia"`
+	EstadoClinico    *string              `json:"estadoClinico"`
+	Pronostico       *string              `json:"pronostico"`
+	PlanDetalle      *string              `json:"planDetalle"`
+	Diagnosticos     []DiagnosticoRequest `json:"diagnosticos"`
+}
+
+type DiagnosticoRequest struct {
+	CIE10       string `json:"cie10" binding:"required"`
+	Descripcion string `json:"descripcion" binding:"required"`
+	Tipo        string `json:"tipo"`
+	Condicion   string `json:"condicion"`
+	Estado      string `json:"estado"`
+}

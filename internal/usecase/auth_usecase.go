@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"crypto/subtle"
 	"fmt"
 	"time"
 
@@ -10,41 +9,44 @@ import (
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
 	"github.com/galenos-pro/appointments-api/internal/ports/input"
+	"github.com/galenos-pro/appointments-api/internal/ports/output"
 )
 
 type authUseCase struct {
-	username string
-	password string
-	secret   []byte
-	ttl      time.Duration
+	repo   output.AuthRepository
+	secret []byte
+	ttl    time.Duration
 }
 
-// NewAuthUseCase construye el caso de uso de autenticación. Las credenciales
-// y el secreto de firma se inyectan desde configuración (variables de
-// entorno), ya que esta API no mantiene una tabla de usuarios propia.
-func NewAuthUseCase(username, password, secret string, ttl time.Duration) input.AuthService {
+type CustomClaims struct {
+	IdEmpleado int `json:"idEmpleado"`
+	jwt.RegisteredClaims
+}
+
+// NewAuthUseCase construye el caso de uso de autenticación, conectado a la BD.
+func NewAuthUseCase(repo output.AuthRepository, secret string, ttl time.Duration) input.AuthService {
 	return &authUseCase{
-		username: username,
-		password: password,
-		secret:   []byte(secret),
-		ttl:      ttl,
+		repo:   repo,
+		secret: []byte(secret),
+		ttl:    ttl,
 	}
 }
 
 func (uc *authUseCase) Login(ctx context.Context, username, password string) (string, error) {
-	// Comparación en tiempo constante para no filtrar por timing si el
-	// usuario o la contraseña son correctos parcialmente.
-	usernameMatches := subtle.ConstantTimeCompare([]byte(username), []byte(uc.username)) == 1
-	passwordMatches := subtle.ConstantTimeCompare([]byte(password), []byte(uc.password)) == 1
-	if !usernameMatches || !passwordMatches {
-		return "", domain.ErrInvalidCredentials
+	// Llamar a la BD para validar
+	idEmpleado, err := uc.repo.Login(ctx, username, password)
+	if err != nil {
+		return "", err
 	}
 
 	now := time.Now()
-	claims := jwt.RegisteredClaims{
-		Subject:   username,
-		IssuedAt:  jwt.NewNumericDate(now),
-		ExpiresAt: jwt.NewNumericDate(now.Add(uc.ttl)),
+	claims := CustomClaims{
+		IdEmpleado: idEmpleado,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   username,
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(uc.ttl)),
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -57,7 +59,7 @@ func (uc *authUseCase) Login(ctx context.Context, username, password string) (st
 }
 
 func (uc *authUseCase) ValidateToken(tokenString string) (domain.AuthClaims, error) {
-	var claims jwt.RegisteredClaims
+	var claims CustomClaims
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
@@ -68,5 +70,25 @@ func (uc *authUseCase) ValidateToken(tokenString string) (domain.AuthClaims, err
 		return domain.AuthClaims{}, domain.ErrInvalidToken
 	}
 
-	return domain.AuthClaims{Subject: claims.Subject}, nil
+	return domain.AuthClaims{
+		Subject:    claims.Subject,
+		IdEmpleado: claims.IdEmpleado,
+	}, nil
+}
+
+func (uc *authUseCase) GetMenus(ctx context.Context, idEmpleado int) (domain.AuthMenus, error) {
+	menus, err := uc.repo.GetMenus(ctx, idEmpleado)
+	if err != nil {
+		return domain.AuthMenus{}, err
+	}
+
+	permisos, err := uc.repo.GetMenuPermisos(ctx, idEmpleado)
+	if err != nil {
+		return domain.AuthMenus{}, err
+	}
+
+	return domain.AuthMenus{
+		Menus:    menus,
+		Permisos: permisos,
+	}, nil
 }

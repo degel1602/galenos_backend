@@ -15,4 +15,7 @@ type AuthService interface {
 	// ValidateToken verifica la firma y expiración de un JWT y retorna
 	// sus claims. Se usa en cada request para autorizar el acceso.
 	ValidateToken(tokenString string) (domain.AuthClaims, error)
+
+	// GetMenus obtiene los menús y permisos asignados al usuario.
+	GetMenus(ctx context.Context, idEmpleado int) (domain.AuthMenus, error)
 }

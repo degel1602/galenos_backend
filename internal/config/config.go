@@ -31,6 +31,10 @@ type Config struct {
 	SISURL            string
 	SISDNIAutorizado  string
 	SISTimeout        time.Duration
+	AuthUsername      string
+	AuthPassword      string
+	AuthSecret        string
+	AuthTTL           time.Duration
 }
 
 // Load lee la configuración desde el entorno aplicando valores por defecto
@@ -74,6 +78,10 @@ func Load() (*Config, error) {
 		SISURL:            envOrDefault("SIS_URL", "http://app.sis.gob.pe/sisWSAFI/Service.asmx"),
 		SISDNIAutorizado:  envOrDefault("SIS_DNI_AUTORIZADO", ""),
 		SISTimeout:        envDurationOrDefault("SIS_TIMEOUT", 30*time.Second),
+		AuthUsername:      apiUsername,
+		AuthPassword:      apiPassword,
+		AuthSecret:        jwtSecret,
+		AuthTTL:           envDurationOrDefault("JWT_TTL", 24*time.Hour),
 	}, nil
 }
 

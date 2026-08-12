@@ -441,4 +441,3 @@ func toDatosInstitucionResponse(d domain.DatosInstitucion) datosInstitucionRespo
 		UbigeoHosp: d.UbigeoHosp,
 	}
 }
-

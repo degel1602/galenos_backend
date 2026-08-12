@@ -42,42 +42,6 @@ type SisAfiliado struct {
 // SisAfiliacion representa el registro de afiliación que se persiste
 // invocando el SP webSisFiliacionesGestionar. Campos opcionales a NULL.
 type SisAfiliacion struct {
-	IDSiasis                *int64
-	Codigo                  *string
-	AfiliacionDisa          *string
-	TipoFormato             *string
-	NroFormato              *string
-	NroIntegrante           *string
-	DocumentoTipo           *string
-	CodigoEstablAdscripcion *string
-	AfiliacionFecha         *time.Time
-	Paterno                 *string
-	Materno                 *string
-	PNombre                 *string
-	ONombres                *string
-	Genero                  *string
-	FNacimiento             *time.Time
-	IdDistritoDomicilio     *string
-	Estado                  *string
-	Fbaja                   *string
-	DocumentoNumero         *string
-	MotivoBaja              *string
-	FbajaOK                 *time.Time
-	DescEESS                *string
-	DescEESSUbigeo          *string
-	Regimen                 *string
-	TipoSeguro              *string
-	DescTipoSeguro          *string
-	Contrato                *string
-	IdPlan                  *string
-	IdGrupoPoblacional      *string
-	MsgConfidencial         *string
-	IdUsuarioAuditoria      *int64
-}
-
-// SisAfiliacion representa el registro de afiliación que se persiste
-// invocando el SP webSisFiliacionesGestionar. Campos opcionales a NULL.
-type SisAfiliacion struct {
 	IDSiasis                *int64     `json:"idSiasis"`
 	Codigo                  *string    `json:"codigo"`
 	AfiliacionDisa          *string    `json:"afiliacionDisa"`

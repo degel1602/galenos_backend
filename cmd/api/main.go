@@ -62,6 +62,7 @@ func run() error {
 	catalogRepo := sqlserver.NewCatalogRepository(db)
 	triageRepo := sqlserver.NewTriageRepository(db)
 	sisRepo := sqlserver.NewSisRepository(db)
+	evolucionRepo := sqlserver.NewSqlServerEvolucionRepository(db)
 
 	// --- Adaptador de salida: servicio externo RENIEC ---
 	reniecClient := reniec.New(reniec.Config{
@@ -88,6 +89,10 @@ func run() error {
 	reniecService := usecase.NewReniecUseCase(reniecClient)
 	sisService := usecase.NewSisUseCase(sisClient, sisRepo)
 	triageService := usecase.NewTriageUseCase(triageRepo)
+	evolucionService := usecase.NewEvolucionUseCase(evolucionRepo)
+
+	authRepo := sqlserver.NewAuthRepository(db)
+	authService := usecase.NewAuthUseCase(authRepo, cfg.AuthSecret, cfg.AuthTTL)
 
 	// El host de Swagger se ajusta en runtime al IP detectado de la
 	// máquina (o al configurado en SERVER_HOST) para que otros equipos de
@@ -101,15 +106,21 @@ func run() error {
 	reniecHandler := httpadapter.NewReniecHandler(reniecService)
 	sisHandler := httpadapter.NewSisHandler(sisService)
 	triageHandler := httpadapter.NewTriageHandler(triageService)
-	router := httpadapter.NewRouter(
-		appointmentHandler,
-		patientHandler,
-		catalogHandler,
-		reniecHandler,
-		sisHandler,
-		triageHandler,
-		cfg.AllowedOrigins,
-	)
+	authHandler := httpadapter.NewAuthHandler(authService)
+	evolucionHandler := httpadapter.NewEvolucionHandler(evolucionService)
+
+	router := httpadapter.NewRouter(httpadapter.RouterParams{
+		AppointmentHandler: appointmentHandler,
+		PatientHandler:     patientHandler,
+		CatalogHandler:     catalogHandler,
+		ReniecHandler:      reniecHandler,
+		SisHandler:         sisHandler,
+		TriageHandler:      triageHandler,
+		AuthHandler:        authHandler,
+		EvolucionHandler:   evolucionHandler,
+		AuthService:        authService,
+		AllowedOrigins:     cfg.AllowedOrigins,
+	})
 
 	server := &http.Server{
 		Addr:         ":" + cfg.ServerPort,

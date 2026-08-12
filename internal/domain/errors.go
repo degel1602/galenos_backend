@@ -21,4 +21,6 @@ var (
 	ErrPatientNotFound                   = errors.New("patient not found")
 	ErrInvalidPatientID                  = errors.New("patient id is required")
 	ErrInvalidReniecOperation            = errors.New("invalid reniec operation")
+	ErrInvalidCredentials                = errors.New("invalid credentials")
+	ErrInvalidToken                      = errors.New("invalid token")
 )

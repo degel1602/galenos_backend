@@ -49,3 +49,26 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"tokenType":   "Bearer",
 	})
 }
+
+// GetMenus maneja GET /api/v1/auth/menus y devuelve los accesos del usuario logueado.
+func (h *AuthHandler) GetMenus(c *gin.Context) {
+	claims, ok := c.Get("auth_claims")
+	if !ok {
+		respondError(c, http.StatusUnauthorized, "UNAUTHORIZED", "token no válido o no proporcionado")
+		return
+	}
+
+	authClaims, ok := claims.(domain.AuthClaims)
+	if !ok {
+		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "error procesando claims")
+		return
+	}
+
+	menus, err := h.service.GetMenus(c.Request.Context(), authClaims.IdEmpleado)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, menus)
+}

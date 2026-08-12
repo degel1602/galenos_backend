@@ -46,12 +46,10 @@ func (h *PatientHandler) List(c *gin.Context) {
 
 	dtoResult := shared.PageResponse[patientResponse]{
 		Items:      make([]patientResponse, len(result.Items)),
-		Total:      result.Total,
+		TotalItems: result.TotalItems,
 		Page:       result.Page,
 		PageSize:   result.PageSize,
 		TotalPages: result.TotalPages,
-		HasNext:    result.HasNext,
-		HasPrev:    result.HasPrev,
 	}
 	for i, p := range result.Items {
 		dtoResult.Items[i] = toPatientResponse(p)
