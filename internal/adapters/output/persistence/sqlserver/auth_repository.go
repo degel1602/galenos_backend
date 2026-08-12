@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
@@ -33,6 +34,8 @@ func (r *authRepository) Login(ctx context.Context, username, password string) (
 	}
 
 	res := resultStr.String
+	log.Printf("DB Login Response: %q", res)
+
 	parts := strings.Split(res, ";")
 	if len(parts) > 0 && parts[0] == "ERROR" {
 		msg := "Credenciales inválidas"
@@ -42,17 +45,17 @@ func (r *authRepository) Login(ctx context.Context, username, password string) (
 		return 0, fmt.Errorf("%w: %s", domain.ErrInvalidCredentials, msg)
 	}
 
-	if len(parts) < 2 {
-		return 0, fmt.Errorf("formato de respuesta de login inesperado: %s", res)
+	if len(parts) > 0 && parts[0] == "OK" {
+		var idEmpleado int
+		// Buscamos el IdEmpleado porque el SP no lo devuelve en el parámetro OUTPUT
+		err = r.db.QueryRowContext(ctx, "SELECT IdEmpleado FROM dbo.Empleados WHERE Usuario = @p1", sql.Named("p1", username)).Scan(&idEmpleado)
+		if err != nil {
+			return 0, fmt.Errorf("error obteniendo IdEmpleado tras login exitoso: %w", err)
+		}
+		return idEmpleado, nil
 	}
 
-	var idEmpleado int
-	_, err = fmt.Sscanf(parts[1], "%d", &idEmpleado)
-	if err != nil {
-		return 0, fmt.Errorf("error parseando IdEmpleado del login: %w", err)
-	}
-
-	return idEmpleado, nil
+	return 0, fmt.Errorf("formato de respuesta de login inesperado: %s", res)
 }
 
 func (r *authRepository) GetMenus(ctx context.Context, idEmpleado int) ([]domain.Menu, error) {

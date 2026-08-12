@@ -1,6 +1,8 @@
 package httpadapter
 
 import (
+	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,10 +38,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	token, err := h.service.Login(c.Request.Context(), req.Username, req.Password)
 	if err != nil {
-		if err == domain.ErrInvalidCredentials {
+		if errors.Is(err, domain.ErrInvalidCredentials) {
 			respondError(c, http.StatusUnauthorized, "INVALID_CREDENTIALS", err.Error())
 			return
 		}
+		log.Printf("Login 500 Error: %v", err)
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
