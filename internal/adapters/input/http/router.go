@@ -119,6 +119,7 @@ func NewRouter(p RouterParams) *gin.Engine {
 		evoluciones := v1.Group("/evoluciones")
 		{
 			evoluciones.POST("", p.EvolucionHandler.HandleCreateEvolucion)
+			evoluciones.GET("/pacientes", p.EvolucionHandler.HandleListPatients)
 			evoluciones.GET("/paciente/:pacienteId", p.EvolucionHandler.HandleListEvoluciones)
 		}
 	}

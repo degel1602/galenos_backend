@@ -3,7 +3,6 @@ package sqlserver
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -16,148 +15,125 @@ type sqlServerEvolucionRepository struct {
 }
 
 func NewSqlServerEvolucionRepository(db *sql.DB) output.EvolucionRepository {
-	return &sqlServerEvolucionRepository{
-		db: db,
-	}
+	return &sqlServerEvolucionRepository{db: db}
 }
 
-func (r *sqlServerEvolucionRepository) Save(ctx context.Context, evolucion *domain.Evolucion) error {
-	// Iniciamos transacción transaccional aislando concurrencia.
-	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
-	}
-	defer tx.Rollback() // Rollback if not committed
-
-	// Asumimos un Stored Procedure principal: webTab_EvolucionAgregar
-	// Aquí aplicaríamos WITH (UPDLOCK, HOLDLOCK) si hiciéramos un SELECT previo de validación,
-	// pero en este caso el SP inserta directamente.
-	queryEvolucion := `
-		EXEC webTab_EvolucionAgregar 
-			@IDPaciente = @p1, 
-			@IDMedico = @p2, 
-			@IDCita = @p3, 
-			@MotivoAtencion = @p4, 
-			@DetalleMotivo = @p5, 
-			@SubjetivoDetalle = @p6, 
-			@PresionArterial = @p7, 
-			@FrecCardiaca = @p8, 
-			@FrecRespiratoria = @p9, 
-			@Temperatura = @p10, 
-			@SaturacionO2 = @p11, 
-			@Peso = @p12, 
-			@Talla = @p13, 
-			@IMC = @p14, 
-			@Glucemia = @p15, 
-			@EstadoClinico = @p16, 
-			@Pronostico = @p17, 
-			@PlanDetalle = @p18;
+func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context) ([]domain.PatientListItem, error) {
+	query := `
+		SELECT TOP 50 
+			IdPaciente AS idRegAtencion, 
+			IdPaciente, 
+			ISNULL(NroHistoriaClinica, 'N/A') AS historia, 
+			ISNULL(ApellidoPaterno, '') + ' ' + ISNULL(ApellidoMaterno, '') + ', ' + ISNULL(PrimerNombre, '') AS nombre, 
+			'N/A' AS edad, 
+			ISNULL(TipoSexo, '') AS sexo, 
+			'Consultorio' AS ubicacion, 
+			'Atendido' AS estado
+		FROM Pacientes
+		WHERE Estado = 1
+		ORDER BY IdPaciente DESC
 	`
-
-	// El SP debe retornar el ID generado de la evolución
-	var newIDEvolucion int64
-	err = tx.QueryRowContext(ctx, queryEvolucion,
-		evolucion.IDPaciente,
-		evolucion.IDMedico,
-		evolucion.IDCita,
-		evolucion.MotivoAtencion,
-		evolucion.DetalleMotivo,
-		evolucion.SubjetivoDetalle,
-		evolucion.PresionArterial,
-		evolucion.FrecCardiaca,
-		evolucion.FrecRespiratoria,
-		evolucion.Temperatura,
-		evolucion.SaturacionO2,
-		evolucion.Peso,
-		evolucion.Talla,
-		evolucion.IMC,
-		evolucion.Glucemia,
-		evolucion.EstadoClinico,
-		evolucion.Pronostico,
-		evolucion.PlanDetalle,
-	).Scan(&newIDEvolucion)
-
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("error executing webTab_EvolucionAgregar: %w", err)
-	}
-	evolucion.IDEvolucion = &newIDEvolucion
-
-	// Guardar diagnósticos iterando e invocando a otro SP hipotético: webTab_EvolucionDiagnosticoAgregar
-	queryDiagnostico := `
-		EXEC webTab_EvolucionDiagnosticoAgregar 
-			@IDEvolucion = @p1, 
-			@CIE10 = @p2, 
-			@Descripcion = @p3, 
-			@Tipo = @p4, 
-			@Condicion = @p5, 
-			@Estado = @p6;
-	`
-
-	for _, dx := range evolucion.Diagnosticos {
-		_, err = tx.ExecContext(ctx, queryDiagnostico,
-			newIDEvolucion,
-			dx.CIE10,
-			dx.Descripcion,
-			dx.Tipo,
-			dx.Condicion,
-			dx.Estado,
-		)
-		if err != nil {
-			return fmt.Errorf("error saving diagnostico CIE10 %s: %w", dx.CIE10, err)
-		}
-	}
-
-	return tx.Commit()
-}
-
-func (r *sqlServerEvolucionRepository) FindByPacienteID(ctx context.Context, pacienteID int64) ([]domain.Evolucion, error) {
-	// Asumimos un Stored Procedure: webTab_EvolucionListarPorPaciente
-	query := `EXEC webTab_EvolucionListarPorPaciente @IDPaciente = @p1;`
-
-	rows, err := r.db.QueryContext(ctx, query, pacienteID)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("error querying evoluciones: %w", err)
+		return nil, fmt.Errorf("error querying patients for tray: %w", err)
 	}
 	defer rows.Close()
 
-	var evoluciones []domain.Evolucion
-
+	var patients []domain.PatientListItem
 	for rows.Next() {
-		var ev domain.Evolucion
-		var fecha time.Time
-
-		err := rows.Scan(
-			&ev.IDEvolucion,
-			&ev.IDPaciente,
-			&ev.IDMedico,
-			&ev.IDCita,
-			&fecha,
-			&ev.MotivoAtencion,
-			&ev.DetalleMotivo,
-			&ev.SubjetivoDetalle,
-			&ev.PresionArterial,
-			&ev.FrecCardiaca,
-			&ev.FrecRespiratoria,
-			&ev.Temperatura,
-			&ev.SaturacionO2,
-			&ev.Peso,
-			&ev.Talla,
-			&ev.IMC,
-			&ev.Glucemia,
-			&ev.EstadoClinico,
-			&ev.Pronostico,
-			&ev.PlanDetalle,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("error scanning row: %w", err)
+		var p domain.PatientListItem
+		if err := rows.Scan(
+			&p.IdRegAtencion,
+			&p.IdPaciente,
+			&p.Historia,
+			&p.Nombre,
+			&p.Edad,
+			&p.Sexo,
+			&p.Ubicacion,
+			&p.Estado,
+		); err != nil {
+			return nil, fmt.Errorf("error scanning patient: %w", err)
 		}
-		ev.Fecha = &fecha
-		evoluciones = append(evoluciones, ev)
+		patients = append(patients, p)
 	}
+	return patients, nil
+}
 
-	if err = rows.Err(); err != nil {
-		return nil, err
+func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRegAtencion int) ([]domain.EvolucionFirma, error) {
+	query := `EXEC [dbo].[webEvolucionesFirmaListarIdRegAtencion] @IdRegAtencion = ?, @NombreDocumento = 'EvolucionMedica'`
+	rows, err := r.db.QueryContext(ctx, query, idRegAtencion)
+	if err != nil {
+		return nil, fmt.Errorf("error querying evolutions: %w", err)
 	}
+	defer rows.Close()
 
-	return evoluciones, nil
+	var evolutions []domain.EvolucionFirma
+	for rows.Next() {
+		var e domain.EvolucionFirma
+		var rBase, nArchivo, doc, data, fRegistro sql.NullString
+		var idEmpReg, idEmpMod, idEmpAnula, estado sql.NullInt64
+		var fMod, fAnul sql.NullTime
+
+		if err := rows.Scan(
+			&e.IdRegAtencion,
+			&e.IdFirma,
+			&rBase,
+			&nArchivo,
+			&doc,
+			&data,
+			&idEmpReg,
+			&idEmpMod,
+			&idEmpAnula,
+			&fRegistro, 
+			&fMod,
+			&fAnul,
+			&estado,
+		); err != nil {
+			return nil, fmt.Errorf("error scanning evolution: %w", err)
+		}
+		
+		if doc.Valid {
+			e.NombreDocumento = doc.String
+		}
+		if data.Valid {
+			e.DataB64 = data.String
+		}
+		if idEmpReg.Valid {
+			e.IdEmpleadoRegistra = int(idEmpReg.Int64)
+		}
+		if fRegistro.Valid {
+			e.FechaRegistro = fRegistro.String
+		}
+		
+		evolutions = append(evolutions, e)
+	}
+	return evolutions, nil
+}
+
+func (r *sqlServerEvolucionRepository) SaveEvolucion(ctx context.Context, evolution domain.EvolucionFirma) error {
+	query := `
+		EXEC [dbo].[Web_sp_GuardarEvolucionFirma] 
+			@IdRegAtencion = ?, 
+			@RutaBase = ?, 
+			@NombreArchivo = ?, 
+			@NombreDocumento = ?, 
+			@DataB64 = ?, 
+			@IdEmpleadoRegistra = ?, 
+			@IdEmpleadoModifica = ?, 
+			@Estado = ?
+	`
+	_, err := r.db.ExecContext(ctx, query,
+		evolution.IdRegAtencion,
+		"evols/",
+		fmt.Sprintf("evol_%d_%d.json", evolution.IdRegAtencion, time.Now().Unix()),
+		evolution.NombreDocumento,
+		evolution.DataB64,
+		evolution.IdEmpleadoRegistra,
+		evolution.IdEmpleadoRegistra,
+		1,
+	)
+	if err != nil {
+		return fmt.Errorf("error saving evolution: %w", err)
+	}
+	return nil
 }

@@ -1,51 +1,23 @@
 package domain
 
-import "time"
-
-// DiagnosticoEvolucion representa un diagnóstico dentro del SOAP de la evolución médica.
-type DiagnosticoEvolucion struct {
-	IDEvolucion *int64
-	CIE10       string
-	Descripcion string
-	Tipo        string
-	Condicion   string
-	Estado      string
+// PatientListItem representa a un paciente en la bandeja
+type PatientListItem struct {
+	IdRegAtencion int    `json:"idRegAtencion"`
+	IdPaciente    int    `json:"idPaciente"`
+	Historia      string `json:"historia"`
+	Nombre        string `json:"nombre"`
+	Edad          string `json:"edad"`
+	Sexo          string `json:"sexo"`
+	Ubicacion     string `json:"ubicacion"`
+	Estado        string `json:"estado"`
 }
 
-// Evolucion representa la nota clínica SOAP completa.
-// Los campos opcionales son punteros para distinguir "no enviado" (NULL) de valor cero.
-type Evolucion struct {
-	IDEvolucion *int64
-	IDPaciente  *int64
-	IDMedico    *int64
-	IDCita      *int64
-	Fecha       *time.Time
-
-	// Información General y Motivo
-	MotivoAtencion *string
-	DetalleMotivo  *string
-
-	// Subjetivo (S)
-	SubjetivoDetalle *string
-
-	// Objetivo (O) - Signos Vitales
-	PresionArterial  *string
-	FrecCardiaca     *int
-	FrecRespiratoria *int
-	Temperatura      *float64
-	SaturacionO2     *int
-	Peso             *float64
-	Talla            *float64
-	IMC              *float64
-	Glucemia         *int
-
-	// Evaluación (A)
-	EstadoClinico *string
-	Pronostico    *string
-
-	// Diagnósticos
-	Diagnosticos []DiagnosticoEvolucion
-
-	// Plan (P)
-	PlanDetalle *string
+// EvolucionFirma representa una evolución guardada en formato JSON / Base64
+type EvolucionFirma struct {
+	IdRegAtencion      int    `json:"idRegAtencion"`
+	IdFirma            int    `json:"idFirma"`
+	NombreDocumento    string `json:"nombreDocumento"`
+	DataB64            string `json:"dataB64"`
+	IdEmpleadoRegistra int    `json:"idEmpleadoRegistra"`
+	FechaRegistro      string `json:"fechaRegistro"`
 }

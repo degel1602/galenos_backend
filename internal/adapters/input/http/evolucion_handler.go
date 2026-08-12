@@ -4,80 +4,96 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/galenos-pro/appointments-api/internal/domain"
 	"github.com/galenos-pro/appointments-api/internal/ports/input"
 	"github.com/gin-gonic/gin"
 )
 
 type EvolucionHandler struct {
-	useCase input.EvolucionUseCase
+	service input.EvolucionService
 }
 
-func NewEvolucionHandler(useCase input.EvolucionUseCase) *EvolucionHandler {
-	return &EvolucionHandler{useCase: useCase}
+func NewEvolucionHandler(service input.EvolucionService) *EvolucionHandler {
+	return &EvolucionHandler{service: service}
 }
 
-func (h *EvolucionHandler) HandleCreateEvolucion(c *gin.Context) {
-	var req EvolucionCreateRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid_request", "JSON inválido o mal formado")
+// @Summary List patients for the medical evolution tray
+// @Description Returns a list of patients currently active
+// @Tags Evoluciones
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Router /api/v1/evoluciones/pacientes [get]
+func (h *EvolucionHandler) HandleListPatients(c *gin.Context) {
+	patients, err := h.service.GetPatientTray(c.Request.Context())
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "EVOL_PATIENTS_ERR", "Error obteniendo pacientes")
 		return
 	}
-
-	evolucion := &domain.Evolucion{
-		IDPaciente:       &req.IDPaciente,
-		IDMedico:         &req.IDMedico,
-		IDCita:           req.IDCita,
-		MotivoAtencion:   req.MotivoAtencion,
-		DetalleMotivo:    req.DetalleMotivo,
-		SubjetivoDetalle: req.SubjetivoDetalle,
-		PresionArterial:  req.PresionArterial,
-		FrecCardiaca:     req.FrecCardiaca,
-		FrecRespiratoria: req.FrecRespiratoria,
-		Temperatura:      req.Temperatura,
-		SaturacionO2:     req.SaturacionO2,
-		Peso:             req.Peso,
-		Talla:            req.Talla,
-		IMC:              req.IMC,
-		Glucemia:         req.Glucemia,
-		EstadoClinico:    req.EstadoClinico,
-		Pronostico:       req.Pronostico,
-		PlanDetalle:      req.PlanDetalle,
-	}
-
-	for _, dxReq := range req.Diagnosticos {
-		evolucion.Diagnosticos = append(evolucion.Diagnosticos, domain.DiagnosticoEvolucion{
-			CIE10:       dxReq.CIE10,
-			Descripcion: dxReq.Descripcion,
-			Tipo:        dxReq.Tipo,
-			Condicion:   dxReq.Condicion,
-			Estado:      dxReq.Estado,
-		})
-	}
-
-	if err := h.useCase.CreateEvolucion(c.Request.Context(), evolucion); err != nil {
-		respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
-		return
-	}
-
-	respondSuccess(c, http.StatusCreated, gin.H{
-		"id_evolucion": evolucion.IDEvolucion,
-	})
+	respondSuccess(c, http.StatusOK, patients)
 }
 
+// @Summary Get evolutions for a patient
+// @Description Returns the saved medical evolutions for a given registration ID
+// @Tags Evoluciones
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param pacienteId path int true "ID of the Registration / Encounter"
+// @Router /api/v1/evoluciones/paciente/{pacienteId} [get]
 func (h *EvolucionHandler) HandleListEvoluciones(c *gin.Context) {
-	idParam := c.Param("pacienteId")
-	pacienteID, err := strconv.ParseInt(idParam, 10, 64)
+	idRegAtencionStr := c.Param("pacienteId")
+	idRegAtencion, err := strconv.Atoi(idRegAtencionStr)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "invalid_param", "ID de paciente inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_ID", "ID de atención inválido")
 		return
 	}
 
-	evoluciones, err := h.useCase.GetEvolucionesByPaciente(c.Request.Context(), pacienteID)
+	evolutions, err := h.service.GetEvoluciones(c.Request.Context(), idRegAtencion)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "internal_error", err.Error())
+		respondError(c, http.StatusInternalServerError, "EVOL_GET_ERR", "Error obteniendo evoluciones")
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, evoluciones)
+	respondSuccess(c, http.StatusOK, evolutions)
+}
+
+type SaveEvolucionRequest struct {
+	IdRegAtencion int    `json:"idRegAtencion" binding:"required"`
+	DataB64       string `json:"dataB64" binding:"required"` 
+}
+
+// @Summary Save an evolution
+// @Description Saves a new medical evolution
+// @Tags Evoluciones
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body SaveEvolucionRequest true "Evolution data"
+// @Router /api/v1/evoluciones [post]
+func (h *EvolucionHandler) HandleCreateEvolucion(c *gin.Context) {
+	var req SaveEvolucionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "INVALID_BODY", "Cuerpo de petición inválido")
+		return
+	}
+
+	idEmpleado := 1 
+	if val, exists := c.Get("idEmpleado"); exists {
+		if id, ok := val.(float64); ok {
+			idEmpleado = int(id)
+		} else if idStr, ok := val.(string); ok {
+			id, _ := strconv.Atoi(idStr)
+			idEmpleado = id
+		} else if idInt, ok := val.(int); ok {
+			idEmpleado = idInt
+		}
+	}
+
+	err := h.service.SaveEvolucion(c.Request.Context(), req.IdRegAtencion, idEmpleado, req.DataB64)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "EVOL_SAVE_ERR", "Error guardando la evolución")
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, map[string]string{"message": "Evolución guardada correctamente"})
 }
