@@ -26,11 +26,11 @@ func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context) ([]doma
 			ISNULL(NroHistoriaClinica, 'N/A') AS historia, 
 			ISNULL(ApellidoPaterno, '') + ' ' + ISNULL(ApellidoMaterno, '') + ', ' + ISNULL(PrimerNombre, '') AS nombre, 
 			'N/A' AS edad, 
-			ISNULL(TipoSexo, '') AS sexo, 
+			ISNULL(CAST(IdTipoSexo AS VARCHAR(10)), '') AS sexo, 
 			'Consultorio' AS ubicacion, 
 			'Atendido' AS estado
 		FROM Pacientes
-		WHERE Estado = 1
+		WHERE IdEstado = 1
 		ORDER BY IdPaciente DESC
 	`
 	rows, err := r.db.QueryContext(ctx, query)

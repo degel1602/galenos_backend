@@ -68,9 +68,13 @@ func (r *authRepository) GetMenus(ctx context.Context, idEmpleado int) ([]domain
 	var menus []domain.Menu
 	for rows.Next() {
 		var m domain.Menu
-		if err := rows.Scan(&m.IdListGrupo, &m.Texto, &m.KeyIconWeb, &m.ClaveWeb, &m.Indice, &m.Estado, &m.NroSubMenu); err != nil {
+		var texto, keyIconWeb, claveWeb sql.NullString
+		if err := rows.Scan(&m.IdListGrupo, &texto, &keyIconWeb, &claveWeb, &m.Indice, &m.Estado, &m.NroSubMenu); err != nil {
 			return nil, fmt.Errorf("error escaneando menu: %w", err)
 		}
+		m.Texto = texto.String
+		m.KeyIconWeb = keyIconWeb.String
+		m.ClaveWeb = claveWeb.String
 		menus = append(menus, m)
 	}
 	return menus, nil
@@ -86,15 +90,17 @@ func (r *authRepository) GetMenuPermisos(ctx context.Context, idEmpleado int) ([
 	var permisos []domain.MenuPermiso
 	for rows.Next() {
 		var p domain.MenuPermiso
-		if err := rows.Scan(&p.Opciones, &p.Indice, &p.Texto, &p.Menu, &p.IdListGrupo, &p.KeyIconWeb, &p.Estado, &p.ClaveWeb, &p.Agregar, &p.Modificar, &p.Eliminar); err != nil {
-			// En caso de que algunos sean nulos, ignoramos el error de escaneo estricto 
-			// en un caso real se usaría sql.NullString/NullBool o se validarían nulos.
-			// Lo dejamos así para el caso feliz.
+		var opciones, texto, menu, keyIconWeb, claveWeb sql.NullString
+		if err := rows.Scan(&opciones, &p.Indice, &texto, &menu, &p.IdListGrupo, &keyIconWeb, &p.Estado, &claveWeb, &p.Agregar, &p.Modificar, &p.Eliminar); err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
-                // Continue on scan errors to not break everything if a column is null
 				continue
 			}
 		}
+		p.Opciones = opciones.String
+		p.Texto = texto.String
+		p.Menu = menu.String
+		p.KeyIconWeb = keyIconWeb.String
+		p.ClaveWeb = claveWeb.String
 		permisos = append(permisos, p)
 	}
 	return permisos, nil

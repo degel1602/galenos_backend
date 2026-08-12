@@ -116,7 +116,7 @@ func NewRouter(p RouterParams) *gin.Engine {
 			triaje.POST("/admision", p.TriageHandler.CreateAdmission)
 		}
 
-		evoluciones := v1.Group("/evoluciones")
+		evoluciones := protected.Group("/evoluciones")
 		{
 			evoluciones.POST("", p.EvolucionHandler.HandleCreateEvolucion)
 			evoluciones.GET("/pacientes", p.EvolucionHandler.HandleListPatients)

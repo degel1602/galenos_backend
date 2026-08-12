@@ -1,8 +1,11 @@
 package httpadapter
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -207,6 +210,9 @@ func (h *PatientHandler) GetByDocumentAndType(c *gin.Context) {
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /pacientes/buscar [get]
 func (h *PatientHandler) Search(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
 	params := shared.PatientSearchParams{
 		DocumentNumber:  c.Query("documento"),
 		HistoryNumber:   c.Query("hc"),
@@ -215,8 +221,12 @@ func (h *PatientHandler) Search(c *gin.Context) {
 		Names:           c.Query("nombres"),
 	}
 
-	result, err := h.service.Search(c.Request.Context(), params)
+	result, err := h.service.Search(ctx, params)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			respondError(c, http.StatusGatewayTimeout, "TIMEOUT_ERROR", "La búsqueda excedió el tiempo límite. Por favor use filtros más específicos.")
+			return
+		}
 		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}

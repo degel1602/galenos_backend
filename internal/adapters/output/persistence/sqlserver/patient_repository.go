@@ -204,28 +204,44 @@ func (r *patientRepository) GetByDocumentNumberAndType(ctx context.Context, docu
 	return &patient, nil
 }
 
-// Search invoca el procedimiento almacenado usp_go_listarpacientes con los
-// filtros de búsqueda (@Nrodoc, @NroHc, @ApellidoPaterno,
-// @ApellidoMaterno, @Nombres). Un filtro vacío se envía como cadena vacía,
-// que el SP interpreta como "no filtrar por este campo". El nombre del SP se
-// pasa como texto de consulta y los parámetros van nombrados, por lo que el
-// driver mssql los despacha como una llamada RPC, sin concatenar SQL.
+// Search ejecuta una consulta directa parametrizada en lugar de llamar al
+// SP para evitar el "Parameter Sniffing" de SQL Server, que genera planes de
+// ejecución subóptimos cuando se invoca desde drivers externos (go-mssqldb,
+// ODBC) en contraste con SSMS. El hint OPTIMIZE FOR UNKNOWN garantiza un plan
+// estable. Los filtros vacíos son ignorados por la cláusula OR IsNull.
 func (r *patientRepository) Search(ctx context.Context, params shared.PatientSearchParams) ([]domain.Patient, error) {
-	const procedure = `usp_go_listarpacientes`
+	const query = `
+		SELECT TOP 100
+			IdPaciente,
+			NroDocumento,
+			NroHistoriaClinica,
+			ApellidoPaterno,
+			ISNULL(ApellidoMaterno, '') AS ApellidoMaterno,
+			PrimerNombre,
+			FechaNacimiento
+		FROM pacientes
+		WHERE
+			(@Nrodoc       = '' OR NroDocumento       LIKE @Nrodoc + '%')
+			AND (@NroHc    = '' OR NroHistoriaClinica LIKE @NroHc + '%')
+			AND (@Paterno  = '' OR ApellidoPaterno    LIKE @Paterno + '%')
+			AND (@Materno  = '' OR ApellidoMaterno    LIKE @Materno + '%')
+			AND (@Nombres  = '' OR PrimerNombre       LIKE @Nombres + '%')
+		ORDER BY ApellidoPaterno, ApellidoMaterno, PrimerNombre
+		OPTION (OPTIMIZE FOR UNKNOWN)`
 
-	rows, err := r.db.QueryContext(ctx, procedure,
+	rows, err := r.db.QueryContext(ctx, query,
 		sql.Named("Nrodoc", params.DocumentNumber),
 		sql.Named("NroHc", params.HistoryNumber),
-		sql.Named("ApellidoPaterno", params.PaternalSurname),
-		sql.Named("ApellidoMaterno", params.MaternalSurname),
+		sql.Named("Paterno", params.PaternalSurname),
+		sql.Named("Materno", params.MaternalSurname),
 		sql.Named("Nombres", params.Names),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("calling usp_go_listarpacientes: %w", err)
+		return nil, fmt.Errorf("querying patients search: %w", err)
 	}
 	defer rows.Close()
 
-	patients := make([]domain.Patient, 0)
+	patients := make([]domain.Patient, 0, 100)
 	for rows.Next() {
 		var (
 			patient       domain.Patient
@@ -241,7 +257,7 @@ func (r *patientRepository) Search(ctx context.Context, params shared.PatientSea
 			&patient.FirstName,
 			&birthDate,
 		); err != nil {
-			return nil, fmt.Errorf("scanning usp_go_listarpacientes row: %w", err)
+			return nil, fmt.Errorf("scanning patient search row: %w", err)
 		}
 		patient.HistoryNumber = historyNumber.String
 		if birthDate.Valid {
@@ -251,7 +267,7 @@ func (r *patientRepository) Search(ctx context.Context, params shared.PatientSea
 		patients = append(patients, patient)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterating usp_go_listarpacientes rows: %w", err)
+		return nil, fmt.Errorf("iterating patient search rows: %w", err)
 	}
 
 	return patients, nil

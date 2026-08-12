@@ -11,10 +11,6 @@ import (
 
 const bearerPrefix = "Bearer "
 
-// RequireBearerToken construye un middleware Gin que exige un JWT válido en
-// el header "Authorization: Bearer <token>" para todas las rutas del grupo
-// donde se registre. El subject del token queda disponible en el contexto
-// bajo la clave "authSubject" para los handlers que lo necesiten.
 func RequireBearerToken(authService input.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
@@ -33,6 +29,8 @@ func RequireBearerToken(authService input.AuthService) gin.HandlerFunc {
 		}
 
 		c.Set("authSubject", claims.Subject)
+		c.Set("idEmpleado", claims.IdEmpleado)
+		c.Set("auth_claims", claims)
 		c.Next()
 	}
 }
