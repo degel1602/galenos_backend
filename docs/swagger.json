@@ -9,6 +9,89 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/api/v1/evoluciones": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Saves a new medical evolution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "Save an evolution",
+                "parameters": [
+                    {
+                        "description": "Evolution data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.SaveEvolucionRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/evoluciones/paciente/{pacienteId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the saved medical evolutions for a given registration ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "Get evolutions for a patient",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the Registration / Encounter",
+                        "name": "pacienteId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/evoluciones/pacientes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of patients currently active",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "List patients for the medical evolution tray",
+                "responses": {}
+            }
+        },
         "/appointments": {
             "post": {
                 "description": "Valida los datos del paciente, médico y horario, y agenda la cita si el médico está disponible.",
@@ -29,7 +112,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_input_http.createAppointmentRequest"
+                            "$ref": "#/definitions/httpadapter.createAppointmentRequest"
                         }
                     }
                 ],
@@ -39,13 +122,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Appointment"
+                                            "$ref": "#/definitions/domain.Appointment"
                                         }
                                     }
                                 }
@@ -57,13 +140,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -75,13 +158,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -116,13 +199,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Appointment"
+                                            "$ref": "#/definitions/domain.Appointment"
                                         }
                                     }
                                 }
@@ -134,13 +217,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -175,7 +258,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -183,7 +266,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.CentroPoblado"
+                                                "$ref": "#/definitions/domain.CentroPoblado"
                                             }
                                         }
                                     }
@@ -196,13 +279,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -214,13 +297,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -246,13 +329,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.DatosInstitucion"
+                                            "$ref": "#/definitions/domain.DatosInstitucion"
                                         }
                                     }
                                 }
@@ -264,13 +347,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -296,7 +379,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -304,7 +387,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Departamento"
+                                                "$ref": "#/definitions/domain.Departamento"
                                             }
                                         }
                                     }
@@ -317,13 +400,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -358,7 +441,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -366,7 +449,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Distrito"
+                                                "$ref": "#/definitions/domain.Distrito"
                                             }
                                         }
                                     }
@@ -379,13 +462,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -397,13 +480,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -429,7 +512,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -437,7 +520,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Especialidad"
+                                                "$ref": "#/definitions/domain.Especialidad"
                                             }
                                         }
                                     }
@@ -450,13 +533,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -482,7 +565,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -490,7 +573,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoEstadoCivil"
+                                                "$ref": "#/definitions/domain.TipoEstadoCivil"
                                             }
                                         }
                                     }
@@ -503,13 +586,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -535,7 +618,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -543,7 +626,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.EstadoLlegoPaciente"
+                                                "$ref": "#/definitions/domain.EstadoLlegoPaciente"
                                             }
                                         }
                                     }
@@ -556,13 +639,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -588,7 +671,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -596,7 +679,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Etnia"
+                                                "$ref": "#/definitions/domain.Etnia"
                                             }
                                         }
                                     }
@@ -609,13 +692,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -641,7 +724,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -649,7 +732,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.FuenteFinanciamiento"
+                                                "$ref": "#/definitions/domain.FuenteFinanciamiento"
                                             }
                                         }
                                     }
@@ -662,13 +745,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -694,7 +777,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -702,7 +785,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoGradoInstruccion"
+                                                "$ref": "#/definitions/domain.TipoGradoInstruccion"
                                             }
                                         }
                                     }
@@ -715,13 +798,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -747,7 +830,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -755,7 +838,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Idioma"
+                                                "$ref": "#/definitions/domain.Idioma"
                                             }
                                         }
                                     }
@@ -768,13 +851,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -800,7 +883,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -808,7 +891,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoOcupacion"
+                                                "$ref": "#/definitions/domain.TipoOcupacion"
                                             }
                                         }
                                     }
@@ -821,13 +904,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -867,13 +950,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.pageResponsePatients"
+                                            "$ref": "#/definitions/httpadapter.pageResponsePatients"
                                         }
                                     }
                                 }
@@ -885,13 +968,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -949,7 +1032,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -957,7 +1040,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Patient"
+                                                "$ref": "#/definitions/domain.Patient"
                                             }
                                         }
                                     }
@@ -970,13 +1053,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1018,13 +1101,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Patient"
+                                            "$ref": "#/definitions/domain.Patient"
                                         }
                                     }
                                 }
@@ -1036,13 +1119,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1054,13 +1137,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1095,13 +1178,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.PatientDetail"
+                                            "$ref": "#/definitions/domain.PatientDetail"
                                         }
                                     }
                                 }
@@ -1113,13 +1196,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1131,13 +1214,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1174,7 +1257,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_input_http.updatePatientRequest"
+                            "$ref": "#/definitions/httpadapter.updatePatientRequest"
                         }
                     }
                 ],
@@ -1184,13 +1267,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.PatientDetail"
+                                            "$ref": "#/definitions/domain.PatientDetail"
                                         }
                                     }
                                 }
@@ -1202,13 +1285,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1220,13 +1303,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1252,7 +1335,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1260,7 +1343,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Pais"
+                                                "$ref": "#/definitions/domain.Pais"
                                             }
                                         }
                                     }
@@ -1273,13 +1356,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1314,7 +1397,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1322,7 +1405,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Provincia"
+                                                "$ref": "#/definitions/domain.Provincia"
                                             }
                                         }
                                     }
@@ -1335,13 +1418,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1353,13 +1436,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1400,13 +1483,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.ReniecResult"
+                                            "$ref": "#/definitions/domain.ReniecResult"
                                         }
                                     }
                                 }
@@ -1418,13 +1501,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1436,13 +1519,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1477,7 +1560,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1485,7 +1568,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Servicio"
+                                                "$ref": "#/definitions/domain.Servicio"
                                             }
                                         }
                                     }
@@ -1498,13 +1581,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1516,13 +1599,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1593,13 +1676,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.SisAfiliado"
+                                            "$ref": "#/definitions/domain.SisAfiliado"
                                         }
                                     }
                                 }
@@ -1611,13 +1694,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1629,13 +1712,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1670,7 +1753,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1691,13 +1774,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1709,13 +1792,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1750,7 +1833,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1771,13 +1854,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1789,13 +1872,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1825,7 +1908,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_input_http.sisAfiliacionRequest"
+                            "$ref": "#/definitions/httpadapter.sisAfiliacionRequest"
                         }
                     }
                 ],
@@ -1835,7 +1918,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1853,13 +1936,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1871,13 +1954,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1907,7 +1990,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_input_http.sisFuaForzarGuardadoRequest"
+                            "$ref": "#/definitions/httpadapter.sisFuaForzarGuardadoRequest"
                         }
                     }
                 ],
@@ -1917,7 +2000,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1935,13 +2018,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1953,13 +2036,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -1989,7 +2072,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_input_http.sisFuaAgregarRequest"
+                            "$ref": "#/definitions/httpadapter.sisFuaAgregarRequest"
                         }
                     }
                 ],
@@ -1999,7 +2082,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2017,13 +2100,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2035,13 +2118,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2076,7 +2159,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2094,13 +2177,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2112,13 +2195,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2153,7 +2236,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2174,13 +2257,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2192,13 +2275,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2233,7 +2316,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2254,13 +2337,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2272,13 +2355,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2304,7 +2387,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2312,7 +2395,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoDocumento"
+                                                "$ref": "#/definitions/domain.TipoDocumento"
                                             }
                                         }
                                     }
@@ -2325,13 +2408,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2357,7 +2440,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2365,7 +2448,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TipoSexo"
+                                                "$ref": "#/definitions/domain.TipoSexo"
                                             }
                                         }
                                     }
@@ -2378,13 +2461,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2444,7 +2527,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2465,13 +2548,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2483,13 +2566,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2517,7 +2600,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_input_http.createTriajeRequest"
+                            "$ref": "#/definitions/httpadapter.createTriajeRequest"
                         }
                     }
                 ],
@@ -2527,7 +2610,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2545,13 +2628,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2563,13 +2646,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2599,7 +2682,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_input_http.createAdmissionFromTriageRequest"
+                            "$ref": "#/definitions/httpadapter.createAdmissionFromTriageRequest"
                         }
                     }
                 ],
@@ -2609,7 +2692,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2627,13 +2710,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2645,13 +2728,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2686,7 +2769,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2704,13 +2787,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2722,13 +2805,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2799,7 +2882,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2820,13 +2903,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2838,13 +2921,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2884,7 +2967,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2905,13 +2988,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2923,13 +3006,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/internal_adapters_input_http.apiResponse"
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "error": {
-                                            "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                                            "$ref": "#/definitions/httpadapter.apiError"
                                         }
                                     }
                                 }
@@ -2941,36 +3024,36 @@
         }
     },
     "definitions": {
-        "github_com_galenos-pro_appointments-api_internal_domain.Appointment": {
+        "domain.Appointment": {
             "type": "object",
             "properties": {
                 "createdAt": {
                     "type": "string"
                 },
-                "doctorId": {
+                "doctorID": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "patientId": {
+                "patientID": {
                     "type": "string"
                 },
                 "reason": {
                     "type": "string"
                 },
                 "slot": {
-                    "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.TimeSlot"
+                    "$ref": "#/definitions/domain.TimeSlot"
                 },
                 "status": {
-                    "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.AppointmentStatus"
+                    "$ref": "#/definitions/domain.AppointmentStatus"
                 },
                 "updatedAt": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.AppointmentStatus": {
+        "domain.AppointmentStatus": {
             "type": "string",
             "enum": [
                 "SCHEDULED",
@@ -2985,18 +3068,19 @@
                 "StatusCompleted"
             ]
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.CentroPoblado": {
+        "domain.CentroPoblado": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "nombre": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.DatosInstitucion": {
+        "domain.DatosInstitucion": {
             "type": "object",
             "properties": {
                 "codRenaes": {
@@ -3017,7 +3101,7 @@
                 "nombre": {
                     "type": "string"
                 },
-                "rucEess": {
+                "rucEESS": {
                     "type": "string"
                 },
                 "telefono": {
@@ -3028,51 +3112,55 @@
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Departamento": {
+        "domain.Departamento": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "nombre": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Distrito": {
+        "domain.Distrito": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "nombre": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Especialidad": {
+        "domain.Especialidad": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "nombre": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.EstadoLlegoPaciente": {
+        "domain.EstadoLlegoPaciente": {
             "type": "object",
             "properties": {
                 "descripcion": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Etnia": {
+        "domain.Etnia": {
             "type": "object",
             "properties": {
                 "codigo": {
@@ -3083,43 +3171,47 @@
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.FuenteFinanciamiento": {
+        "domain.FuenteFinanciamiento": {
             "type": "object",
             "properties": {
                 "descripcion": {
                     "type": "string"
                 },
-                "idFuenteFinanciamiento": {
-                    "type": "integer"
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "idTipoFinanciamiento": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Idioma": {
+        "domain.Idioma": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "lengua": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Pais": {
+        "domain.Pais": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "nombre": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Patient": {
+        "domain.Patient": {
             "type": "object",
             "properties": {
                 "dateOfBirth": {
@@ -3128,8 +3220,9 @@
                 "documentNumber": {
                     "type": "string"
                 },
-                "educationDegreeId": {
-                    "type": "integer"
+                "educationDegreeID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "firstName": {
                     "type": "string"
@@ -3140,14 +3233,17 @@
                 "homeAddress": {
                     "type": "string"
                 },
-                "homeCenterId": {
-                    "type": "integer"
+                "homeCenterID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "homeDistrictId": {
-                    "type": "integer"
+                "homeDistrictID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "maritalStatusId": {
-                    "type": "integer"
+                "maritalStatusID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "maternalSurname": {
                     "type": "string"
@@ -3155,8 +3251,9 @@
                 "paternalSurname": {
                     "type": "string"
                 },
-                "patientId": {
-                    "type": "integer"
+                "patientID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "phone": {
                     "type": "string"
@@ -3164,28 +3261,32 @@
                 "secondName": {
                     "type": "string"
                 },
-                "sexTypeId": {
-                    "type": "integer"
+                "sexTypeID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "thirdName": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.PatientDetail": {
+        "domain.PatientDetail": {
             "type": "object",
             "properties": {
                 "autoGenerated": {
                     "type": "string"
                 },
-                "birthCenterId": {
-                    "type": "integer"
+                "birthCenterID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "birthCountryId": {
-                    "type": "integer"
+                "birthCountryID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "birthDistrictId": {
-                    "type": "integer"
+                "birthDistrictID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "birthRecordNumber": {
                     "type": "string"
@@ -3197,16 +3298,19 @@
                     "type": "string"
                 },
                 "childOrderNumber": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "dateOfBirth": {
                     "type": "string"
                 },
-                "disabilityId": {
-                    "type": "integer"
+                "disabilityID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "docIdentityId": {
-                    "type": "integer"
+                "docIdentityID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "documentNumber": {
                     "type": "string"
@@ -3217,13 +3321,14 @@
                 "ecogObsCaseNumber": {
                     "type": "string"
                 },
-                "educationDegreeId": {
-                    "type": "integer"
+                "educationDegreeID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "email": {
                     "type": "string"
                 },
-                "ethnicityId": {
+                "ethnicityID": {
                     "type": "string"
                 },
                 "familyRecord": {
@@ -3241,26 +3346,33 @@
                 "homeAddress": {
                     "type": "string"
                 },
-                "homeCenterId": {
-                    "type": "integer"
+                "homeCenterID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "homeCountryId": {
-                    "type": "integer"
+                "homeCountryID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "homeDistrictId": {
-                    "type": "integer"
+                "homeDistrictID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "incapacityId": {
-                    "type": "integer"
+                "incapacityID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "insuranceTypeId": {
-                    "type": "integer"
+                "insuranceTypeID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "languageId": {
-                    "type": "integer"
+                "languageID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "maritalStatusId": {
-                    "type": "integer"
+                "maritalStatusID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "maternalSurname": {
                     "type": "string"
@@ -3286,32 +3398,39 @@
                 "motherSecondName": {
                     "type": "string"
                 },
-                "numberingTypeId": {
-                    "type": "integer"
+                "numberingTypeID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "observation": {
                     "type": "string"
                 },
-                "occupationTypeId": {
-                    "type": "integer"
+                "occupationTypeID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "originCenterId": {
-                    "type": "integer"
+                "originCenterID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "originCountryId": {
-                    "type": "integer"
+                "originCountryID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "originDistrictId": {
-                    "type": "integer"
+                "originDistrictID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "originId": {
-                    "type": "integer"
+                "originID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "paternalSurname": {
                     "type": "string"
                 },
-                "patientId": {
-                    "type": "integer"
+                "patientID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "patientPhoto": {
                     "type": "string"
@@ -3334,11 +3453,13 @@
                 "sectorist": {
                     "type": "string"
                 },
-                "sexTypeId": {
-                    "type": "integer"
+                "sexTypeID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "stateId": {
-                    "type": "integer"
+                "stateID": {
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "thirdName": {
                     "type": "string"
@@ -3346,23 +3467,24 @@
                 "usesWebReniec": {
                     "type": "boolean"
                 },
-                "xRayCaseNumber": {
+                "xrayCaseNumber": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Provincia": {
+        "domain.Provincia": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "nombre": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.ReniecDatos": {
+        "domain.ReniecDatos": {
             "type": "object",
             "properties": {
                 "apellidoMaterno": {
@@ -3391,11 +3513,11 @@
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.ReniecResult": {
+        "domain.ReniecResult": {
             "type": "object",
             "properties": {
                 "datos": {
-                    "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.ReniecDatos"
+                    "$ref": "#/definitions/domain.ReniecDatos"
                 },
                 "dni": {
                     "type": "string"
@@ -3411,18 +3533,19 @@
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.Servicio": {
+        "domain.Servicio": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "nombre": {
                     "type": "string"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.SisAfiliado": {
+        "domain.SisAfiliado": {
             "type": "object",
             "properties": {
                 "apeMaterno": {
@@ -3440,7 +3563,7 @@
                 "descEESS": {
                     "type": "string"
                 },
-                "descEessUbigeo": {
+                "descEESSUbigeo": {
                     "type": "string"
                 },
                 "descTipoSeguro": {
@@ -3455,7 +3578,7 @@
                 "eess": {
                     "type": "string"
                 },
-                "eessUbigeo": {
+                "eessubigeo": {
                     "type": "string"
                 },
                 "estado": {
@@ -3520,7 +3643,7 @@
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.TimeSlot": {
+        "domain.TimeSlot": {
             "type": "object",
             "properties": {
                 "endsAt": {
@@ -3531,62 +3654,82 @@
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.TipoDocumento": {
+        "domain.TipoDocumento": {
             "type": "object",
             "properties": {
                 "descripcion": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.TipoEstadoCivil": {
+        "domain.TipoEstadoCivil": {
             "type": "object",
             "properties": {
                 "descripcion": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.TipoGradoInstruccion": {
+        "domain.TipoGradoInstruccion": {
             "type": "object",
             "properties": {
                 "descripcion": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.TipoOcupacion": {
+        "domain.TipoOcupacion": {
             "type": "object",
             "properties": {
                 "descripcion": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 }
             }
         },
-        "github_com_galenos-pro_appointments-api_internal_domain.TipoSexo": {
+        "domain.TipoSexo": {
             "type": "object",
             "properties": {
                 "descripcion": {
                     "type": "string"
                 },
                 "id": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "httpadapter.SaveEvolucionRequest": {
+            "type": "object",
+            "required": [
+                "dataB64",
+                "idRegAtencion"
+            ],
+            "properties": {
+                "dataB64": {
+                    "type": "string"
+                },
+                "idRegAtencion": {
                     "type": "integer"
                 }
             }
         },
-        "internal_adapters_input_http.apiError": {
+        "httpadapter.apiError": {
             "type": "object",
             "properties": {
                 "code": {
@@ -3597,19 +3740,19 @@
                 }
             }
         },
-        "internal_adapters_input_http.apiResponse": {
+        "httpadapter.apiResponse": {
             "type": "object",
             "properties": {
                 "data": {},
                 "error": {
-                    "$ref": "#/definitions/internal_adapters_input_http.apiError"
+                    "$ref": "#/definitions/httpadapter.apiError"
                 },
                 "success": {
                     "type": "boolean"
                 }
             }
         },
-        "internal_adapters_input_http.createAdmissionFromTriageRequest": {
+        "httpadapter.createAdmissionFromTriageRequest": {
             "type": "object",
             "required": [
                 "idPacienteTriaje",
@@ -3639,7 +3782,7 @@
                 }
             }
         },
-        "internal_adapters_input_http.createAppointmentRequest": {
+        "httpadapter.createAppointmentRequest": {
             "type": "object",
             "required": [
                 "doctorId",
@@ -3667,7 +3810,7 @@
                 }
             }
         },
-        "internal_adapters_input_http.createTriajeRequest": {
+        "httpadapter.createTriajeRequest": {
             "type": "object",
             "properties": {
                 "apellidoMaterno": {
@@ -3792,13 +3935,13 @@
                 }
             }
         },
-        "internal_adapters_input_http.pageResponsePatients": {
+        "httpadapter.pageResponsePatients": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_galenos-pro_appointments-api_internal_domain.Patient"
+                        "$ref": "#/definitions/httpadapter.patientResponse"
                     }
                 },
                 "page": {
@@ -3815,7 +3958,60 @@
                 }
             }
         },
-        "internal_adapters_input_http.sisAfiliacionRequest": {
+        "httpadapter.patientResponse": {
+            "type": "object",
+            "properties": {
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "documentNumber": {
+                    "type": "string"
+                },
+                "educationDegreeId": {
+                    "type": "integer"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "historyNumber": {
+                    "type": "string"
+                },
+                "homeAddress": {
+                    "type": "string"
+                },
+                "homeCenterId": {
+                    "type": "integer"
+                },
+                "homeDistrictId": {
+                    "type": "integer"
+                },
+                "maritalStatusId": {
+                    "type": "integer"
+                },
+                "maternalSurname": {
+                    "type": "string"
+                },
+                "paternalSurname": {
+                    "type": "string"
+                },
+                "patientId": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "secondName": {
+                    "type": "string"
+                },
+                "sexTypeId": {
+                    "type": "integer"
+                },
+                "thirdName": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpadapter.sisAfiliacionRequest": {
             "type": "object",
             "properties": {
                 "afiliacionDisa": {
@@ -3913,12 +4109,11 @@
                 }
             }
         },
-        "internal_adapters_input_http.sisFuaAgregarRequest": {
+        "httpadapter.sisFuaAgregarRequest": {
             "type": "object",
             "required": [
                 "idCuentaAtencion",
-                "idEmpleado",
-                "nombrePc"
+                "idEmpleado"
             ],
             "properties": {
                 "idCuentaAtencion": {
@@ -3932,7 +4127,7 @@
                 }
             }
         },
-        "internal_adapters_input_http.sisFuaForzarGuardadoRequest": {
+        "httpadapter.sisFuaForzarGuardadoRequest": {
             "type": "object",
             "required": [
                 "idCuentaAtencion"
@@ -3943,7 +4138,7 @@
                 }
             }
         },
-        "internal_adapters_input_http.updatePatientRequest": {
+        "httpadapter.updatePatientRequest": {
             "type": "object",
             "properties": {
                 "auditUserId": {

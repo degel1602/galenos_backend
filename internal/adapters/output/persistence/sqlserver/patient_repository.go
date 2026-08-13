@@ -213,11 +213,11 @@ func (r *patientRepository) Search(ctx context.Context, params shared.PatientSea
 	const query = `
 		SELECT TOP 100
 			IdPaciente,
-			NroDocumento,
+			ISNULL(NroDocumento, '') AS NroDocumento,
 			NroHistoriaClinica,
-			ApellidoPaterno,
+			ISNULL(ApellidoPaterno, '') AS ApellidoPaterno,
 			ISNULL(ApellidoMaterno, '') AS ApellidoMaterno,
-			PrimerNombre,
+			ISNULL(PrimerNombre, '') AS PrimerNombre,
 			FechaNacimiento
 		FROM pacientes
 		WHERE
