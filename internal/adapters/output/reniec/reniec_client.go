@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
 )
@@ -89,6 +90,10 @@ func (c *client) Consultar(ctx context.Context, dni string, operacion string) (d
 		return domain.ReniecResult{}, fmt.Errorf("parsing reniec response: %w", parseErr)
 	}
 
+	// Log de depuración: el layout del arreglo no está documentado, así que
+	// se registra completo para poder mapear las posiciones de cada campo.
+	log.Printf("reniec consulta dni=%s operacion=%s resultado=%q", dni, operacion, resultado)
+
 	if esError(resultado) {
 		codigo, mensaje := interpretarError(resultado)
 		log.Printf("reniec error %s: %s", codigo, mensaje)
@@ -128,6 +133,22 @@ func interpretarDatos(resultado []string, operacion string) domain.ReniecDatos {
 		datos.ApellidoMaterno = idx(5)
 		datos.Nombres = idx(7)
 		datos.FechaNacimiento = convertirFecha(idx(29))
+		datos.Sexo = detectarSexo(resultado)
+		domicilio := extraerDomicilio(resultado)
+		datos.Departamento = domicilio.Departamento
+		datos.Provincia = domicilio.Provincia
+		datos.Distrito = domicilio.Distrito
+		datos.Direccion = domicilio.Direccion
+		datos.Ubigeo = domicilio.Ubigeo
+		datos.EstadoCivil = detectarEstadoCivil(resultado)
+		// Posiciones conocidas de obtenerDatosCompletos: [30] nombre del padre,
+		// [31] nombre de la madre, [16]/[17]/[18] ubigeo de nacimiento.
+		datos.NombrePadre = idx(30)
+		datos.NombreMadre = idx(31)
+		nacimiento := extraerNacimiento(resultado)
+		datos.DepartamentoNacimiento = nacimiento.Departamento
+		datos.ProvinciaNacimiento = nacimiento.Provincia
+		datos.DistritoNacimiento = nacimiento.Distrito
 	}
 
 	partes := separarNombres(datos.Nombres)
@@ -254,6 +275,312 @@ func interpretarError(resultado []string) (string, string) {
 		mensaje = "Error desconocido"
 	}
 	return resultado[0], mensaje
+}
+
+// detectarSexo busca el valor de sexo dentro del arreglo crudo de
+// obtenerDatosCompletos. Posición conocida: [20] con el código 1/2; si el
+// layout varía, recorre el arreglo buscando un token que parezca sexo
+// ("MASCULINO", "FEMENINO", "M", "F" o dígitos 1/2) descartando las primeras
+// posiciones reservadas a identidad. Si no encuentra nada concluyente,
+// devuelve vacío (el frontend lo deja editable).
+func detectarSexo(resultado []string) string {
+	switch strings.ToUpper(strings.TrimSpace(tokenEn(resultado, 20))) {
+	case "MASCULINO", "M", "1":
+		return "MASCULINO"
+	case "FEMENINO", "F", "2":
+		return "FEMENINO"
+	}
+	for i := 10; i < len(resultado); i++ {
+		token := strings.ToUpper(strings.TrimSpace(resultado[i]))
+		switch token {
+		case "MASCULINO", "FEMENINO", "M", "F":
+			return token
+		case "1":
+			return "MASCULINO"
+		case "2":
+			return "FEMENINO"
+		}
+	}
+	return ""
+}
+
+// --- Domicilio y estado civil ---
+
+// domicilioReniec agrupa los datos de domicilio inferidos de la respuesta.
+type domicilioReniec struct {
+	Departamento string
+	Provincia    string
+	Distrito     string
+	Direccion    string
+	Ubigeo       string
+}
+
+// nacimientoReniec agrupa el ubigeo de nacimiento inferido de la respuesta.
+type nacimientoReniec struct {
+	Departamento string
+	Provincia    string
+	Distrito     string
+}
+
+// departamentosPeru son los nombres canónicos de los departamentos del Perú,
+// usados para validar los valores posicionales de la respuesta RENIEC.
+var departamentosPeru = []string{
+	"AMAZONAS", "ANCASH", "APURIMAC", "AREQUIPA", "AYACUCHO", "CAJAMARCA",
+	"CALLAO", "CUSCO", "HUANCAVELICA", "HUANUCO", "ICA", "JUNIN",
+	"LA LIBERTAD", "LAMBAYEQUE", "LIMA", "LORETO", "MADRE DE DIOS",
+	"MOQUEGUA", "PASCO", "PIURA", "PUNO", "SAN MARTIN", "TACNA",
+	"TUMBES", "UCAYALI",
+}
+
+// estadosCivilReniec son los estados civiles que puede devolver RENIEC.
+var estadosCivilReniec = []string{
+	"SOLTERO", "CASADO", "VIUDO", "DIVORCIADO", "CONVIVIENTE", "SEPARADO",
+}
+
+// extraerDomicilio intenta recuperar el domicilio desde el arreglo crudo de
+// obtenerDatosCompletos. Posiciones conocidas: [26] departamento, [27]
+// provincia, [28] distrito y [36] dirección del domicilio. Como el layout
+// puede variar entre versiones del servicio, primero se intenta con etiquetas
+// ("DEPARTAMENTO: LIMA" o "DEPARTAMENTO" + valor), luego con las posiciones
+// conocidas y al final con heurísticas validadas (ubigeo de 6 dígitos,
+// nombres de departamento conocidos, etc.). Solo se devuelven valores
+// concluyentes; lo que no se confirma queda vacío para que el frontend lo
+// deje editable.
+func extraerDomicilio(resultado []string) domicilioReniec {
+	var dom domicilioReniec
+
+	// 1) Tokens etiquetados.
+	dom.Departamento = valorEtiquetado(resultado, "DEPARTAMENTO")
+	dom.Provincia = valorEtiquetado(resultado, "PROVINCIA")
+	dom.Distrito = valorEtiquetado(resultado, "DISTRITO")
+	dom.Direccion = valorEtiquetado(resultado, "DIRECCION")
+	dom.Ubigeo = valorEtiquetado(resultado, "UBIGEO")
+
+	// 2) Posiciones conocidas de obtenerDatosCompletos.
+	if dom.Departamento == "" {
+		dom.Departamento = tokenEn(resultado, 26)
+	}
+	if dom.Provincia == "" {
+		dom.Provincia = tokenEn(resultado, 27)
+	}
+	if dom.Distrito == "" {
+		dom.Distrito = tokenEn(resultado, 28)
+	}
+	if dom.Direccion == "" {
+		dom.Direccion = tokenEn(resultado, 36)
+	}
+
+	// 3) Heurísticas posicionales para lo que aún falta.
+	departamentoIdx := -1
+	for i := 20; i < len(resultado); i++ {
+		token := strings.TrimSpace(resultado[i])
+		if token == "" || esSinDatos(token) {
+			continue
+		}
+		switch {
+		case dom.Ubigeo == "" && esUbigeo(token):
+			dom.Ubigeo = token
+		case dom.Departamento == "" && esDepartamento(token):
+			dom.Departamento = token
+			departamentoIdx = i
+		case dom.Direccion == "" && pareceDireccion(token):
+			dom.Direccion = token
+		}
+	}
+
+	if dom.Departamento != "" && (dom.Provincia == "" || dom.Distrito == "") {
+		if departamentoIdx < 0 {
+			departamentoIdx = buscarIndice(resultado, dom.Departamento)
+		}
+		// Tras el departamento, los tokens no vacíos siguientes suelen ser
+		// provincia y distrito.
+		subsiguientes := 0
+		for j := departamentoIdx + 1; j < len(resultado) && subsiguientes < 2; j++ {
+			candidato := strings.TrimSpace(resultado[j])
+			if candidato == "" || esSinDatos(candidato) || esUbigeo(candidato) || esEstadoCivil(candidato) || pareceDireccion(candidato) {
+				continue
+			}
+			if subsiguientes == 0 {
+				dom.Provincia = candidato
+			} else {
+				dom.Distrito = candidato
+			}
+			subsiguientes++
+		}
+	}
+
+	return dom
+}
+
+// extraerNacimiento recupera el ubigeo de nacimiento desde el arreglo crudo de
+// obtenerDatosCompletos. Posiciones conocidas: [16] departamento, [17]
+// provincia y [18] distrito. Primero intenta con etiquetas y luego con las
+// posiciones; solo devuelve valores concluyentes (lo demás queda vacío).
+func extraerNacimiento(resultado []string) nacimientoReniec {
+	var nac nacimientoReniec
+
+	// 1) Tokens etiquetados.
+	nac.Departamento = valorEtiquetado(resultado, "DEPARTAMENTO NACIMIENTO")
+	nac.Provincia = valorEtiquetado(resultado, "PROVINCIA NACIMIENTO")
+	nac.Distrito = valorEtiquetado(resultado, "DISTRITO NACIMIENTO")
+
+	// 2) Posiciones conocidas de obtenerDatosCompletos.
+	if nac.Departamento == "" {
+		nac.Departamento = tokenEn(resultado, 16)
+	}
+	if nac.Provincia == "" {
+		nac.Provincia = tokenEn(resultado, 17)
+	}
+	if nac.Distrito == "" {
+		nac.Distrito = tokenEn(resultado, 18)
+	}
+
+	return nac
+}
+
+// detectarEstadoCivil busca el estado civil de la persona en el arreglo crudo.
+// Al igual que el sexo, la posición no está documentada, así que se valida
+// contra los estados civiles conocidos.
+func detectarEstadoCivil(resultado []string) string {
+	for i := 20; i < len(resultado); i++ {
+		token := strings.TrimSpace(resultado[i])
+		if token == "" {
+			continue
+		}
+		if esEstadoCivil(token) {
+			return token
+		}
+	}
+	return ""
+}
+
+// valorEtiquetado lee el valor de un token etiquetado. Soporta dos formatos:
+// "DEPARTAMENTO: LIMA" (etiqueta y valor juntos) y "DEPARTAMENTO" "LIMA"
+// (etiqueta y valor en tokens consecutivos).
+func valorEtiquetado(resultado []string, etiqueta string) string {
+	for i, token := range resultado {
+		t := strings.ToUpper(strings.TrimSpace(token))
+		if t != etiqueta && !strings.HasPrefix(t, etiqueta+":") {
+			continue
+		}
+		resto := strings.Trim(strings.TrimPrefix(t, etiqueta), ": ")
+		if resto != "" {
+			return resto
+		}
+		if i+1 < len(resultado) {
+			return strings.TrimSpace(resultado[i+1])
+		}
+	}
+	return ""
+}
+
+// buscarIndice devuelve la posición del primer token que normalizado coincide
+// con el valor buscado (desde la posición 20, donde suelen ir los datos de
+// domicilio), o -1 si no lo encuentra.
+func buscarIndice(resultado []string, valor string) int {
+	n := normalizarToken(valor)
+	for i := 20; i < len(resultado); i++ {
+		if normalizarToken(resultado[i]) == n {
+			return i
+		}
+	}
+	return -1
+}
+
+// tokenEn devuelve el token en la posición i, vacío si está fuera de rango,
+// es "SIN DATOS" o está en blanco (el servicio usa "SIN DATOS" como nulo).
+func tokenEn(resultado []string, i int) string {
+	if i < 0 || i >= len(resultado) {
+		return ""
+	}
+	v := strings.TrimSpace(resultado[i])
+	if v == "" || esSinDatos(v) {
+		return ""
+	}
+	return v
+}
+
+// esSinDatos verifica si el token es el nulo que usa RENIEC.
+func esSinDatos(token string) bool {
+	t := strings.ToUpper(strings.TrimSpace(token))
+	return t == "SIN DATOS" || t == "S/D" || t == "SIN DATO"
+}
+
+// esDepartamento verifica si el token es uno de los departamentos del Perú.
+func esDepartamento(token string) bool {
+	n := normalizarToken(token)
+	for _, d := range departamentosPeru {
+		if n == d {
+			return true
+		}
+	}
+	return false
+}
+
+// esEstadoCivil verifica si el token es un estado civil reconocido.
+func esEstadoCivil(token string) bool {
+	n := normalizarToken(token)
+	for _, e := range estadosCivilReniec {
+		if strings.HasPrefix(n, e) {
+			return true
+		}
+	}
+	return false
+}
+
+// esUbigeo verifica si el token es un código ubigeo (6 dígitos).
+func esUbigeo(token string) bool {
+	return len(token) == 6 && isDigit(token)
+}
+
+// pareceDireccion verifica si el token tiene forma de dirección: contiene
+// dígitos y una vía conocida (AV., JR., MZ., URB., etc.) o texto con número.
+func pareceDireccion(token string) bool {
+	token = strings.TrimSpace(token)
+	if esFecha(token) {
+		return false
+	}
+	n := normalizarToken(token)
+	if !strings.ContainsAny(n, "0123456789") {
+		return false
+	}
+	for _, p := range []string{
+		"AV", "JR", "MZ", "LT", "URB", "PSJ", "CALLE", "PASAJE",
+		"PROLONGACION", "NRO", "BLOCK", "GRUPO", "DPTO", "KM",
+	} {
+		if strings.Contains(n, p) {
+			return true
+		}
+	}
+	return len(n) >= 8
+}
+
+// esFecha verifica si el token tiene el formato DD/MM/YYYY.
+func esFecha(token string) bool {
+	partes := strings.Split(token, "/")
+	return len(partes) == 3 &&
+		len(partes[2]) == 4 && isDigit(partes[0]) && isDigit(partes[1]) && isDigit(partes[2])
+}
+
+// normalizarToken normaliza un token para compararlo: mayúsculas, sin
+// acentos, sin signos de puntuación y con espacios simples.
+func normalizarToken(s string) string {
+	s = strings.ToUpper(strings.TrimSpace(s))
+	s = strings.NewReplacer(
+		"Á", "A", "É", "E", "Í", "I", "Ó", "O", "Ú", "U", "Ü", "U", "Ñ", "N",
+	).Replace(s)
+	var b strings.Builder
+	ultimoEspacio := false
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			b.WriteRune(r)
+			ultimoEspacio = false
+		} else if !ultimoEspacio {
+			b.WriteByte(' ')
+			ultimoEspacio = true
+		}
+	}
+	return strings.TrimSpace(b.String())
 }
 
 func isDigit(s string) bool {

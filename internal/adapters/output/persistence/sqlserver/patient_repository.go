@@ -29,10 +29,10 @@ func (r *patientRepository) List(ctx context.Context, page shared.PageRequest) (
 	}
 
 	const listQuery = `
-		SELECT NroDocumento, ApellidoPaterno, ApellidoMaterno, PrimerNombre,
-		       SegundoNombre, TercerNombre
+		SELECT IdPaciente, NroDocumento, NroHistoriaClinica, ApellidoPaterno,
+		       ApellidoMaterno, PrimerNombre, SegundoNombre, TercerNombre, FechaNacimiento
 		FROM pacientes 
-		WHERE NroDocumento is not null 
+		WHERE ISNULL(NroDocumento, '') <> '' 
 		ORDER BY NroDocumento
 		OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY`
 
@@ -49,23 +49,33 @@ func (r *patientRepository) List(ctx context.Context, page shared.PageRequest) (
 	for rows.Next() {
 		var (
 			patient         domain.Patient
+			historyNumber   sql.NullString
 			maternalSurname sql.NullString
 			secondName      sql.NullString
 			thirdName       sql.NullString
+			birthDate       sql.NullTime
 		)
 		if err := rows.Scan(
+			&patient.PatientID,
 			&patient.DocumentNumber,
+			&historyNumber,
 			&patient.PaternalSurname,
 			&maternalSurname,
 			&patient.FirstName,
 			&secondName,
 			&thirdName,
+			&birthDate,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scanning patient row: %w", err)
 		}
+		patient.HistoryNumber = historyNumber.String
 		patient.MaternalSurname = maternalSurname.String
 		patient.SecondName = secondName.String
 		patient.ThirdName = thirdName.String
+		if birthDate.Valid {
+			d := birthDate.Time
+			patient.DateOfBirth = &d
+		}
 		patients = append(patients, patient)
 	}
 	if err := rows.Err(); err != nil {

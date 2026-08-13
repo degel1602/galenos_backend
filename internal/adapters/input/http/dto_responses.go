@@ -209,14 +209,25 @@ func toAppointmentResponse(a domain.Appointment) appointmentResponse {
 // --- EXTERNAL RESPONSES ---
 
 type reniecDatosResponse struct {
-	ApellidoPaterno string `json:"apellidoPaterno"`
-	ApellidoMaterno string `json:"apellidoMaterno"`
-	Nombres         string `json:"nombres"`
-	PrimerNombre    string `json:"primerNombre"`
-	SegundoNombre   string `json:"segundoNombre"`
-	TercerNombre    string `json:"tercerNombre"`
-	FechaNacimiento string `json:"fechaNacimiento"`
-	Sexo            string `json:"sexo"`
+	ApellidoPaterno        string `json:"apellidoPaterno"`
+	ApellidoMaterno        string `json:"apellidoMaterno"`
+	Nombres                string `json:"nombres"`
+	PrimerNombre           string `json:"primerNombre"`
+	SegundoNombre          string `json:"segundoNombre"`
+	TercerNombre           string `json:"tercerNombre"`
+	FechaNacimiento        string `json:"fechaNacimiento"`
+	Sexo                   string `json:"sexo"`
+	EstadoCivil            string `json:"estadoCivil"`
+	Departamento           string `json:"departamento"`
+	Provincia              string `json:"provincia"`
+	Distrito               string `json:"distrito"`
+	Direccion              string `json:"direccion"`
+	Ubigeo                 string `json:"ubigeo"`
+	NombrePadre            string `json:"nombrePadre"`
+	NombreMadre            string `json:"nombreMadre"`
+	DepartamentoNacimiento string `json:"departamentoNacimiento"`
+	ProvinciaNacimiento    string `json:"provinciaNacimiento"`
+	DistritoNacimiento     string `json:"distritoNacimiento"`
 }
 
 type reniecResultResponse struct {
@@ -232,14 +243,25 @@ func toReniecResultResponse(r domain.ReniecResult) reniecResultResponse {
 		Operacion: r.Operacion,
 		Resultado: r.Resultado,
 		Datos: reniecDatosResponse{
-			ApellidoPaterno: r.Datos.ApellidoPaterno,
-			ApellidoMaterno: r.Datos.ApellidoMaterno,
-			Nombres:         r.Datos.Nombres,
-			PrimerNombre:    r.Datos.PrimerNombre,
-			SegundoNombre:   r.Datos.SegundoNombre,
-			TercerNombre:    r.Datos.TercerNombre,
-			FechaNacimiento: r.Datos.FechaNacimiento,
-			Sexo:            r.Datos.Sexo,
+			ApellidoPaterno:        r.Datos.ApellidoPaterno,
+			ApellidoMaterno:        r.Datos.ApellidoMaterno,
+			Nombres:                r.Datos.Nombres,
+			PrimerNombre:           r.Datos.PrimerNombre,
+			SegundoNombre:          r.Datos.SegundoNombre,
+			TercerNombre:           r.Datos.TercerNombre,
+			FechaNacimiento:        r.Datos.FechaNacimiento,
+			Sexo:                   r.Datos.Sexo,
+			EstadoCivil:            r.Datos.EstadoCivil,
+			Departamento:           r.Datos.Departamento,
+			Provincia:              r.Datos.Provincia,
+			Distrito:               r.Datos.Distrito,
+			Direccion:              r.Datos.Direccion,
+			Ubigeo:                 r.Datos.Ubigeo,
+			NombrePadre:            r.Datos.NombrePadre,
+			NombreMadre:            r.Datos.NombreMadre,
+			DepartamentoNacimiento: r.Datos.DepartamentoNacimiento,
+			ProvinciaNacimiento:    r.Datos.ProvinciaNacimiento,
+			DistritoNacimiento:     r.Datos.DistritoNacimiento,
 		},
 	}
 }

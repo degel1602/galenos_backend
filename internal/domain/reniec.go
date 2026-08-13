@@ -12,15 +12,27 @@ type ReniecResult struct {
 }
 
 // ReniecDatos agrupa los datos de la persona extraídos de la respuesta de
-// RENIEC con un layout estable (independiente de la operación SOAP). Sexo
-// queda vacío si el servicio no lo devuelve o no puede inferirse.
+// RENIEC con un layout estable (independiente de la operación SOAP). Sexo,
+// estado civil y domicilio quedan vacíos si el servicio no los devuelve o no
+// pueden inferirse con certeza.
 type ReniecDatos struct {
-	ApellidoPaterno string
-	ApellidoMaterno string
-	Nombres         string
-	PrimerNombre    string
-	SegundoNombre   string
-	TercerNombre    string
-	FechaNacimiento string
-	Sexo            string
+	ApellidoPaterno        string
+	ApellidoMaterno        string
+	Nombres                string
+	PrimerNombre           string
+	SegundoNombre          string
+	TercerNombre           string
+	FechaNacimiento        string
+	Sexo                   string
+	EstadoCivil            string
+	Departamento           string
+	Provincia              string
+	Distrito               string
+	Direccion              string
+	Ubigeo                 string
+	NombrePadre            string
+	NombreMadre            string
+	DepartamentoNacimiento string
+	ProvinciaNacimiento    string
+	DistritoNacimiento     string
 }
