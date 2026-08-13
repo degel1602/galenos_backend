@@ -1,0 +1,11 @@
+package output
+
+import (
+	"context"
+	"github.com/galenos-pro/appointments-api/internal/domain"
+)
+
+type ResultadoRepository interface {
+	ListarLaboratorioPorPaciente(ctx context.Context, idPaciente int) ([]domain.Resultado, error)
+	ListarImagenesPorPaciente(ctx context.Context, idPaciente int) ([]domain.Resultado, error)
+}

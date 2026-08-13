@@ -14,16 +14,20 @@ import (
 )
 
 type RouterParams struct {
-	AppointmentHandler *AppointmentHandler
-	PatientHandler     *PatientHandler
-	CatalogHandler     *CatalogHandler
-	ReniecHandler      *ReniecHandler
-	SisHandler         *SisHandler
-	TriageHandler      *TriageHandler
-	AuthHandler        *AuthHandler
-	EvolucionHandler   *EvolucionHandler
-	AuthService        input.AuthService
-	AllowedOrigins     []string
+	AppointmentHandler   *AppointmentHandler
+	PatientHandler       *PatientHandler
+	CatalogHandler       *CatalogHandler
+	ReniecHandler        *ReniecHandler
+	SisHandler           *SisHandler
+	TriageHandler        *TriageHandler
+	AuthHandler          *AuthHandler
+	EvolucionHandler     *EvolucionHandler
+	MotivoHandler        *MotivoHandler
+	OrdenHandler         *OrdenHandler
+	ResultadoHandler     *ResultadoHandler
+	InterconsultaHandler *InterconsultaHandler
+	AuthService          input.AuthService
+	AllowedOrigins       []string
 }
 
 // NewRouter arma el árbol de rutas de la REST API, incluyendo CORS para que
@@ -121,6 +125,29 @@ func NewRouter(p RouterParams) *gin.Engine {
 			evoluciones.POST("", p.EvolucionHandler.HandleCreateEvolucion)
 			evoluciones.GET("/pacientes", p.EvolucionHandler.HandleListPatients)
 			evoluciones.GET("/paciente/:pacienteId", p.EvolucionHandler.HandleListEvoluciones)
+			evoluciones.GET("/:idRegAtencion/motivos", p.MotivoHandler.HandleListMotivos)
+			evoluciones.POST("/:idRegAtencion/motivos", p.MotivoHandler.HandleCreateMotivo)
+		}
+
+		ordenes := protected.Group("/ordenes")
+		{
+			ordenes.GET("/cuenta/:idCuentaAtencion", p.OrdenHandler.HandleListOrdenes)
+			ordenes.POST("", p.OrdenHandler.HandleCreateOrden)
+		}
+
+		resultados := protected.Group("/resultados")
+		{
+			resultados.GET("/laboratorio/paciente/:idPaciente", p.ResultadoHandler.HandleListResultadosLaboratorio)
+			resultados.GET("/imagenes/paciente/:idPaciente", p.ResultadoHandler.HandleListResultadosImagenes)
+		}
+
+		interconsultas := protected.Group("/interconsultas")
+		{
+			interconsultas.GET("/:id", p.InterconsultaHandler.HandleObtenerPorId)
+			interconsultas.GET("/servicio/:tipoServicio", p.InterconsultaHandler.HandleListarPorServicio)
+			interconsultas.POST("", p.InterconsultaHandler.HandleCrear)
+			interconsultas.PUT("/:id/estado", p.InterconsultaHandler.HandleActualizarEstado)
+			interconsultas.POST("/:id/firma", p.InterconsultaHandler.HandleGuardarFirma)
 		}
 	}
 

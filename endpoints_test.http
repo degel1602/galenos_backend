@@ -1,0 +1,108 @@
+@baseUrl = http://localhost:8080/api/v1
+# Asegúrate de generar un token primero con el login y reemplazar el valor aquí, o usa un usuario de prueba
+@token = TU_TOKEN_JWT_AQUI
+
+### Autenticación (Para obtener el token)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "username": "tu_usuario",
+    "password": "tu_password"
+}
+---
+### 1. MOTIVOS DE ATENCIÓN (Evolución)
+
+### Listar motivos de una atención
+GET {{baseUrl}}/evoluciones/123/motivos
+Authorization: Bearer {{token}}
+
+### Crear motivo
+POST {{baseUrl}}/evoluciones/123/motivos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "descripcion": "Paciente presenta dolor agudo en el pecho",
+  "tipo": "Sintoma"
+}
+
+
+---
+### 2. ÓRDENES MÉDICAS
+
+### Listar órdenes por cuenta de atención
+GET {{baseUrl}}/ordenes/cuenta/456
+Authorization: Bearer {{token}}
+
+### Crear orden médica
+POST {{baseUrl}}/ordenes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "idCuentaAtencion": 456,
+  "idMedico": 10,
+  "observaciones": "Paciente requiere descanso médico y dieta blanda",
+  "detalles": [
+    {
+      "idProcedimiento": 1,
+      "cantidad": 1,
+      "indicaciones": "Tomar en ayunas"
+    }
+  ]
+}
+
+
+---
+### 3. RESULTADOS (Laboratorio e Imágenes)
+
+### Listar resultados de laboratorio por paciente
+GET {{baseUrl}}/resultados/laboratorio/paciente/789
+Authorization: Bearer {{token}}
+
+### Listar resultados de imágenes por paciente
+GET {{baseUrl}}/resultados/imagenes/paciente/789
+Authorization: Bearer {{token}}
+
+
+---
+### 4. INTERCONSULTA
+
+### Obtener Interconsulta por ID
+GET {{baseUrl}}/interconsultas/1
+Authorization: Bearer {{token}}
+
+### Listar Interconsultas por Servicio
+GET {{baseUrl}}/interconsultas/servicio/Cardiologia
+Authorization: Bearer {{token}}
+
+### Crear Interconsulta
+POST {{baseUrl}}/interconsultas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "idAtencionOrigen": 100,
+  "idEspecialidad": 5,
+  "idMedicoDestino": 15,
+  "motivo": "Evaluación por riesgo quirúrgico"
+}
+
+### Actualizar Estado de Interconsulta
+PUT {{baseUrl}}/interconsultas/1/estado
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "estado": "Firmado"
+}
+
+### Guardar Firma Interconsulta
+POST {{baseUrl}}/interconsultas/1/firma
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "dataB64": "SGVsbG8gV29ybGQ="
+}

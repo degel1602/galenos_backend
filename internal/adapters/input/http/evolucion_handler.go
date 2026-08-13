@@ -59,7 +59,7 @@ func (h *EvolucionHandler) HandleListEvoluciones(c *gin.Context) {
 
 type SaveEvolucionRequest struct {
 	IdRegAtencion int    `json:"idRegAtencion" binding:"required"`
-	DataB64       string `json:"dataB64" binding:"required"` 
+	DataB64       string `json:"dataB64" binding:"required"`
 }
 
 // @Summary Save an evolution
@@ -77,7 +77,7 @@ func (h *EvolucionHandler) HandleCreateEvolucion(c *gin.Context) {
 		return
 	}
 
-	idEmpleado := 1 
+	idEmpleado := 1
 	if val, exists := c.Get("idEmpleado"); exists {
 		if id, ok := val.(float64); ok {
 			idEmpleado = int(id)

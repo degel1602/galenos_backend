@@ -84,14 +84,14 @@ func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRe
 			&idEmpReg,
 			&idEmpMod,
 			&idEmpAnula,
-			&fRegistro, 
+			&fRegistro,
 			&fMod,
 			&fAnul,
 			&estado,
 		); err != nil {
 			return nil, fmt.Errorf("error scanning evolution: %w", err)
 		}
-		
+
 		if doc.Valid {
 			e.NombreDocumento = doc.String
 		}
@@ -104,7 +104,7 @@ func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRe
 		if fRegistro.Valid {
 			e.FechaRegistro = fRegistro.String
 		}
-		
+
 		evolutions = append(evolutions, e)
 	}
 	return evolutions, nil

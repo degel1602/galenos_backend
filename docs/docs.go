@@ -98,6 +98,365 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/evoluciones/{idRegAtencion}/motivos": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the saved reasons for attention for a given registration ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "Get motivos de atencion for a patient evolution",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the Registration / Encounter",
+                        "name": "idRegAtencion",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Saves a new reason for attention in a patient's evolution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "Save a motivo de atencion",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the Registration / Encounter",
+                        "name": "idRegAtencion",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Motivo data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.SaveMotivoRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/interconsultas": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new interconsulta request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "Create an interconsulta",
+                "parameters": [
+                    {
+                        "description": "Interconsulta data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.CreateInterconsultaRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/interconsultas/servicio/{tipoServicio}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the interconsultas for a given service type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "List interconsultas by service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tipo de Servicio",
+                        "name": "tipoServicio",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/interconsultas/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the interconsulta details for a given ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "Get interconsulta by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la Interconsulta",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/interconsultas/{id}/estado": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the state of an existing interconsulta",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "Update interconsulta state",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la Interconsulta",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Estado data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.UpdateEstadoRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/interconsultas/{id}/firma": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Saves the signature for an interconsulta",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "Sign an interconsulta",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la Interconsulta",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Firma data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.SignInterconsultaRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/ordenes": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new medical order in a patient's evolution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ordenes"
+                ],
+                "summary": "Create an orden medica",
+                "parameters": [
+                    {
+                        "description": "Orden data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.CreateOrdenRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/ordenes/cuenta/{idCuentaAtencion}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the medical orders for a given account ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ordenes"
+                ],
+                "summary": "Get ordenes for a patient account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la Cuenta de Atencion",
+                        "name": "idCuentaAtencion",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/resultados/imagenes/paciente/{idPaciente}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns imaging results history for a given patient ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resultados"
+                ],
+                "summary": "Get imaging results for a patient",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the Patient",
+                        "name": "idPaciente",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/resultados/laboratorio/paciente/{idPaciente}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns laboratory results history for a given patient ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resultados"
+                ],
+                "summary": "Get laboratory results for a patient",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the Patient",
+                        "name": "idPaciente",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/appointments": {
             "post": {
                 "description": "Valida los datos del paciente, médico y horario, y agenda la cita si el médico está disponible.",
@@ -3130,6 +3489,26 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.DetalleOrden": {
+            "type": "object",
+            "properties": {
+                "cantidad": {
+                    "type": "integer"
+                },
+                "idDetalleOrden": {
+                    "type": "integer"
+                },
+                "idOrden": {
+                    "type": "integer"
+                },
+                "idServicio": {
+                    "type": "integer"
+                },
+                "nombreServicio": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.Distrito": {
             "type": "object",
             "properties": {
@@ -3720,6 +4099,54 @@ const docTemplate = `{
                 }
             }
         },
+        "httpadapter.CreateInterconsultaRequest": {
+            "type": "object",
+            "required": [
+                "idAtencionOrigen",
+                "idEspecialidad",
+                "idMedicoDestino",
+                "motivo"
+            ],
+            "properties": {
+                "idAtencionOrigen": {
+                    "type": "integer"
+                },
+                "idEspecialidad": {
+                    "type": "integer"
+                },
+                "idMedicoDestino": {
+                    "type": "integer"
+                },
+                "motivo": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpadapter.CreateOrdenRequest": {
+            "type": "object",
+            "required": [
+                "detalles",
+                "idMedico",
+                "idRegAtencion"
+            ],
+            "properties": {
+                "detalles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.DetalleOrden"
+                    }
+                },
+                "idMedico": {
+                    "type": "integer"
+                },
+                "idRegAtencion": {
+                    "type": "integer"
+                },
+                "observacion": {
+                    "type": "string"
+                }
+            }
+        },
         "httpadapter.SaveEvolucionRequest": {
             "type": "object",
             "required": [
@@ -3732,6 +4159,39 @@ const docTemplate = `{
                 },
                 "idRegAtencion": {
                     "type": "integer"
+                }
+            }
+        },
+        "httpadapter.SaveMotivoRequest": {
+            "type": "object",
+            "required": [
+                "motivo"
+            ],
+            "properties": {
+                "motivo": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpadapter.SignInterconsultaRequest": {
+            "type": "object",
+            "required": [
+                "dataB64"
+            ],
+            "properties": {
+                "dataB64": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpadapter.UpdateEstadoRequest": {
+            "type": "object",
+            "required": [
+                "estado"
+            ],
+            "properties": {
+                "estado": {
+                    "type": "string"
                 }
             }
         },

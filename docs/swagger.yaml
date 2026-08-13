@@ -68,6 +68,19 @@ definitions:
       nombre:
         type: string
     type: object
+  domain.DetalleOrden:
+    properties:
+      cantidad:
+        type: integer
+      idDetalleOrden:
+        type: integer
+      idOrden:
+        type: integer
+      idServicio:
+        type: integer
+      nombreServicio:
+        type: string
+    type: object
   domain.Distrito:
     properties:
       id:
@@ -469,6 +482,39 @@ definitions:
         format: int64
         type: integer
     type: object
+  httpadapter.CreateInterconsultaRequest:
+    properties:
+      idAtencionOrigen:
+        type: integer
+      idEspecialidad:
+        type: integer
+      idMedicoDestino:
+        type: integer
+      motivo:
+        type: string
+    required:
+    - idAtencionOrigen
+    - idEspecialidad
+    - idMedicoDestino
+    - motivo
+    type: object
+  httpadapter.CreateOrdenRequest:
+    properties:
+      detalles:
+        items:
+          $ref: '#/definitions/domain.DetalleOrden'
+        type: array
+      idMedico:
+        type: integer
+      idRegAtencion:
+        type: integer
+      observacion:
+        type: string
+    required:
+    - detalles
+    - idMedico
+    - idRegAtencion
+    type: object
   httpadapter.SaveEvolucionRequest:
     properties:
       dataB64:
@@ -478,6 +524,27 @@ definitions:
     required:
     - dataB64
     - idRegAtencion
+    type: object
+  httpadapter.SaveMotivoRequest:
+    properties:
+      motivo:
+        type: string
+    required:
+    - motivo
+    type: object
+  httpadapter.SignInterconsultaRequest:
+    properties:
+      dataB64:
+        type: string
+    required:
+    - dataB64
+    type: object
+  httpadapter.UpdateEstadoRequest:
+    properties:
+      estado:
+        type: string
+    required:
+    - estado
     type: object
   httpadapter.apiError:
     properties:
@@ -852,6 +919,50 @@ paths:
       summary: Save an evolution
       tags:
       - Evoluciones
+  /api/v1/evoluciones/{idRegAtencion}/motivos:
+    get:
+      consumes:
+      - application/json
+      description: Returns the saved reasons for attention for a given registration
+        ID
+      parameters:
+      - description: ID of the Registration / Encounter
+        in: path
+        name: idRegAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get motivos de atencion for a patient evolution
+      tags:
+      - Evoluciones
+    post:
+      consumes:
+      - application/json
+      description: Saves a new reason for attention in a patient's evolution
+      parameters:
+      - description: ID of the Registration / Encounter
+        in: path
+        name: idRegAtencion
+        required: true
+        type: integer
+      - description: Motivo data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.SaveMotivoRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Save a motivo de atencion
+      tags:
+      - Evoluciones
   /api/v1/evoluciones/paciente/{pacienteId}:
     get:
       consumes:
@@ -884,6 +995,191 @@ paths:
       summary: List patients for the medical evolution tray
       tags:
       - Evoluciones
+  /api/v1/interconsultas:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new interconsulta request
+      parameters:
+      - description: Interconsulta data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.CreateInterconsultaRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Create an interconsulta
+      tags:
+      - Interconsultas
+  /api/v1/interconsultas/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns the interconsulta details for a given ID
+      parameters:
+      - description: ID de la Interconsulta
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get interconsulta by ID
+      tags:
+      - Interconsultas
+  /api/v1/interconsultas/{id}/estado:
+    put:
+      consumes:
+      - application/json
+      description: Updates the state of an existing interconsulta
+      parameters:
+      - description: ID de la Interconsulta
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Estado data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.UpdateEstadoRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Update interconsulta state
+      tags:
+      - Interconsultas
+  /api/v1/interconsultas/{id}/firma:
+    post:
+      consumes:
+      - application/json
+      description: Saves the signature for an interconsulta
+      parameters:
+      - description: ID de la Interconsulta
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Firma data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.SignInterconsultaRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Sign an interconsulta
+      tags:
+      - Interconsultas
+  /api/v1/interconsultas/servicio/{tipoServicio}:
+    get:
+      consumes:
+      - application/json
+      description: Returns the interconsultas for a given service type
+      parameters:
+      - description: Tipo de Servicio
+        in: path
+        name: tipoServicio
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List interconsultas by service
+      tags:
+      - Interconsultas
+  /api/v1/ordenes:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new medical order in a patient's evolution
+      parameters:
+      - description: Orden data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.CreateOrdenRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Create an orden medica
+      tags:
+      - Ordenes
+  /api/v1/ordenes/cuenta/{idCuentaAtencion}:
+    get:
+      consumes:
+      - application/json
+      description: Returns the medical orders for a given account ID
+      parameters:
+      - description: ID de la Cuenta de Atencion
+        in: path
+        name: idCuentaAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get ordenes for a patient account
+      tags:
+      - Ordenes
+  /api/v1/resultados/imagenes/paciente/{idPaciente}:
+    get:
+      consumes:
+      - application/json
+      description: Returns imaging results history for a given patient ID
+      parameters:
+      - description: ID of the Patient
+        in: path
+        name: idPaciente
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get imaging results for a patient
+      tags:
+      - Resultados
+  /api/v1/resultados/laboratorio/paciente/{idPaciente}:
+    get:
+      consumes:
+      - application/json
+      description: Returns laboratory results history for a given patient ID
+      parameters:
+      - description: ID of the Patient
+        in: path
+        name: idPaciente
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get laboratory results for a patient
+      tags:
+      - Resultados
   /appointments:
     post:
       consumes:

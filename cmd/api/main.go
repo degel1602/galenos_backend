@@ -63,6 +63,10 @@ func run() error {
 	triageRepo := sqlserver.NewTriageRepository(db)
 	sisRepo := sqlserver.NewSisRepository(db)
 	evolucionRepo := sqlserver.NewSqlServerEvolucionRepository(db)
+	motivoRepo := sqlserver.NewMotivoRepository(db)
+	ordenRepo := sqlserver.NewOrdenRepository(db)
+	resultadoRepo := sqlserver.NewResultadoRepository(db)
+	interconsultaRepo := sqlserver.NewInterconsultaRepository(db)
 
 	// --- Adaptador de salida: servicio externo RENIEC ---
 	reniecClient := reniec.New(reniec.Config{
@@ -90,6 +94,10 @@ func run() error {
 	sisService := usecase.NewSisUseCase(sisClient, sisRepo)
 	triageService := usecase.NewTriageUseCase(triageRepo)
 	evolucionService := usecase.NewEvolucionUseCase(evolucionRepo)
+	motivoService := usecase.NewMotivoService(motivoRepo)
+	ordenService := usecase.NewOrdenService(ordenRepo)
+	resultadoService := usecase.NewResultadoService(resultadoRepo)
+	interconsultaService := usecase.NewInterconsultaService(interconsultaRepo)
 
 	authRepo := sqlserver.NewAuthRepository(db)
 	authService := usecase.NewAuthUseCase(authRepo, cfg.AuthSecret, cfg.AuthTTL)
@@ -108,18 +116,26 @@ func run() error {
 	triageHandler := httpadapter.NewTriageHandler(triageService)
 	authHandler := httpadapter.NewAuthHandler(authService)
 	evolucionHandler := httpadapter.NewEvolucionHandler(evolucionService)
+	motivoHandler := httpadapter.NewMotivoHandler(motivoService)
+	ordenHandler := httpadapter.NewOrdenHandler(ordenService)
+	resultadoHandler := httpadapter.NewResultadoHandler(resultadoService)
+	interconsultaHandler := httpadapter.NewInterconsultaHandler(interconsultaService)
 
 	router := httpadapter.NewRouter(httpadapter.RouterParams{
-		AppointmentHandler: appointmentHandler,
-		PatientHandler:     patientHandler,
-		CatalogHandler:     catalogHandler,
-		ReniecHandler:      reniecHandler,
-		SisHandler:         sisHandler,
-		TriageHandler:      triageHandler,
-		AuthHandler:        authHandler,
-		EvolucionHandler:   evolucionHandler,
-		AuthService:        authService,
-		AllowedOrigins:     cfg.AllowedOrigins,
+		AppointmentHandler:   appointmentHandler,
+		PatientHandler:       patientHandler,
+		CatalogHandler:       catalogHandler,
+		ReniecHandler:        reniecHandler,
+		SisHandler:           sisHandler,
+		TriageHandler:        triageHandler,
+		AuthHandler:          authHandler,
+		EvolucionHandler:     evolucionHandler,
+		MotivoHandler:        motivoHandler,
+		OrdenHandler:         ordenHandler,
+		ResultadoHandler:     resultadoHandler,
+		InterconsultaHandler: interconsultaHandler,
+		AuthService:          authService,
+		AllowedOrigins:       cfg.AllowedOrigins,
 	})
 
 	server := &http.Server{
