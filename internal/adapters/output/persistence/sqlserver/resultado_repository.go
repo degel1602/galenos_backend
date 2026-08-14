@@ -45,6 +45,11 @@ func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, 
 		}
 		resultados = append(resultados, res)
 	}
+	
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return resultados, nil
 }
 
@@ -75,5 +80,10 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 		}
 		resultados = append(resultados, res)
 	}
+	
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return resultados, nil
 }

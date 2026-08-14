@@ -40,8 +40,16 @@ func (r *InterconsultaRepository) ObtenerPorId(ctx context.Context, id int) (*do
 
 func (r *InterconsultaRepository) ListarPorServicio(ctx context.Context, tipoServicio string) ([]domain.Interconsulta, error) {
 	query := "EXEC WebListarInterconsultasSegunTipoServicio @TipoServicio = ?"
+	return r.ejecutarConsultaInterconsultas(ctx, query, tipoServicio)
+}
 
-	rows, err := r.db.QueryContext(ctx, query, tipoServicio)
+func (r *InterconsultaRepository) ListarPorAtencion(ctx context.Context, idAtencion int) ([]domain.Interconsulta, error) {
+	query := "EXEC WebListarInterconsultasPorAtencion @IdAtencion = ?"
+	return r.ejecutarConsultaInterconsultas(ctx, query, idAtencion)
+}
+
+func (r *InterconsultaRepository) ejecutarConsultaInterconsultas(ctx context.Context, query string, arg interface{}) ([]domain.Interconsulta, error) {
+	rows, err := r.db.QueryContext(ctx, query, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +62,7 @@ func (r *InterconsultaRepository) ListarPorServicio(ctx context.Context, tipoSer
 		var estado sql.NullString
 
 		if err := rows.Scan(&ic.IdInterconsulta, &ic.IdAtencionOrigen, &ic.IdEspecialidad, &ic.IdMedicoDestino, &ic.Motivo, &fecha, &estado); err != nil {
-			// Ignoring exact scan for generated skeleton
+			continue
 		}
 		if fecha.Valid {
 			ic.FechaSolicitud = fecha.Time.Format(time.RFC3339)
@@ -64,7 +72,7 @@ func (r *InterconsultaRepository) ListarPorServicio(ctx context.Context, tipoSer
 		}
 		lista = append(lista, ic)
 	}
-	return lista, nil
+	return lista, rows.Err()
 }
 
 func (r *InterconsultaRepository) Guardar(ctx context.Context, ic domain.Interconsulta) error {

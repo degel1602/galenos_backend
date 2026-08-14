@@ -9,6 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	msgInvalidID   = "ID inválido"
+	msgInvalidBody = "Cuerpo de petición inválido"
+)
+
 type InterconsultaHandler struct {
 	service input.InterconsultaService
 }
@@ -29,7 +34,7 @@ func (h *InterconsultaHandler) HandleObtenerPorId(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "INVALID_ID", "ID inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_ID", msgInvalidID)
 		return
 	}
 
@@ -60,6 +65,30 @@ func (h *InterconsultaHandler) HandleListarPorServicio(c *gin.Context) {
 	respondSuccess(c, http.StatusOK, lista)
 }
 
+// @Summary List interconsultas by attention ID
+// @Description Returns the interconsultas associated with a specific attention/encounter
+// @Tags Interconsultas
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param idAtencion path int true "ID de la Atención"
+// @Router /api/v1/interconsultas/atencion/{idAtencion} [get]
+func (h *InterconsultaHandler) HandleListarPorAtencion(c *gin.Context) {
+	idStr := c.Param("idAtencion")
+	idAtencion, err := strconv.Atoi(idStr)
+	if err != nil {
+		respondError(c, http.StatusBadRequest, "INVALID_ID", msgInvalidID)
+		return
+	}
+
+	lista, err := h.service.ListarPorAtencion(c.Request.Context(), idAtencion)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "INTER_LIST_ERR", "Error listando interconsultas por atención")
+		return
+	}
+	respondSuccess(c, http.StatusOK, lista)
+}
+
 type CreateInterconsultaRequest struct {
 	IdAtencionOrigen int    `json:"idAtencionOrigen" binding:"required"`
 	IdEspecialidad   int    `json:"idEspecialidad" binding:"required"`
@@ -78,7 +107,7 @@ type CreateInterconsultaRequest struct {
 func (h *InterconsultaHandler) HandleCrear(c *gin.Context) {
 	var req CreateInterconsultaRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "INVALID_BODY", "Cuerpo de petición inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_BODY", msgInvalidBody)
 		return
 	}
 
@@ -115,13 +144,13 @@ func (h *InterconsultaHandler) HandleActualizarEstado(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "INVALID_ID", "ID inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_ID", msgInvalidID)
 		return
 	}
 
 	var req UpdateEstadoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "INVALID_BODY", "Cuerpo de petición inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_BODY", msgInvalidBody)
 		return
 	}
 
@@ -151,13 +180,13 @@ func (h *InterconsultaHandler) HandleGuardarFirma(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "INVALID_ID", "ID inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_ID", msgInvalidID)
 		return
 	}
 
 	var req SignInterconsultaRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "INVALID_BODY", "Cuerpo de petición inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_BODY", msgInvalidBody)
 		return
 	}
 

@@ -23,6 +23,10 @@ func (s *interconsultaService) ListarPorServicio(ctx context.Context, tipoServic
 	return s.repo.ListarPorServicio(ctx, tipoServicio)
 }
 
+func (s *interconsultaService) ListarPorAtencion(ctx context.Context, idAtencion int) ([]domain.Interconsulta, error) {
+	return s.repo.ListarPorAtencion(ctx, idAtencion)
+}
+
 func (s *interconsultaService) Crear(ctx context.Context, interconsulta domain.Interconsulta) error {
 	return s.repo.Guardar(ctx, interconsulta)
 }

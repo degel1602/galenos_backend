@@ -77,6 +77,11 @@ func (r *authRepository) GetMenus(ctx context.Context, idEmpleado int) ([]domain
 		m.ClaveWeb = claveWeb.String
 		menus = append(menus, m)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando menus: %w", err)
+	}
+
 	return menus, nil
 }
 
@@ -103,5 +108,10 @@ func (r *authRepository) GetMenuPermisos(ctx context.Context, idEmpleado int) ([
 		p.ClaveWeb = claveWeb.String
 		permisos = append(permisos, p)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando permisos: %w", err)
+	}
+
 	return permisos, nil
 }

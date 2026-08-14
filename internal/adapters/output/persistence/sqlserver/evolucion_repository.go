@@ -19,52 +19,87 @@ func NewSqlServerEvolucionRepository(db *sql.DB) output.EvolucionRepository {
 }
 
 func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context, fini, ffin string) ([]domain.PatientListItem, error) {
-	query := `
-		SELECT TOP 50
-			a.IdPaciente AS idRegAtencion,
-			p.IdPaciente,
-			ISNULL(CAST(p.NroHistoriaClinica AS VARCHAR(20)), 'N/A') AS historia,
-			ISNULL(p.ApellidoPaterno, '') + ' ' + ISNULL(p.ApellidoMaterno, '') + ', ' + ISNULL(p.PrimerNombre, '') AS nombre,
-			'N/A' AS edad,
-			ISNULL(CAST(p.IdTipoSexo AS VARCHAR(10)), '') AS sexo,
-			'Consultorio' AS ubicacion,
-			'Atendido' AS estado
-		FROM Atenciones a
-		INNER JOIN Pacientes p ON a.IdPaciente = p.IdPaciente
-		WHERE p.IdEstado = 1
-	`
-	args := []any{}
-	if fini != "" && ffin != "" {
-		query += ` AND CONVERT(date, a.FechaIngreso) BETWEEN ? AND ?`
-		args = append(args, fini, ffin)
-	}
-	query += ` ORDER BY a.FechaIngreso DESC`
-
-	rows, err := r.db.QueryContext(ctx, query, args...)
+	// NOTA: Se solicitó usar el SP usp_go_ListarPacientesIngresoEmergencia.
+	// Si el SP soporta filtros de fecha, se pueden enviar mediante parámetros nombrados.
+	// Por ahora se ejecuta sin parámetros para asegurar que no falle si el SP no los espera.
+	query := `EXEC [dbo].[usp_go_ListarPacientesIngresoEmergencia]`
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("error querying patients for tray: %w", err)
 	}
 	defer rows.Close()
 
+	maps, err := rowsToMaps(rows)
+	if err != nil {
+		return nil, fmt.Errorf("error reading patient tray maps: %w", err)
+	}
+
 	var patients []domain.PatientListItem
-	for rows.Next() {
-		var p domain.PatientListItem
-		if err := rows.Scan(
-			&p.IdRegAtencion,
-			&p.IdPaciente,
-			&p.Historia,
-			&p.Nombre,
-			&p.Edad,
-			&p.Sexo,
-			&p.Ubicacion,
-			&p.Estado,
-		); err != nil {
-			return nil, fmt.Errorf("error scanning patient: %w", err)
-		}
-		patients = append(patients, p)
+	for _, m := range maps {
+		patients = append(patients, mapToPatientListItem(m))
 	}
 	return patients, nil
 }
+
+func mapToPatientListItem(m map[string]any) domain.PatientListItem {
+	var p domain.PatientListItem
+	
+	p.IdRegAtencion = getIntFallback(m, "idRegAtencion", "IdPaciente")
+	p.IdPaciente = getIntFallback(m, "IdPaciente", "")
+	p.Historia = getStringFallback(m, "historia", "NroHistoriaClinica", "N/A")
+	p.Nombre = getNombrePaciente(m)
+	p.Edad = getStringFallback(m, "edad", "", "N/A")
+	p.Sexo = getSexoFallback(m)
+	p.Ubicacion = getStringFallback(m, "ubicacion", "", "Emergencia")
+	p.Estado = getStringFallback(m, "estado", "", "Pendiente")
+	
+	return p
+}
+
+func getIntFallback(m map[string]any, key1, key2 string) int {
+	if val, ok := m[key1]; ok && val != nil {
+		return int(val.(int64))
+	}
+	if key2 != "" {
+		if val, ok := m[key2]; ok && val != nil {
+			return int(val.(int64))
+		}
+	}
+	return 0
+}
+
+func getStringFallback(m map[string]any, key1, key2, fallback string) string {
+	if ptr := rowString(m, key1); ptr != nil && *ptr != "" {
+		return *ptr
+	}
+	if key2 != "" {
+		if ptr := rowString(m, key2); ptr != nil && *ptr != "" {
+			return *ptr
+		}
+	}
+	return fallback
+}
+
+func getNombrePaciente(m map[string]any) string {
+	if ptr := rowString(m, "nombre"); ptr != nil && *ptr != "" {
+		return *ptr
+	}
+	pat := getStringFallback(m, "ApellidoPaterno", "", "")
+	mat := getStringFallback(m, "ApellidoMaterno", "", "")
+	nom := getStringFallback(m, "PrimerNombre", "", "")
+	return fmt.Sprintf("%s %s, %s", pat, mat, nom)
+}
+
+func getSexoFallback(m map[string]any) string {
+	if ptr := rowString(m, "sexo"); ptr != nil && *ptr != "" {
+		return *ptr
+	}
+	if ptr := rowInt64(m, "IdTipoSexo"); ptr != nil {
+		return fmt.Sprintf("%d", *ptr)
+	}
+	return "0"
+}
+
 
 func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRegAtencion int) ([]domain.EvolucionFirma, error) {
 	query := `EXEC [dbo].[webEvolucionesFirmaListarIdRegAtencion] @IdRegAtencion = ?, @NombreDocumento = 'EvolucionMedica'`
@@ -114,6 +149,11 @@ func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRe
 
 		evolutions = append(evolutions, e)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterando evoluciones: %w", err)
+	}
+
 	return evolutions, nil
 }
 

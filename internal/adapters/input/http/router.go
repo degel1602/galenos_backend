@@ -153,6 +153,7 @@ func NewRouter(p RouterParams) *gin.Engine {
 		{
 			interconsultas.GET("/:id", p.InterconsultaHandler.HandleObtenerPorId)
 			interconsultas.GET("/servicio/:tipoServicio", p.InterconsultaHandler.HandleListarPorServicio)
+			interconsultas.GET("/atencion/:idAtencion", p.InterconsultaHandler.HandleListarPorAtencion)
 			interconsultas.POST("", p.InterconsultaHandler.HandleCrear)
 			interconsultas.PUT("/:id/estado", p.InterconsultaHandler.HandleActualizarEstado)
 			interconsultas.POST("/:id/firma", p.InterconsultaHandler.HandleGuardarFirma)

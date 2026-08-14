@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
-	"github.com/galenos-pro/appointments-api/internal/ports/shared"
 )
 
 // createAppointmentRequest es el contrato de entrada esperado desde Angular.
@@ -16,8 +15,6 @@ type createAppointmentRequest struct {
 	Reason    string    `json:"reason" binding:"required,max=500"`
 }
 
-// pageResponsePatients describe la respuesta paginada de pacientes para Swagger.
-type pageResponsePatients = shared.PageResponse[patientResponse]
 
 // createPatientRequest es el cuerpo de POST /api/v1/pacientes. Replica los
 // parámetros del SP WebPacienteAgregar_E_H; los campos opcionales son
