@@ -59,10 +59,18 @@ func NewRouter(p RouterParams) *gin.Engine {
 
 			pacientes := protected.Group("/pacientes")
 			pacientes.GET("", p.PatientHandler.List)
+			pacientes.POST("", p.PatientHandler.Create)
 			pacientes.GET("/buscar", p.PatientHandler.Search)
 			pacientes.GET("/por-documento", p.PatientHandler.GetByDocumentAndType)
 			pacientes.GET("/:idOrDoc", p.PatientHandler.Get)
 			pacientes.PUT("/:id", p.PatientHandler.Update)
+			pacientes.DELETE("/:id", p.PatientHandler.Delete)
+
+			appointments := protected.Group("/appointments")
+			{
+				appointments.POST("", p.AppointmentHandler.Create)
+				appointments.GET("/:id", p.AppointmentHandler.GetByID)
+			}
 		}
 
 		etnias := v1.Group("/etnias")

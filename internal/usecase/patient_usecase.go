@@ -105,3 +105,32 @@ func (uc *patientUseCase) Update(ctx context.Context, id int64, update domain.Pa
 
 	return *patient, nil
 }
+
+func (uc *patientUseCase) Create(ctx context.Context, create domain.PatientCreate) (domain.PatientDetail, error) {
+	id, err := uc.repo.Create(ctx, create)
+	if err != nil {
+		return domain.PatientDetail{}, fmt.Errorf("creating patient: %w", err)
+	}
+
+	patient, err := uc.repo.GetByID(ctx, id)
+	if err != nil {
+		return domain.PatientDetail{}, fmt.Errorf("getting created patient: %w", err)
+	}
+
+	return *patient, nil
+}
+
+func (uc *patientUseCase) Delete(ctx context.Context, id int64) error {
+	if id <= 0 {
+		return domain.ErrInvalidPatientID
+	}
+
+	if err := uc.repo.Delete(ctx, id); err != nil {
+		if err == domain.ErrPatientCannotBeDeleted || err == domain.ErrPatientNotFound {
+			return err
+		}
+		return fmt.Errorf("deleting patient: %w", err)
+	}
+
+	return nil
+}

@@ -29,4 +29,12 @@ type PatientService interface {
 	// Update modifica los datos editables de un paciente invocando el SP
 	// usp_go_ModificarPaciente y devuelve el detalle actualizado.
 	Update(ctx context.Context, id int64, update domain.PatientUpdate) (domain.PatientDetail, error)
+
+	// Create registra un paciente nuevo invocando el SP WebPacienteAgregar_E_H
+	// y devuelve el detalle del paciente creado.
+	Create(ctx context.Context, create domain.PatientCreate) (domain.PatientDetail, error)
+
+	// Delete elimina un paciente si no tiene registros asociados (SP
+	// PacientesSePuedeEliminar + PacientesEliminarPorIdPaciente).
+	Delete(ctx context.Context, id int64) error
 }

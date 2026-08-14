@@ -436,6 +436,88 @@ func derefInt64(p *int64) int64 {
 	return *p
 }
 
+// Create invoca el procedimiento almacenado WebPacienteAgregar_E_H, que
+// inserta el paciente y devuelve el IdPaciente generado en el parámetro de
+// salida @IdPaciente (SCOPE_IDENTITY). Los parámetros sin default que el
+// frontend no envía se pasan como NULL; @NroHistoriaClinica y @IdEstado
+// tienen valores por defecto cuando no se informan.
+func (r *patientRepository) Create(ctx context.Context, create domain.PatientCreate) (int64, error) {
+	const procedure = `WebPacienteAgregar_E_H`
+
+	historyNumber := ""
+	if create.HistoryNumber != nil {
+		historyNumber = *create.HistoryNumber
+	}
+	stateID := int64(1)
+	if create.StateID != nil {
+		stateID = *create.StateID
+	}
+
+	var id int64
+	_, err := r.db.ExecContext(ctx, procedure,
+		sql.Named("ApellidoPaterno", create.PaternalSurname),
+		sql.Named("ApellidoMaterno", create.MaternalSurname),
+		sql.Named("PrimerNombre", create.FirstName),
+		sql.Named("SegundoNombre", create.SecondName),
+		sql.Named("FechaNacimiento", create.DateOfBirth),
+		sql.Named("IdDocIdentidad", create.DocIdentityID),
+		sql.Named("NroDocumento", create.DocumentNumber),
+		sql.Named("Telefono", create.Phone),
+		sql.Named("DireccionDomicilio", create.HomeAddress),
+		sql.Named("IdTipoSexo", create.SexTypeID),
+		sql.Named("IdEstadoCivil", create.MaritalStatusID),
+		sql.Named("IdDistritoNacimiento", create.BirthDistrictID),
+		sql.Named("IdDistritoDomicilio", create.HomeDistrictID),
+		sql.Named("IdTipoSeguro", create.InsuranceTypeID),
+		sql.Named("IdProcedencia", create.OriginID),
+		sql.Named("IdGradoInstruccion", create.EducationDegreeID),
+		sql.Named("IdTipoOcupacion", create.OccupationTypeID),
+		sql.Named("NroHistoriaClinica", historyNumber),
+		sql.Named("IdEstado", stateID),
+		sql.Named("IdPaciente", sql.Out{Dest: &id}),
+	)
+	if err != nil {
+		return 0, fmt.Errorf("calling WebPacienteAgregar_E_H: %w", err)
+	}
+
+	return id, nil
+}
+
+// Delete verifica primero con PacientesSePuedeEliminar que el paciente no
+// tenga registros asociados (Atenciones, farmPreVenta, historias, etc.);
+// si Respuesta es 0 retorna domain.ErrPatientCannotBeDeleted. Si el
+// paciente no existe, el SP lo marca como eliminable y el DELETE no afecta
+// filas; en ese caso se retorna domain.ErrPatientNotFound.
+func (r *patientRepository) Delete(ctx context.Context, id int64) error {
+	const canDeleteProcedure = `PacientesSePuedeEliminar`
+	const deleteProcedure = `PacientesEliminarPorIdPaciente`
+
+	var respuesta int
+	if _, err := r.db.ExecContext(ctx, canDeleteProcedure,
+		sql.Named("IdPaciente", id),
+		sql.Named("Respuesta", sql.Out{Dest: &respuesta}),
+	); err != nil {
+		return fmt.Errorf("calling PacientesSePuedeEliminar: %w", err)
+	}
+	if respuesta != 1 {
+		return domain.ErrPatientCannotBeDeleted
+	}
+
+	result, err := r.db.ExecContext(ctx, deleteProcedure, sql.Named("IdPaciente", id))
+	if err != nil {
+		return fmt.Errorf("calling PacientesEliminarPorIdPaciente: %w", err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("reading delete result: %w", err)
+	}
+	if affected == 0 {
+		return domain.ErrPatientNotFound
+	}
+
+	return nil
+}
+
 // nullableInt64Ptr devuelve nil cuando el valor SQL es NULL; de lo contrario
 // un puntero al valor.
 func nullableInt64Ptr(n sql.NullInt64) *int64 {

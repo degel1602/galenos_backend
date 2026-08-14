@@ -156,9 +156,72 @@ func (h *PatientHandler) Update(c *gin.Context) {
 	respondSuccess(c, http.StatusOK, toPatientDetailResponse(detail))
 }
 
-// GetByDocumentAndType maneja GET
-// /api/v1/pacientes/por-documento?nroDocumento=&idTipoDocIdentidad=.
+// Create maneja POST /api/v1/pacientes.
 //
+// @Summary Registra un paciente nuevo
+// @Description Persiste el paciente invocando el SP WebPacienteAgregar_E_H y devuelve el detalle del paciente creado.
+// @Tags Pacientes
+// @Accept json
+// @Produce json
+// @Param request body createPatientRequest true "Datos del paciente a registrar"
+// @Success 201 {object} apiResponse{data=patientDetailResponse} "Paciente creado"
+// @Failure 400 {object} apiResponse{error=apiError} "Cuerpo inválido"
+// @Failure 500 {object} apiResponse{error=apiError} "Error al registrar el paciente"
+// @Router /pacientes [post]
+func (h *PatientHandler) Create(c *gin.Context) {
+	var req createPatientRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+		return
+	}
+
+	detail, err := h.service.Create(c.Request.Context(), req.toDomain())
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "PATIENT_CREATE_FAILED", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusCreated, toPatientDetailResponse(detail))
+}
+
+// Delete maneja DELETE /api/v1/pacientes/:id.
+//
+// @Summary Elimina un paciente
+// @Description Verifica con PacientesSePuedeEliminar que el paciente no tenga registros asociados y lo elimina (SP PacientesEliminarPorIdPaciente).
+// @Tags Pacientes
+// @Produce json
+// @Param id path int true "Id del paciente"
+// @Success 200 {object} apiResponse "Paciente eliminado"
+// @Failure 400 {object} apiResponse{error=apiError} "Id inválido"
+// @Failure 404 {object} apiResponse{error=apiError} "Paciente no encontrado"
+// @Failure 409 {object} apiResponse{error=apiError} "Paciente con registros asociados, no se puede eliminar"
+// @Router /pacientes/{id} [delete]
+func (h *PatientHandler) Delete(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		respondError(c, http.StatusBadRequest, "INVALID_PATIENT_ID", domain.ErrInvalidPatientID.Error())
+		return
+	}
+
+	if err := h.service.Delete(c.Request.Context(), id); err != nil {
+		switch err {
+		case domain.ErrInvalidPatientID:
+			respondError(c, http.StatusBadRequest, "INVALID_PATIENT_ID", err.Error())
+		case domain.ErrPatientNotFound:
+			respondError(c, http.StatusNotFound, "PATIENT_NOT_FOUND", err.Error())
+		case domain.ErrPatientCannotBeDeleted:
+			respondError(c, http.StatusConflict, "PATIENT_CANNOT_BE_DELETED", err.Error())
+		default:
+			respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		}
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, map[string]bool{"deleted": true})
+}
+
+// GetByDocumentAndType maneja GET
+// /api/v1/pacientes/por-documento?nroDocumento=&idTipoDocIdentidad=.//
 // @Summary Busca un paciente por número y tipo de documento
 // @Description Invoca el SP usp_go_ListarPacientePorNroDocyTipo con el número y el tipo de documento.
 // @Tags Pacientes

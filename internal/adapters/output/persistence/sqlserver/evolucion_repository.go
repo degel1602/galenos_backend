@@ -18,22 +18,29 @@ func NewSqlServerEvolucionRepository(db *sql.DB) output.EvolucionRepository {
 	return &sqlServerEvolucionRepository{db: db}
 }
 
-func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context) ([]domain.PatientListItem, error) {
+func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context, fini, ffin string) ([]domain.PatientListItem, error) {
 	query := `
-		SELECT TOP 50 
-			IdPaciente AS idRegAtencion, 
-			IdPaciente, 
-			ISNULL(NroHistoriaClinica, 'N/A') AS historia, 
-			ISNULL(ApellidoPaterno, '') + ' ' + ISNULL(ApellidoMaterno, '') + ', ' + ISNULL(PrimerNombre, '') AS nombre, 
-			'N/A' AS edad, 
-			ISNULL(CAST(IdTipoSexo AS VARCHAR(10)), '') AS sexo, 
-			'Consultorio' AS ubicacion, 
+		SELECT TOP 50
+			a.IdPaciente AS idRegAtencion,
+			p.IdPaciente,
+			ISNULL(CAST(p.NroHistoriaClinica AS VARCHAR(20)), 'N/A') AS historia,
+			ISNULL(p.ApellidoPaterno, '') + ' ' + ISNULL(p.ApellidoMaterno, '') + ', ' + ISNULL(p.PrimerNombre, '') AS nombre,
+			'N/A' AS edad,
+			ISNULL(CAST(p.IdTipoSexo AS VARCHAR(10)), '') AS sexo,
+			'Consultorio' AS ubicacion,
 			'Atendido' AS estado
-		FROM Pacientes
-		WHERE IdEstado = 1
-		ORDER BY IdPaciente DESC
+		FROM Atenciones a
+		INNER JOIN Pacientes p ON a.IdPaciente = p.IdPaciente
+		WHERE p.IdEstado = 1
 	`
-	rows, err := r.db.QueryContext(ctx, query)
+	args := []any{}
+	if fini != "" && ffin != "" {
+		query += ` AND CONVERT(date, a.FechaIngreso) BETWEEN ? AND ?`
+		args = append(args, fini, ffin)
+	}
+	query += ` ORDER BY a.FechaIngreso DESC`
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("error querying patients for tray: %w", err)
 	}

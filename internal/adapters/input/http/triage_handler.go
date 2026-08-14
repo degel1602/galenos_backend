@@ -69,6 +69,7 @@ func (h *TriageHandler) List(c *gin.Context) {
 		FechaFin:          c.Query("ffin"),
 		Filtro:            c.Query("filtro"),
 		DerivadoAServicio: -100,
+		IdEstado:          -100,
 	}
 
 	if params.FechaInicio == "" || params.FechaFin == "" {

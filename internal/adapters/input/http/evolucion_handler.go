@@ -17,14 +17,16 @@ func NewEvolucionHandler(service input.EvolucionService) *EvolucionHandler {
 }
 
 // @Summary List patients for the medical evolution tray
-// @Description Returns a list of patients currently active
+// @Description Returns a list of patients with an attention within the date range (Atenciones.FechaIngreso). If fini/ffin are omitted, returns the most recent 50.
 // @Tags Evoluciones
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param fini query string false "Fecha inicial (YYYY-MM-DD)"
+// @Param ffin query string false "Fecha final (YYYY-MM-DD)"
 // @Router /api/v1/evoluciones/pacientes [get]
 func (h *EvolucionHandler) HandleListPatients(c *gin.Context) {
-	patients, err := h.service.GetPatientTray(c.Request.Context())
+	patients, err := h.service.GetPatientTray(c.Request.Context(), c.Query("fini"), c.Query("ffin"))
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "EVOL_PATIENTS_ERR", "Error obteniendo pacientes")
 		return

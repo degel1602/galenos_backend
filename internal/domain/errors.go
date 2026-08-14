@@ -19,6 +19,7 @@ var (
 	ErrInvalidDocumentNumber             = errors.New("document number is required")
 	ErrInvalidDocumentType               = errors.New("document type id is required")
 	ErrPatientNotFound                   = errors.New("patient not found")
+	ErrPatientCannotBeDeleted            = errors.New("patient cannot be deleted because it has associated records")
 	ErrInvalidPatientID                  = errors.New("patient id is required")
 	ErrInvalidReniecOperation            = errors.New("invalid reniec operation")
 	ErrInvalidCredentials                = errors.New("invalid credentials")

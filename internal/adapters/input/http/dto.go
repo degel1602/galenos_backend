@@ -19,6 +19,56 @@ type createAppointmentRequest struct {
 // pageResponsePatients describe la respuesta paginada de pacientes para Swagger.
 type pageResponsePatients = shared.PageResponse[patientResponse]
 
+// createPatientRequest es el cuerpo de POST /api/v1/pacientes. Replica los
+// parámetros del SP WebPacienteAgregar_E_H; los campos opcionales son
+// punteros para que el frontend envíe solo los que recopiló.
+type createPatientRequest struct {
+	PaternalSurname   *string    `json:"apellidoPaterno"`
+	MaternalSurname   *string    `json:"apellidoMaterno"`
+	FirstName         *string    `json:"primerNombre"`
+	SecondName        *string    `json:"segundoNombre"`
+	DateOfBirth       *time.Time `json:"fechaNacimiento"`
+	DocIdentityID     *int64     `json:"idDocIdentidad"`
+	DocumentNumber    *string    `json:"nroDocumento"`
+	Phone             *string    `json:"telefono"`
+	HomeAddress       *string    `json:"direccionDomicilio"`
+	SexTypeID         *int64     `json:"idTipoSexo"`
+	MaritalStatusID   *int64     `json:"idEstadoCivil"`
+	BirthDistrictID   *int64     `json:"idDistritoNacimiento"`
+	HomeDistrictID    *int64     `json:"idDistritoDomicilio"`
+	InsuranceTypeID   *int64     `json:"idTipoSeguro"`
+	OriginID          *int64     `json:"idProcedencia"`
+	EducationDegreeID *int64     `json:"idGradoInstruccion"`
+	OccupationTypeID  *int64     `json:"idTipoOcupacion"`
+	HistoryNumber     *string    `json:"nroHistoriaClinica"`
+	StateID           *int64     `json:"idEstado"`
+}
+
+// toDomain mapea el request HTTP al objeto de dominio para el SP.
+func (r createPatientRequest) toDomain() domain.PatientCreate {
+	return domain.PatientCreate{
+		PaternalSurname:   r.PaternalSurname,
+		MaternalSurname:   r.MaternalSurname,
+		FirstName:         r.FirstName,
+		SecondName:        r.SecondName,
+		DateOfBirth:       r.DateOfBirth,
+		DocIdentityID:     r.DocIdentityID,
+		DocumentNumber:    r.DocumentNumber,
+		Phone:             r.Phone,
+		HomeAddress:       r.HomeAddress,
+		SexTypeID:         r.SexTypeID,
+		MaritalStatusID:   r.MaritalStatusID,
+		BirthDistrictID:   r.BirthDistrictID,
+		HomeDistrictID:    r.HomeDistrictID,
+		InsuranceTypeID:   r.InsuranceTypeID,
+		OriginID:          r.OriginID,
+		EducationDegreeID: r.EducationDegreeID,
+		OccupationTypeID:  r.OccupationTypeID,
+		HistoryNumber:     r.HistoryNumber,
+		StateID:           r.StateID,
+	}
+}
+
 // updatePatientRequest es el cuerpo de PUT /api/v1/pacientes/:id. Repite los
 // campos editables de domain.PatientUpdate para que el binding de Gin sea
 // explícito en el adaptador HTTP.

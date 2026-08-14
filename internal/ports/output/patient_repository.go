@@ -36,4 +36,13 @@ type PatientRepository interface {
 	// Update modifica un paciente invocando el procedimiento almacenado
 	// usp_go_ModificarPaciente. Los campos nil se envían como NULL.
 	Update(ctx context.Context, id int64, update domain.PatientUpdate) error
+
+	// Create registra un paciente nuevo invocando el procedimiento almacenado
+	// WebPacienteAgregar_E_H y retorna el IdPaciente generado (SCOPE_IDENTITY).
+	Create(ctx context.Context, create domain.PatientCreate) (int64, error)
+
+	// Delete elimina un paciente invocando PacientesSePuedeEliminar primero;
+	// si el paciente tiene registros asociados retorna
+	// domain.ErrPatientCannotBeDeleted y no elimina nada.
+	Delete(ctx context.Context, id int64) error
 }
