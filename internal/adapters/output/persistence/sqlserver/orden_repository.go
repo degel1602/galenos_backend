@@ -19,9 +19,9 @@ func NewOrdenRepository(db *sql.DB) *OrdenRepository {
 func (r *OrdenRepository) ListarPorCuenta(ctx context.Context, idCuentaAtencion int) ([]domain.OrdenMedica, error) {
 	// SP real: webOrdenesListarIdCuentaAtencion exige 2 parámetros (@idCuentaAtencion, @RecetaAdicional).
 	// @RecetaAdicional = -100 devuelve todas (con y sin receta adicional).
-	query := "EXEC webOrdenesListarIdCuentaAtencion @IdCuentaAtencion = ?, @RecetaAdicional = ?"
+	query := "EXEC webOrdenesListarIdCuentaAtencion @IdCuentaAtencion = @p1, @RecetaAdicional = @p2"
 
-	rows, err := r.db.QueryContext(ctx, query, idCuentaAtencion, -100)
+	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idCuentaAtencion), sql.Named("p2", -100))
 	if err != nil {
 		return nil, err
 	}
@@ -74,17 +74,17 @@ func (r *OrdenRepository) CrearOrden(ctx context.Context, orden domain.OrdenMedi
 	defer tx.Rollback()
 
 	// 1. Crear Cabecera
-	queryCabecera := "EXEC webFactOrdenServicioAgregar @IdRegAtencion = ?, @IdMedico = ?, @Observacion = ?"
+	queryCabecera := "EXEC webFactOrdenServicioAgregar @IdRegAtencion = @p1, @IdMedico = @p2, @Observacion = @p3"
 	var idOrdenGenerada int
-	err = tx.QueryRowContext(ctx, queryCabecera, orden.IdRegAtencion, orden.IdMedico, orden.Observacion).Scan(&idOrdenGenerada)
+	err = tx.QueryRowContext(ctx, queryCabecera, sql.Named("p1", orden.IdRegAtencion), sql.Named("p2", orden.IdMedico), sql.Named("p3", orden.Observacion)).Scan(&idOrdenGenerada)
 	if err != nil {
 		return err
 	}
 
 	// 2. Agregar Detalles
-	queryDetalle := "EXEC webFactOrdenServicioDetalleDespachoFinanciamientosAgregar @IdOrden = ?, @IdServicio = ?, @Cantidad = ?"
+	queryDetalle := "EXEC webFactOrdenServicioDetalleDespachoFinanciamientosAgregar @IdOrden = @p1, @IdServicio = @p2, @Cantidad = @p3"
 	for _, det := range detalles {
-		_, err = tx.ExecContext(ctx, queryDetalle, idOrdenGenerada, det.IdServicio, det.Cantidad)
+		_, err = tx.ExecContext(ctx, queryDetalle, sql.Named("p1", idOrdenGenerada), sql.Named("p2", det.IdServicio), sql.Named("p3", det.Cantidad))
 		if err != nil {
 			return err
 		}

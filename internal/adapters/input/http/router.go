@@ -153,6 +153,8 @@ func NewRouter(p RouterParams) *gin.Engine {
 
 		interconsultas := protected.Group("/interconsultas")
 		{
+			interconsultas.GET("/especialidades", p.InterconsultaHandler.HandleListarEspecialidades)
+			interconsultas.GET("/medicos/:idEspecialidad", p.InterconsultaHandler.HandleListarMedicosPorEspecialidad)
 			interconsultas.GET("/:id", p.InterconsultaHandler.HandleObtenerPorId)
 			interconsultas.GET("/servicio/:tipoServicio", p.InterconsultaHandler.HandleListarPorServicio)
 			interconsultas.GET("/atencion/:idAtencion", p.InterconsultaHandler.HandleListarPorAtencion)

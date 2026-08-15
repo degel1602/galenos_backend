@@ -89,6 +89,46 @@ func (h *InterconsultaHandler) HandleListarPorAtencion(c *gin.Context) {
 	respondSuccess(c, http.StatusOK, lista)
 }
 
+// @Summary List interconsulta specialties
+// @Description Returns the specialties available for interconsulta requests
+// @Tags Interconsultas
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Router /api/v1/interconsultas/especialidades [get]
+func (h *InterconsultaHandler) HandleListarEspecialidades(c *gin.Context) {
+	lista, err := h.service.ListarEspecialidades(c.Request.Context())
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "INTER_ESP_ERR", "Error listando especialidades de interconsulta")
+		return
+	}
+	respondSuccess(c, http.StatusOK, lista)
+}
+
+// @Summary List doctors by specialty
+// @Description Returns the doctors available for a given interconsulta specialty
+// @Tags Interconsultas
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param idEspecialidad path int true "ID de la Especialidad"
+// @Router /api/v1/interconsultas/medicos/{idEspecialidad} [get]
+func (h *InterconsultaHandler) HandleListarMedicosPorEspecialidad(c *gin.Context) {
+	idStr := c.Param("idEspecialidad")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		respondError(c, http.StatusBadRequest, "INVALID_ID", msgInvalidID)
+		return
+	}
+
+	lista, err := h.service.ListarMedicosPorEspecialidad(c.Request.Context(), id)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "INTER_MED_ERR", "Error listando médicos por especialidad")
+		return
+	}
+	respondSuccess(c, http.StatusOK, lista)
+}
+
 type CreateInterconsultaRequest struct {
 	IdAtencionOrigen int    `json:"idAtencionOrigen" binding:"required"`
 	IdEspecialidad   int    `json:"idEspecialidad" binding:"required"`

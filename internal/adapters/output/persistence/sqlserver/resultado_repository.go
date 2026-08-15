@@ -21,9 +21,9 @@ func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, 
 	// Columnas devueltas:
 	//   IdProducto, IdPuntoCarga, IdMovimiento, Codigo, Nombre, cantidad,
 	//   IdOrden, IdLabEstado, FechaSolicitud, FechaResultado, Resultado
-	query := "EXEC webHistorialExamenLaboratorio @IdPaciente = ?"
+	query := "EXEC webHistorialExamenLaboratorio @IdPaciente = @p1"
 
-	rows, err := r.db.QueryContext(ctx, query, idPaciente)
+	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idPaciente))
 	if err != nil {
 		return nil, err
 	}
@@ -76,9 +76,9 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 	//   IdProducto, Codigo, FechaResultado, FechaRegistro, IdPuntoCarga, IdMovimiento,
 	//   Nombre, Cantidad, IdImagEstado, Resultado, IdOrden, DiaAtencion,
 	//   MesAtencion, NombreDiaAtencion, AnioAtencion
-	query := "EXEC webHistorialExamenImageneologia @IdPaciente = ?"
+	query := "EXEC webHistorialExamenImageneologia @IdPaciente = @p1"
 
-	rows, err := r.db.QueryContext(ctx, query, idPaciente)
+	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idPaciente))
 	if err != nil {
 		return nil, err
 	}

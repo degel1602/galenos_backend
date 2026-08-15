@@ -38,3 +38,11 @@ func (s *interconsultaService) ActualizarEstado(ctx context.Context, id int, est
 func (s *interconsultaService) GuardarFirma(ctx context.Context, firma domain.FirmaInterconsulta) error {
 	return s.repo.GuardarFirma(ctx, firma)
 }
+
+func (s *interconsultaService) ListarEspecialidades(ctx context.Context) ([]domain.EspecialidadInterconsulta, error) {
+	return s.repo.ListarEspecialidades(ctx)
+}
+
+func (s *interconsultaService) ListarMedicosPorEspecialidad(ctx context.Context, idEspecialidad int) ([]domain.MedicoInterconsulta, error) {
+	return s.repo.ListarMedicosPorEspecialidad(ctx, idEspecialidad)
+}

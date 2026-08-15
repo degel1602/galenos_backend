@@ -115,8 +115,8 @@ func getSexoFallback(m map[string]any) string {
 
 
 func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRegAtencion int) ([]domain.EvolucionFirma, error) {
-	query := `EXEC [dbo].[webEvolucionesFirmaListarIdRegAtencion] @IdRegAtencion = ?, @NombreDocumento = 'EvolucionMedica'`
-	rows, err := r.db.QueryContext(ctx, query, idRegAtencion)
+	query := `EXEC [dbo].[webEvolucionesFirmaListarIdRegAtencion] @IdRegAtencion = @p1, @NombreDocumento = 'EvolucionMedica'`
+	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idRegAtencion))
 	if err != nil {
 		return nil, fmt.Errorf("error querying evolutions: %w", err)
 	}
@@ -173,24 +173,24 @@ func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRe
 func (r *sqlServerEvolucionRepository) SaveEvolucion(ctx context.Context, evolution domain.EvolucionFirma) error {
 	query := `
 		EXEC [dbo].[Web_sp_GuardarEvolucionFirma] 
-			@IdRegAtencion = ?, 
-			@RutaBase = ?, 
-			@NombreArchivo = ?, 
-			@NombreDocumento = ?, 
-			@DataB64 = ?, 
-			@IdEmpleadoRegistra = ?, 
-			@IdEmpleadoModifica = ?, 
-			@Estado = ?
+			@IdRegAtencion = @p1, 
+			@RutaBase = @p2, 
+			@NombreArchivo = @p3, 
+			@NombreDocumento = @p4, 
+			@DataB64 = @p5, 
+			@IdEmpleadoRegistra = @p6, 
+			@IdEmpleadoModifica = @p7, 
+			@Estado = @p8
 	`
 	_, err := r.db.ExecContext(ctx, query,
-		evolution.IdRegAtencion,
-		"evols/",
-		fmt.Sprintf("evol_%d_%d.json", evolution.IdRegAtencion, time.Now().Unix()),
-		evolution.NombreDocumento,
-		evolution.DataB64,
-		evolution.IdEmpleadoRegistra,
-		evolution.IdEmpleadoRegistra,
-		1,
+		sql.Named("p1", evolution.IdRegAtencion),
+		sql.Named("p2", "evols/"),
+		sql.Named("p3", fmt.Sprintf("evol_%d_%d.json", evolution.IdRegAtencion, time.Now().Unix())),
+		sql.Named("p4", evolution.NombreDocumento),
+		sql.Named("p5", evolution.DataB64),
+		sql.Named("p6", evolution.IdEmpleadoRegistra),
+		sql.Named("p7", evolution.IdEmpleadoRegistra),
+		sql.Named("p8", 1),
 	)
 	if err != nil {
 		return fmt.Errorf("error saving evolution: %w", err)

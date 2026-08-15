@@ -12,4 +12,6 @@ type InterconsultaRepository interface {
 	Guardar(ctx context.Context, interconsulta domain.Interconsulta) error
 	ActualizarEstado(ctx context.Context, id int, estado string) error
 	GuardarFirma(ctx context.Context, firma domain.FirmaInterconsulta) error
+	ListarEspecialidades(ctx context.Context) ([]domain.EspecialidadInterconsulta, error)
+	ListarMedicosPorEspecialidad(ctx context.Context, idEspecialidad int) ([]domain.MedicoInterconsulta, error)
 }

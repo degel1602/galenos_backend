@@ -46,8 +46,8 @@ func (r *SintomaRepository) ListarCatalogo(ctx context.Context) ([]domain.Sintom
 }
 
 func (r *SintomaRepository) AgregarCatalogo(ctx context.Context, sistema, sintoma string, idUsuario int) error {
-	query := "EXEC sp_go_AgregarSintomaCatalogo @Sistema = ?, @Sintoma = ?, @IdUsuario = ?"
-	_, err := r.db.ExecContext(ctx, query, sistema, sintoma, idUsuario)
+	query := "EXEC sp_go_AgregarSintomaCatalogo @Sistema = @p1, @Sintoma = @p2, @IdUsuario = @p3"
+	_, err := r.db.ExecContext(ctx, query, sql.Named("p1", sistema), sql.Named("p2", sintoma), sql.Named("p3", idUsuario))
 	if err != nil {
 		return fmt.Errorf("error agregando síntoma al catálogo: %w", err)
 	}
@@ -60,8 +60,8 @@ func (r *SintomaRepository) GuardarEvolucionSintomas(ctx context.Context, idRegA
 		return fmt.Errorf("error serializando síntomas: %w", err)
 	}
 
-	query := "EXEC sp_go_InsertarEvolucionSintomas @IdRegAtencion = ?, @Sintomas = ?, @IdUsuario = ?"
-	_, err = r.db.ExecContext(ctx, query, idRegAtencion, string(payload), idUsuario)
+	query := "EXEC sp_go_InsertarEvolucionSintomas @IdRegAtencion = @p1, @Sintomas = @p2, @IdUsuario = @p3"
+	_, err = r.db.ExecContext(ctx, query, sql.Named("p1", idRegAtencion), sql.Named("p2", string(payload)), sql.Named("p3", idUsuario))
 	if err != nil {
 		return fmt.Errorf("error guardando síntomas de la evolución: %w", err)
 	}

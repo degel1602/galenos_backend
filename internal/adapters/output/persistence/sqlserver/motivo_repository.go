@@ -17,9 +17,9 @@ func NewMotivoRepository(db *sql.DB) *MotivoRepository {
 }
 
 func (r *MotivoRepository) ListarPorAtencion(ctx context.Context, idRegAtencion int) ([]domain.MotivoAtencion, error) {
-	query := "EXEC webEvolucionMotivoListar @IdRegAtencion = ?"
+	query := "EXEC webEvolucionMotivoListar @IdRegAtencion = @p1"
 
-	rows, err := r.db.QueryContext(ctx, query, idRegAtencion)
+	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idRegAtencion))
 	if err != nil {
 		return nil, err
 	}
@@ -46,16 +46,16 @@ func (r *MotivoRepository) Guardar(ctx context.Context, idRegAtencion int, motiv
 	// Devuelve una fila con Mensaje = "<IdResultado>;<texto>".
 	query := `
 		EXEC usp_Tab_Atencion_Registro_Guardar
-			@IdRegAtencion = ?,
-			@Motivo = ?,
+			@IdRegAtencion = @p1,
+			@Motivo = @p2,
 			@IdUsuario = NULL,
-			@Mensaje = ? OUTPUT
+			@Mensaje = @p3 OUTPUT
 	`
 	var mensaje string
 	err := r.db.QueryRowContext(ctx, query,
-		idRegAtencion,
-		motivo,
-		sql.Out{Dest: &mensaje},
+		sql.Named("p1", idRegAtencion),
+		sql.Named("p2", motivo),
+		sql.Named("p3", sql.Out{Dest: &mensaje}),
 	).Scan(&mensaje)
 	if err != nil && err != sql.ErrNoRows {
 		return err

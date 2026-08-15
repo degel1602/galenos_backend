@@ -58,7 +58,37 @@ func (h *EvolucionHandler) HandleListPatients(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "EVOL_PATIENTS_ERR", "Error obteniendo pacientes")
 		return
 	}
-	respondSuccess(c, http.StatusOK, patients)
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "7"))
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 7
+	}
+
+	totalItems := len(patients)
+	totalPages := 1
+	if totalItems > 0 {
+		totalPages = (totalItems + pageSize - 1) / pageSize
+	}
+	inicio := (page - 1) * pageSize
+	if inicio > totalItems {
+		inicio = totalItems
+	}
+	fin := inicio + pageSize
+	if fin > totalItems {
+		fin = totalItems
+	}
+
+	respondSuccess(c, http.StatusOK, map[string]any{
+		"page":       page,
+		"pageSize":   pageSize,
+		"totalItems": totalItems,
+		"totalPages": totalPages,
+		"items":      patients[inicio:fin],
+	})
 }
 
 // @Summary Get evolutions for a patient
@@ -124,5 +154,10 @@ func (h *EvolucionHandler) HandleCreateEvolucion(c *gin.Context) {
 		return
 	}
 
-	respondSuccess(c, http.StatusOK, map[string]string{"message": "Evolución guardada correctamente"})
+	respondSuccess(c, http.StatusOK, map[string]string{
+		"message":   "Evolución guardada correctamente",
+		"ipCliente": c.ClientIP(),
+		"fecha":     time.Now().Format("2006-01-02"),
+		"hora":      time.Now().Format("15:04:05"),
+	})
 }

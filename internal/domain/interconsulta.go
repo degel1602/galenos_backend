@@ -15,3 +15,16 @@ type FirmaInterconsulta struct {
 	DataB64         string `json:"dataB64"`
 	IdEmpleadoFirma int    `json:"idEmpleadoFirma"`
 }
+
+type EspecialidadInterconsulta struct {
+	IdEspecialidad  int     `json:"idEspecialidad"`
+	Nombre          *string `json:"nombre"`
+	DescripcionLarga *string `json:"descripcionLarga"`
+}
+
+type MedicoInterconsulta struct {
+	IdMedico      int     `json:"idMedico"`
+	IdEmpleado    int     `json:"idEmpleado"`
+	CodigoPlanilla *string `json:"codigoPlanilla"`
+	Medico        *string `json:"medico"`
+}
