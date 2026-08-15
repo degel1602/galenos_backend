@@ -9,6 +9,7 @@ type PatientListItem struct {
 	Edad          string `json:"edad"`
 	Sexo          string `json:"sexo"`
 	Ubicacion     string `json:"ubicacion"`
+	Cama          string `json:"cama"`
 	Estado        string `json:"estado"`
 }
 

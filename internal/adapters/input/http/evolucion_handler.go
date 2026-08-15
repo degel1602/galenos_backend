@@ -3,6 +3,7 @@ package httpadapter
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/galenos-pro/appointments-api/internal/ports/input"
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,33 @@ func NewEvolucionHandler(service input.EvolucionService) *EvolucionHandler {
 // @Param ffin query string false "Fecha final (YYYY-MM-DD)"
 // @Router /api/v1/evoluciones/pacientes [get]
 func (h *EvolucionHandler) HandleListPatients(c *gin.Context) {
-	patients, err := h.service.GetPatientTray(c.Request.Context(), c.Query("fini"), c.Query("ffin"))
+	fini := c.Query("fini")
+	if _, err := time.Parse("2006-01-02", fini); err != nil {
+		respondError(c, http.StatusBadRequest, "INVALID_FINI", "El parámetro fini (YYYY-MM-DD) es requerido")
+		return
+	}
+	if ffin := c.Query("ffin"); ffin != "" {
+		if _, err := time.Parse("2006-01-02", ffin); err != nil {
+			respondError(c, http.StatusBadRequest, "INVALID_FFIN", "El parámetro ffin (YYYY-MM-DD) es inválido")
+			return
+		}
+	}
+
+	idUsuario := 1
+	if val, exists := c.Get("idEmpleado"); exists {
+		switch id := val.(type) {
+		case float64:
+			idUsuario = int(id)
+		case string:
+			if parsed, err := strconv.Atoi(id); err == nil {
+				idUsuario = parsed
+			}
+		case int:
+			idUsuario = id
+		}
+	}
+
+	patients, err := h.service.GetPatientTray(c.Request.Context(), fini, c.Query("ffin"), idUsuario)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "EVOL_PATIENTS_ERR", "Error obteniendo pacientes")
 		return

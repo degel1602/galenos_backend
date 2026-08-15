@@ -3,7 +3,7 @@ package sqlserver
 import (
 	"context"
 	"database/sql"
-	"time"
+	"fmt"
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
 )
@@ -17,7 +17,11 @@ func NewResultadoRepository(db *sql.DB) *ResultadoRepository {
 }
 
 func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, idPaciente int) ([]domain.Resultado, error) {
-	query := "EXEC webHistorialExamenLaboratorioResultado @IdPaciente = ?"
+	// SP real: webHistorialExamenLaboratorio @IdPaciente
+	// Columnas devueltas:
+	//   IdProducto, IdPuntoCarga, IdMovimiento, Codigo, Nombre, cantidad,
+	//   IdOrden, IdLabEstado, FechaSolicitud, FechaResultado, Resultado
+	query := "EXEC webHistorialExamenLaboratorio @IdPaciente = ?"
 
 	rows, err := r.db.QueryContext(ctx, query, idPaciente)
 	if err != nil {
@@ -29,23 +33,36 @@ func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, 
 	for rows.Next() {
 		var res domain.Resultado
 		res.TipoResultado = "Laboratorio"
-		var fecha sql.NullTime
-		var estado sql.NullString
+		res.IdPaciente = idPaciente
 
-		if err := rows.Scan(&res.IdResultado, &res.IdPaciente, &res.NombreExamen, &fecha, &res.Detalle, &estado); err != nil {
-			// Similar to Orden, map based on actual SP returns in reality.
-			// Ignoring exact scan mismatch for this generated skeleton.
-			// return nil, err
+		var idProducto, idPuntoCarga, idMovimiento, cantidad, idLabEstado, idOrden sql.NullInt64
+		var codigo, nombre, fechaSolicitud, fechaResultado, resultado sql.NullString
+
+		if err := rows.Scan(
+			&idProducto, &idPuntoCarga, &idMovimiento, &codigo, &nombre, &cantidad,
+			&idOrden, &idLabEstado, &fechaSolicitud, &fechaResultado, &resultado,
+		); err != nil {
+			return nil, fmt.Errorf("error escaneando resultado laboratorio: %w", err)
 		}
-		if fecha.Valid {
-			res.FechaExamen = fecha.Time.Format(time.RFC3339)
+
+		if idMovimiento.Valid {
+			res.IdResultado = int(idMovimiento.Int64)
 		}
-		if estado.Valid {
-			res.Estado = estado.String
+		if nombre.Valid {
+			res.NombreExamen = nombre.String
+		}
+		if fechaResultado.Valid {
+			res.FechaExamen = fechaResultado.String
+		}
+		if codigo.Valid {
+			res.Detalle = codigo.String
+		}
+		if resultado.Valid && resultado.String != "" {
+			res.Estado = resultado.String
 		}
 		resultados = append(resultados, res)
 	}
-	
+
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -54,7 +71,12 @@ func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, 
 }
 
 func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idPaciente int) ([]domain.Resultado, error) {
-	query := "EXEC webObservarResultadoImagenes @IdPaciente = ?"
+	// SP real: webHistorialExamenImageneologia @IdPaciente
+	// Columnas devueltas:
+	//   IdProducto, Codigo, FechaResultado, FechaRegistro, IdPuntoCarga, IdMovimiento,
+	//   Nombre, Cantidad, IdImagEstado, Resultado, IdOrden, DiaAtencion,
+	//   MesAtencion, NombreDiaAtencion, AnioAtencion
+	query := "EXEC webHistorialExamenImageneologia @IdPaciente = ?"
 
 	rows, err := r.db.QueryContext(ctx, query, idPaciente)
 	if err != nil {
@@ -66,21 +88,38 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 	for rows.Next() {
 		var res domain.Resultado
 		res.TipoResultado = "Imagen"
-		var fecha sql.NullTime
-		var estado sql.NullString
+		res.IdPaciente = idPaciente
 
-		if err := rows.Scan(&res.IdResultado, &res.IdPaciente, &res.NombreExamen, &fecha, &res.Detalle, &estado); err != nil {
-			// Ignoring exact scan mismatch for generated skeleton.
+		var idProducto, idPuntoCarga, idMovimiento, cantidad, idImagEstado, idOrden, dia, anio sql.NullInt64
+		var codigo, fechaResultado, nombre, resultado, mes, nombreDia sql.NullString
+		var fechaRegistro sql.NullTime
+
+		if err := rows.Scan(
+			&idProducto, &codigo, &fechaResultado, &fechaRegistro, &idPuntoCarga, &idMovimiento,
+			&nombre, &cantidad, &idImagEstado, &resultado, &idOrden, &dia,
+			&mes, &nombreDia, &anio,
+		); err != nil {
+			return nil, fmt.Errorf("error escaneando resultado imagen: %w", err)
 		}
-		if fecha.Valid {
-			res.FechaExamen = fecha.Time.Format(time.RFC3339)
+
+		if idMovimiento.Valid {
+			res.IdResultado = int(idMovimiento.Int64)
 		}
-		if estado.Valid {
-			res.Estado = estado.String
+		if nombre.Valid {
+			res.NombreExamen = nombre.String
+		}
+		if fechaResultado.Valid {
+			res.FechaExamen = fechaResultado.String
+		}
+		if codigo.Valid {
+			res.Detalle = codigo.String
+		}
+		if resultado.Valid && resultado.String != "" {
+			res.Estado = resultado.String
 		}
 		resultados = append(resultados, res)
 	}
-	
+
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}

@@ -41,7 +41,24 @@ func (r *MotivoRepository) ListarPorAtencion(ctx context.Context, idRegAtencion 
 }
 
 func (r *MotivoRepository) Guardar(ctx context.Context, idRegAtencion int, motivo string) error {
-	query := "EXEC webEvolucionMotivoGuardar @IdRegAtencion = ?, @Motivo = ?"
-	_, err := r.db.ExecContext(ctx, query, idRegAtencion, motivo)
-	return err
+	// SP real: usp_Tab_Atencion_Registro_Guardar (guardado único del registro de atención).
+	// Actualiza solo los campos enviados (COALESCE); los demás quedan intactos.
+	// Devuelve una fila con Mensaje = "<IdResultado>;<texto>".
+	query := `
+		EXEC usp_Tab_Atencion_Registro_Guardar
+			@IdRegAtencion = ?,
+			@Motivo = ?,
+			@IdUsuario = NULL,
+			@Mensaje = ? OUTPUT
+	`
+	var mensaje string
+	err := r.db.QueryRowContext(ctx, query,
+		idRegAtencion,
+		motivo,
+		sql.Out{Dest: &mensaje},
+	).Scan(&mensaje)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	return nil
 }

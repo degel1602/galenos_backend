@@ -3,7 +3,7 @@ package sqlserver
 import (
 	"context"
 	"database/sql"
-	"time"
+	"fmt"
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
 )
@@ -17,9 +17,11 @@ func NewOrdenRepository(db *sql.DB) *OrdenRepository {
 }
 
 func (r *OrdenRepository) ListarPorCuenta(ctx context.Context, idCuentaAtencion int) ([]domain.OrdenMedica, error) {
-	query := "EXEC webOrdenesListarIdCuentaAtencion @IdCuentaAtencion = ?"
+	// SP real: webOrdenesListarIdCuentaAtencion exige 2 parámetros (@idCuentaAtencion, @RecetaAdicional).
+	// @RecetaAdicional = -100 devuelve todas (con y sin receta adicional).
+	query := "EXEC webOrdenesListarIdCuentaAtencion @IdCuentaAtencion = ?, @RecetaAdicional = ?"
 
-	rows, err := r.db.QueryContext(ctx, query, idCuentaAtencion)
+	rows, err := r.db.QueryContext(ctx, query, idCuentaAtencion, -100)
 	if err != nil {
 		return nil, err
 	}
@@ -28,24 +30,31 @@ func (r *OrdenRepository) ListarPorCuenta(ctx context.Context, idCuentaAtencion 
 	var ordenes []domain.OrdenMedica
 	for rows.Next() {
 		var o domain.OrdenMedica
-		var fechaOrden sql.NullTime
-		var estado sql.NullString
-		var observacion sql.NullString
 
-		if err := rows.Scan(&o.IdOrden, &o.IdRegAtencion, &o.IdMedico, &fechaOrden, &estado, &observacion); err != nil {
-			// Ignorar errores de mapeo exactos sin conocer el SP final, esto es una maqueta basada en nombres comunes.
-			// En un escenario real, se deben ajustar las columnas exactas devueltas por webOrdenesListarIdCuentaAtencion.
-			// Para propósitos de este plan, llenamos los datos básicos que funcionen o retornamos el error.
-			// return nil, err
+		// Columnas reales de webOrdenesListarIdCuentaAtencion:
+		//   IdProducto, Codigo, Nombre, DescripcionPuntoCarga, CantidadPedida, Precio,
+		//   Total, idReceta, idItem, idUNIDDosisReceta, idFrecuencia, Duracion,
+		//   TipoProducto, Notificacion
+		var idProducto, cantidadPedida, idReceta, idItem, idUnidDosis, idFrecuencia sql.NullInt64
+		var codigo, nombre, descripcionPuntoCarga, duracion, tipoProducto, notificacion sql.NullString
+		var precio, total sql.NullFloat64
+
+		if err := rows.Scan(
+			&idProducto, &codigo, &nombre, &descripcionPuntoCarga, &cantidadPedida, &precio,
+			&total, &idReceta, &idItem, &idUnidDosis, &idFrecuencia, &duracion,
+			&tipoProducto, &notificacion,
+		); err != nil {
+			return nil, fmt.Errorf("error escaneando orden: %w", err)
 		}
-		if fechaOrden.Valid {
-			o.FechaOrden = fechaOrden.Time.Format(time.RFC3339)
+
+		if idReceta.Valid {
+			o.IdOrden = int(idReceta.Int64)
 		}
-		if estado.Valid {
-			o.Estado = estado.String
+		if tipoProducto.Valid {
+			o.Estado = tipoProducto.String
 		}
-		if observacion.Valid {
-			o.Observacion = observacion.String
+		if notificacion.Valid {
+			o.Observacion = notificacion.String
 		}
 		ordenes = append(ordenes, o)
 	}

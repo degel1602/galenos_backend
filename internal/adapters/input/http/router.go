@@ -26,6 +26,7 @@ type RouterParams struct {
 	OrdenHandler         *OrdenHandler
 	ResultadoHandler     *ResultadoHandler
 	InterconsultaHandler *InterconsultaHandler
+	SintomaHandler       *SintomaHandler
 	AuthService          input.AuthService
 	AllowedOrigins       []string
 }
@@ -135,6 +136,7 @@ func NewRouter(p RouterParams) *gin.Engine {
 			evoluciones.GET("/paciente/:pacienteId", p.EvolucionHandler.HandleListEvoluciones)
 			evoluciones.GET("/:idRegAtencion/motivos", p.MotivoHandler.HandleListMotivos)
 			evoluciones.POST("/:idRegAtencion/motivos", p.MotivoHandler.HandleCreateMotivo)
+			evoluciones.POST("/:idRegAtencion/sintomas", p.SintomaHandler.HandleGuardarSintomas)
 		}
 
 		ordenes := protected.Group("/ordenes")
@@ -157,6 +159,12 @@ func NewRouter(p RouterParams) *gin.Engine {
 			interconsultas.POST("", p.InterconsultaHandler.HandleCrear)
 			interconsultas.PUT("/:id/estado", p.InterconsultaHandler.HandleActualizarEstado)
 			interconsultas.POST("/:id/firma", p.InterconsultaHandler.HandleGuardarFirma)
+		}
+
+		sintomas := protected.Group("/sintomas")
+		{
+			sintomas.GET("/catalogo", p.SintomaHandler.HandleListarCatalogo)
+			sintomas.POST("/catalogo", p.SintomaHandler.HandleAgregarCatalogo)
 		}
 	}
 

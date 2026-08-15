@@ -67,6 +67,7 @@ func run() error {
 	ordenRepo := sqlserver.NewOrdenRepository(db)
 	resultadoRepo := sqlserver.NewResultadoRepository(db)
 	interconsultaRepo := sqlserver.NewInterconsultaRepository(db)
+	sintomaRepo := sqlserver.NewSintomaRepository(db)
 
 	// --- Adaptador de salida: servicio externo RENIEC ---
 	reniecClient := reniec.New(reniec.Config{
@@ -98,6 +99,7 @@ func run() error {
 	ordenService := usecase.NewOrdenService(ordenRepo)
 	resultadoService := usecase.NewResultadoService(resultadoRepo)
 	interconsultaService := usecase.NewInterconsultaService(interconsultaRepo)
+	sintomaService := usecase.NewSintomaService(sintomaRepo)
 
 	authRepo := sqlserver.NewAuthRepository(db)
 	authService := usecase.NewAuthUseCase(authRepo, cfg.AuthSecret, cfg.AuthTTL)
@@ -120,6 +122,7 @@ func run() error {
 	ordenHandler := httpadapter.NewOrdenHandler(ordenService)
 	resultadoHandler := httpadapter.NewResultadoHandler(resultadoService)
 	interconsultaHandler := httpadapter.NewInterconsultaHandler(interconsultaService)
+	sintomaHandler := httpadapter.NewSintomaHandler(sintomaService)
 
 	router := httpadapter.NewRouter(httpadapter.RouterParams{
 		AppointmentHandler:   appointmentHandler,
@@ -134,6 +137,7 @@ func run() error {
 		OrdenHandler:         ordenHandler,
 		ResultadoHandler:     resultadoHandler,
 		InterconsultaHandler: interconsultaHandler,
+		SintomaHandler:       sintomaHandler,
 		AuthService:          authService,
 		AllowedOrigins:       cfg.AllowedOrigins,
 	})

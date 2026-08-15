@@ -18,12 +18,21 @@ func NewSqlServerEvolucionRepository(db *sql.DB) output.EvolucionRepository {
 	return &sqlServerEvolucionRepository{db: db}
 }
 
-func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context, fini, ffin string) ([]domain.PatientListItem, error) {
-	// NOTA: Se solicitó usar el SP usp_go_ListarPacientesIngresoEmergencia.
-	// Si el SP soporta filtros de fecha, se pueden enviar mediante parámetros nombrados.
-	// Por ahora se ejecuta sin parámetros para asegurar que no falle si el SP no los espera.
-	query := `EXEC [dbo].[usp_go_ListarPacientesIngresoEmergencia]`
-	rows, err := r.db.QueryContext(ctx, query)
+func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context, fini, ffin string, idUsuario int) ([]domain.PatientListItem, error) {
+	// Se usa el SP usp_go_ListarPacientesSegunTipoServicio, que requiere
+	// @IdTipoServicio (2 = Emergencia), @Fecha (datetime), @Filtro y @IdUsuario.
+	// El handler ya validó el formato de fini antes de llegar aquí.
+	fecha, err := time.Parse("2006-01-02", fini)
+	if err != nil {
+		return nil, fmt.Errorf("fini inválido: %w", err)
+	}
+	query := `EXEC [dbo].[usp_go_ListarPacientesSegunTipoServicio] @IdTipoServicio = @p1, @Fecha = @p2, @Filtro = @p3, @IdUsuario = @p4`
+	rows, err := r.db.QueryContext(ctx, query,
+		sql.Named("p1", 2),
+		sql.Named("p2", fecha),
+		sql.Named("p3", ""),
+		sql.Named("p4", idUsuario),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("error querying patients for tray: %w", err)
 	}
@@ -44,13 +53,17 @@ func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context, fini, f
 func mapToPatientListItem(m map[string]any) domain.PatientListItem {
 	var p domain.PatientListItem
 	
-	p.IdRegAtencion = getIntFallback(m, "idRegAtencion", "IdPaciente")
-	p.IdPaciente = getIntFallback(m, "IdPaciente", "")
+	// El SP usp_go_ListarPacientesSegunTipoServicio retorna: IdEpisodio,
+	// IdAtencion, IdCuentaAtencion, Paciente, NroHistoriaClinica, Servicio,
+	// Sexo y cama.
+	p.IdRegAtencion = getIntFallback(m, "idRegAtencion", "IdAtencion")
+	p.IdPaciente = getIntFallback(m, "IdPaciente", "IdEpisodio")
 	p.Historia = getStringFallback(m, "historia", "NroHistoriaClinica", "N/A")
 	p.Nombre = getNombrePaciente(m)
 	p.Edad = getStringFallback(m, "edad", "", "N/A")
 	p.Sexo = getSexoFallback(m)
-	p.Ubicacion = getStringFallback(m, "ubicacion", "", "Emergencia")
+	p.Ubicacion = getStringFallback(m, "ubicacion", "Servicio", "Emergencia")
+	p.Cama = getStringFallback(m, "cama", "", "NS")
 	p.Estado = getStringFallback(m, "estado", "", "Pendiente")
 	
 	return p
@@ -81,7 +94,7 @@ func getStringFallback(m map[string]any, key1, key2, fallback string) string {
 }
 
 func getNombrePaciente(m map[string]any) string {
-	if ptr := rowString(m, "nombre"); ptr != nil && *ptr != "" {
+	if ptr := rowString(m, "nombre", "Paciente"); ptr != nil && *ptr != "" {
 		return *ptr
 	}
 	pat := getStringFallback(m, "ApellidoPaterno", "", "")
