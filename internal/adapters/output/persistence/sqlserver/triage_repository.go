@@ -196,6 +196,44 @@ func (r *triageRepository) GetReporte(ctx context.Context, params shared.TriageR
 	return maps, nil
 }
 
+// ListarMedicosPorEspecialidad invoca el SP
+// usp_go_MedicosFiltrarPorIdEspecialidad con el id de la especialidad.
+// El SP retorna filas con las columnas IdMedico, ApellidoPaterno,
+// ApellidoMaterno y Nombre. Se arma NombreCompleto concatenando las partes.
+func (r *triageRepository) ListarMedicosPorEspecialidad(ctx context.Context, idEspecialidad int) ([]domain.MedicoFila, error) {
+	const procedure = `usp_go_MedicosFiltrarPorIdEspecialidad`
+
+	rows, err := r.db.QueryContext(ctx, procedure, sql.Named("IdEspecialidad", idEspecialidad))
+	if err != nil {
+		return nil, fmt.Errorf("calling usp_go_MedicosFiltrarPorIdEspecialidad: %w", err)
+	}
+	defer rows.Close()
+
+	var items []domain.MedicoFila
+	for rows.Next() {
+		var m domain.MedicoFila
+		if err := rows.Scan(&m.IdMedico, &m.ApellidoPaterno, &m.ApellidoMaterno, &m.Nombre); err != nil {
+			return nil, fmt.Errorf("scanning medico row: %w", err)
+		}
+		// Concatenate full name: "Paterno Materno, Nombre"
+		ap := ""
+		if m.ApellidoPaterno != nil {
+			ap = *m.ApellidoPaterno
+		}
+		am := ""
+		if m.ApellidoMaterno != nil {
+			am = *m.ApellidoMaterno
+		}
+		n := ""
+		if m.Nombre != nil {
+			n = *m.Nombre
+		}
+		m.NombreCompleto = fmt.Sprintf("%s %s, %s", ap, am, n)
+		items = append(items, m)
+	}
+	return items, nil
+}
+
 // GetFichaAdmision invoca el procedimiento almacenado webFichaEmergencia
 // con el id de la cuenta de atención. El SP retorna una única fila (TOP 1)
 // con los datos del paciente y los adicionales para la ficha de admisión.

@@ -268,3 +268,35 @@ func (h *TriageHandler) GetFichaAdmision(c *gin.Context) {
 
 	respondSuccess(c, http.StatusOK, item)
 }
+
+// ListMedicosPorEspecialidad maneja GET /api/v1/triaje/medicos/:idEspecialidad.
+//
+// @Summary Lista los médicos de una especialidad
+// @Description Devuelve los médicos de la especialidad indicada (SP usp_go_MedicosFiltrarPorIdEspecialidad).
+// @Tags Triaje
+// @Produce json
+// @Param idEspecialidad path int true "Id de la especialidad"
+// @Success 200 {object} apiResponse{data=[]domain.MedicoFila}
+// @Failure 400 {object} apiResponse{error=apiError} "Parámetros inválidos"
+// @Failure 500 {object} apiResponse{error=apiError} "Error al listar los médicos"
+// @Router /triaje/medicos/{idEspecialidad} [get]
+func (h *TriageHandler) ListMedicosPorEspecialidad(c *gin.Context) {
+	raw := c.Param("idEspecialidad")
+	if raw == "" {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idEspecialidad es obligatorio")
+		return
+	}
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || id <= 0 {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idEspecialidad debe ser un entero positivo")
+		return
+	}
+
+	items, err := h.service.ListarMedicosPorEspecialidad(c.Request.Context(), int(id))
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "TRIAGE_MEDICOS_FAILED", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, items)
+}

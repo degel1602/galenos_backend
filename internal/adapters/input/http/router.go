@@ -123,6 +123,7 @@ func NewRouter(p RouterParams) *gin.Engine {
 			triaje.GET("/pendientes-admision", p.TriageHandler.ListPendingAdmission)
 			triaje.GET("/reporte", p.TriageHandler.GetReporte)
 			triaje.GET("/ficha-admision", p.TriageHandler.GetFichaAdmision)
+			triaje.GET("/medicos/:idEspecialidad", p.TriageHandler.ListMedicosPorEspecialidad)
 			triaje.POST("", p.TriageHandler.Create)
 			triaje.POST("/admision", p.TriageHandler.CreateAdmission)
 		}

@@ -34,4 +34,8 @@ type TriageService interface {
 	// GetFichaAdmision genera la ficha de admisión invocando el SP
 	// webFichaEmergencia para la cuenta de atención indicada.
 	GetFichaAdmision(ctx context.Context, params shared.FichaAdmisionParams) (*map[string]any, error)
+
+	// ListarMedicosPorEspecialidad lista los médicos de una especialidad
+	// invocando el SP usp_go_MedicosFiltrarPorIdEspecialidad.
+	ListarMedicosPorEspecialidad(ctx context.Context, idEspecialidad int) ([]domain.MedicoFila, error)
 }

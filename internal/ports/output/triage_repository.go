@@ -40,4 +40,9 @@ type TriageRepository interface {
 	// datos del paciente y adicionales para generar la ficha de admisión
 	// de la cuenta de atención indicada.
 	GetFichaAdmision(ctx context.Context, params shared.FichaAdmisionParams) (*map[string]any, error)
+
+	// ListarMedicosPorEspecialidad invoca el SP
+	// usp_go_MedicosFiltrarPorIdEspecialidad y devuelve los médicos de la
+	// especialidad indicada.
+	ListarMedicosPorEspecialidad(ctx context.Context, idEspecialidad int) ([]domain.MedicoFila, error)
 }

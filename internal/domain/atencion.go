@@ -8,6 +8,7 @@ type AdmisionDesdeTriaje struct {
 	IDTriaje            *int64
 	IDPacienteTriaje    *int64
 	IDEmpleado          *int64
+	IDMedico            *int64
 	NombreAcompanante   *string
 	TelefonoAcompanante *string
 	DireccionPaciente   *string
