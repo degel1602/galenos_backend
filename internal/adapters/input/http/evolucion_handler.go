@@ -136,16 +136,10 @@ func (h *EvolucionHandler) HandleCreateEvolucion(c *gin.Context) {
 		return
 	}
 
-	idEmpleado := 1
-	if val, exists := c.Get("idEmpleado"); exists {
-		if id, ok := val.(float64); ok {
-			idEmpleado = int(id)
-		} else if idStr, ok := val.(string); ok {
-			id, _ := strconv.Atoi(idStr)
-			idEmpleado = id
-		} else if idInt, ok := val.(int); ok {
-			idEmpleado = idInt
-		}
+	idEmpleado := c.GetInt("idEmpleado")
+	if idEmpleado == 0 {
+		respondError(c, http.StatusUnauthorized, "UNAUTHORIZED", "No se identificó al empleado en el token")
+		return
 	}
 
 	err := h.service.SaveEvolucion(c.Request.Context(), req.IdRegAtencion, idEmpleado, req.DataB64)

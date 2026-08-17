@@ -18,20 +18,7 @@ func NewSintomaHandler(service input.SintomaService) *SintomaHandler {
 }
 
 func idUsuarioDesdeContexto(c *gin.Context) int {
-	idUsuario := 1
-	if val, exists := c.Get("idEmpleado"); exists {
-		switch id := val.(type) {
-		case float64:
-			idUsuario = int(id)
-		case string:
-			if parsed, err := strconv.Atoi(id); err == nil {
-				idUsuario = parsed
-			}
-		case int:
-			idUsuario = id
-		}
-	}
-	return idUsuario
+	return c.GetInt("idEmpleado")
 }
 
 // @Summary Listar catálogo de síntomas

@@ -45,21 +45,7 @@ func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, 
 			return nil, fmt.Errorf("error escaneando resultado laboratorio: %w", err)
 		}
 
-		if idMovimiento.Valid {
-			res.IdResultado = int(idMovimiento.Int64)
-		}
-		if nombre.Valid {
-			res.NombreExamen = nombre.String
-		}
-		if fechaResultado.Valid {
-			res.FechaExamen = fechaResultado.String
-		}
-		if codigo.Valid {
-			res.Detalle = codigo.String
-		}
-		if resultado.Valid && resultado.String != "" {
-			res.Estado = resultado.String
-		}
+		mapFilaLaboratorio(&res, idMovimiento, nombre, fechaResultado, codigo, resultado)
 		resultados = append(resultados, res)
 	}
 
@@ -102,21 +88,7 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 			return nil, fmt.Errorf("error escaneando resultado imagen: %w", err)
 		}
 
-		if idMovimiento.Valid {
-			res.IdResultado = int(idMovimiento.Int64)
-		}
-		if nombre.Valid {
-			res.NombreExamen = nombre.String
-		}
-		if fechaResultado.Valid {
-			res.FechaExamen = fechaResultado.String
-		}
-		if codigo.Valid {
-			res.Detalle = codigo.String
-		}
-		if resultado.Valid && resultado.String != "" {
-			res.Estado = resultado.String
-		}
+		mapFilaImagen(&res, idMovimiento, nombre, fechaResultado, codigo, resultado)
 		resultados = append(resultados, res)
 	}
 
@@ -125,4 +97,40 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 	}
 
 	return resultados, nil
+}
+
+func mapFilaLaboratorio(res *domain.Resultado, idMovimiento sql.NullInt64, nombre, fechaResultado, codigo, resultado sql.NullString) {
+	if idMovimiento.Valid {
+		res.IdResultado = int(idMovimiento.Int64)
+	}
+	if nombre.Valid {
+		res.NombreExamen = nombre.String
+	}
+	if fechaResultado.Valid {
+		res.FechaExamen = fechaResultado.String
+	}
+	if codigo.Valid {
+		res.Detalle = codigo.String
+	}
+	if resultado.Valid && resultado.String != "" {
+		res.Estado = resultado.String
+	}
+}
+
+func mapFilaImagen(res *domain.Resultado, idMovimiento sql.NullInt64, nombre, fechaResultado, codigo, resultado sql.NullString) {
+	if idMovimiento.Valid {
+		res.IdResultado = int(idMovimiento.Int64)
+	}
+	if nombre.Valid {
+		res.NombreExamen = nombre.String
+	}
+	if fechaResultado.Valid {
+		res.FechaExamen = fechaResultado.String
+	}
+	if codigo.Valid {
+		res.Detalle = codigo.String
+	}
+	if resultado.Valid && resultado.String != "" {
+		res.Estado = resultado.String
+	}
 }

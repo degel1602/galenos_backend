@@ -24,23 +24,6 @@ func NewSisHandler(service input.SisService) *SisHandler {
 	return &SisHandler{service: service}
 }
 
-// ConsultarAfiliado maneja GET /api/v1/sis/afiliado/:nrodoc.
-//
-// @Summary Consulta el paciente afiliado en el SIS
-// @Description Invoca el servicio SOAP externo del SIS (GetSession + ConsultarAfiliadoFuaE) para traer los datos del afiliado.
-// @Tags SIS
-// @Produce json
-// @Param nrodoc path string true "Número de documento del afiliado"
-// @Param strTipoDocumento query int false "Tipo de documento: 1 = DNI (default), 3 = Carnet de Extranjería"
-// @Param intOpcion query int false "intOpcion del WS (tipo de consulta contratado; default 1)"
-// @Param strDisa query string false "strDisa del WS"
-// @Param strTipoFormato query string false "strTipoFormato del WS"
-// @Param strNroContrato query string false "strNroContrato del WS"
-// @Param strCorrelativo query string false "strCorrelativo del WS"
-// @Success 200 {object} apiResponse{data=domain.SisAfiliado}
-// @Failure 400 {object} apiResponse{error=apiError} "Parámetros inválidos"
-// @Failure 502 {object} apiResponse{error=apiError} "Error al consultar el SIS"
-// @Router /sis/afiliado/{nrodoc} [get]
 func (h *SisHandler) ConsultarAfiliado(c *gin.Context) {
 	params, err := parseSisAfiliadoParams(c)
 	if err != nil {
@@ -63,23 +46,16 @@ func (h *SisHandler) ConsultarAfiliado(c *gin.Context) {
 	respondSuccess(c, http.StatusOK, toSisAfiliadoResponse(result))
 }
 
-// GestionarAfiliacion maneja POST /api/v1/sis/filiaciones.
-//
-// @Summary Guarda la afiliación SIS de un paciente asegurado
-// @Description Persiste la afiliación SIS del paciente invocando el SP webSisFiliacionesGestionar.
-// @Tags SIS
-// @Accept json
-// @Produce json
-// @Param request body sisAfiliacionRequest true "Datos de la afiliación SIS a guardar"
-// @Success 200 {object} apiResponse{data=object} "Afiliación guardada"
-// @Failure 400 {object} apiResponse{error=apiError} "Cuerpo inválido"
-// @Failure 500 {object} apiResponse{error=apiError} "Error al guardar la afiliación"
-// @Router /sis/filiaciones [post]
 func (h *SisHandler) GestionarAfiliacion(c *gin.Context) {
 	var req sisAfiliacionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 		return
+	}
+
+	if idEmpleado := c.GetInt("idEmpleado"); idEmpleado != 0 {
+		idEmp64 := int64(idEmpleado)
+		req.IdUsuarioAuditoria = &idEmp64
 	}
 
 	if err := h.service.GestionarAfiliacion(c.Request.Context(), req.toDomain()); err != nil {

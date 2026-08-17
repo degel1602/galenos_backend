@@ -230,16 +230,10 @@ func (h *InterconsultaHandler) HandleGuardarFirma(c *gin.Context) {
 		return
 	}
 
-	idEmpleado := 1 // Dummy ID si no hay token real en pruebas, en pro debe extraerse del context de JWT
-	if val, exists := c.Get("idEmpleado"); exists {
-		if ide, ok := val.(float64); ok {
-			idEmpleado = int(ide)
-		} else if idStr, ok := val.(string); ok {
-			ide, _ := strconv.Atoi(idStr)
-			idEmpleado = ide
-		} else if idInt, ok := val.(int); ok {
-			idEmpleado = idInt
-		}
+	idEmpleado := c.GetInt("idEmpleado")
+	if idEmpleado == 0 {
+		respondError(c, http.StatusUnauthorized, "UNAUTHORIZED", "No se identificó al empleado en el token")
+		return
 	}
 
 	firma := domain.FirmaInterconsulta{
