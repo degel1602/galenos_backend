@@ -15,10 +15,14 @@ func NewOrdenService(repo output.OrdenRepository) *ordenService {
 	return &ordenService{repo: repo}
 }
 
-func (s *ordenService) ListarPorCuenta(ctx context.Context, idCuentaAtencion int) ([]domain.OrdenMedica, error) {
-	return s.repo.ListarPorCuenta(ctx, idCuentaAtencion)
+func (s *ordenService) ListarPorCuenta(ctx context.Context, idRegAtencion int) ([]domain.OrdenMedica, error) {
+	return s.repo.ListarPorCuenta(ctx, idRegAtencion)
 }
 
-func (s *ordenService) CrearOrden(ctx context.Context, orden domain.OrdenMedica, detalles []domain.DetalleOrden) error {
-	return s.repo.CrearOrden(ctx, orden, detalles)
+func (s *ordenService) CrearOrden(ctx context.Context, orden domain.OrdenMedica, detalles []domain.DetalleOrden, idEmpleado int) error {
+	return s.repo.CrearOrden(ctx, orden, detalles, idEmpleado)
+}
+
+func (s *ordenService) BuscarProductos(ctx context.Context, filtro string, limite int) ([]domain.ProductoCatalogo, error) {
+	return s.repo.BuscarProductos(ctx, filtro, limite)
 }

@@ -23,17 +23,17 @@ func NewOrdenHandler(service input.OrdenService) *OrdenHandler {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param idCuentaAtencion path int true "ID de la Cuenta de Atencion"
-// @Router /api/v1/ordenes/cuenta/{idCuentaAtencion} [get]
+// @Param idRegAtencion path int true "ID de la Atencion"
+// @Router /api/v1/ordenes/cuenta/{idRegAtencion} [get]
 func (h *OrdenHandler) HandleListOrdenes(c *gin.Context) {
 	idStr := c.Param("idCuentaAtencion")
-	idCuentaAtencion, err := strconv.Atoi(idStr)
+	idRegAtencion, err := strconv.Atoi(idStr)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, "INVALID_ID", "ID de cuenta de atención inválido")
+		respondError(c, http.StatusBadRequest, "INVALID_ID", "ID de atención inválido")
 		return
 	}
 
-	ordenes, err := h.service.ListarPorCuenta(c.Request.Context(), idCuentaAtencion)
+	ordenes, err := h.service.ListarPorCuenta(c.Request.Context(), idRegAtencion)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "ORDEN_GET_ERR", "Error obteniendo órdenes médicas")
 		return
@@ -44,7 +44,6 @@ func (h *OrdenHandler) HandleListOrdenes(c *gin.Context) {
 
 type CreateOrdenRequest struct {
 	IdRegAtencion int                   `json:"idRegAtencion" binding:"required"`
-	IdMedico      int                   `json:"idMedico" binding:"required"`
 	Observacion   string                `json:"observacion"`
 	Detalles      []domain.DetalleOrden `json:"detalles" binding:"required"`
 }
@@ -64,17 +63,54 @@ func (h *OrdenHandler) HandleCreateOrden(c *gin.Context) {
 		return
 	}
 
+	idEmpleado := 0
+	if val, exists := c.Get("idEmpleado"); exists {
+		switch v := val.(type) {
+		case int:
+			idEmpleado = v
+		case int64:
+			idEmpleado = int(v)
+		case float64:
+			idEmpleado = int(v)
+		}
+	}
+	if idEmpleado == 0 {
+		respondError(c, http.StatusUnauthorized, "NO_EMPLOYEE", "No se pudo identificar al empleado autenticado")
+		return
+	}
+
 	orden := domain.OrdenMedica{
 		IdRegAtencion: req.IdRegAtencion,
-		IdMedico:      req.IdMedico,
 		Observacion:   req.Observacion,
 	}
 
-	err := h.service.CrearOrden(c.Request.Context(), orden, req.Detalles)
+	err := h.service.CrearOrden(c.Request.Context(), orden, req.Detalles, idEmpleado)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "ORDEN_SAVE_ERR", "Error guardando la orden médica")
+		respondError(c, http.StatusBadRequest, "ORDEN_SAVE_ERR", err.Error())
 		return
 	}
 
 	respondSuccess(c, http.StatusOK, map[string]string{"message": "Orden médica guardada correctamente"})
+}
+
+// @Summary Buscar productos del catálogo
+// @Description Busca productos/medicamentos en el catálogo de bienes e insumos con su precio de venta vigente
+// @Tags Ordenes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param q query string false "Filtro por nombre, código o nombre comercial"
+// @Param limite query int false "Máximo de resultados (default 50)"
+// @Router /api/v1/ordenes/productos [get]
+func (h *OrdenHandler) HandleBuscarProductos(c *gin.Context) {
+	filtro := c.Query("q")
+	limite, _ := strconv.Atoi(c.DefaultQuery("limite", "50"))
+
+	productos, err := h.service.BuscarProductos(c.Request.Context(), filtro, limite)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "CATALOGO_GET_ERR", "Error buscando productos del catálogo")
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, productos)
 }

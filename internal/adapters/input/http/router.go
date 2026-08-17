@@ -31,8 +31,6 @@ type RouterParams struct {
 	AllowedOrigins       []string
 }
 
-// NewRouter arma el árbol de rutas de la REST API, incluyendo CORS para que
-// el frontend Angular pueda consumirla desde otro origen.
 func NewRouter(p RouterParams) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery(), gin.Logger())
@@ -143,6 +141,7 @@ func NewRouter(p RouterParams) *gin.Engine {
 		{
 			ordenes.GET("/cuenta/:idCuentaAtencion", p.OrdenHandler.HandleListOrdenes)
 			ordenes.POST("", p.OrdenHandler.HandleCreateOrden)
+			ordenes.GET("/productos", p.OrdenHandler.HandleBuscarProductos)
 		}
 
 		resultados := protected.Group("/resultados")
