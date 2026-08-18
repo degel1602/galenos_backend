@@ -55,24 +55,24 @@ type Triage struct {
 // los declara VARCHAR(10)) y los opcionales como punteros para distinguir
 // "no enviado" (NULL) de un valor vacío.
 type TriajeConsulta struct {
-	IdAtencion         int64
-	IdPaciente         int64
-	IdEmpleado         int64
-	Talla              *string
-	Peso               *string
-	Temperatura        *string
-	Pulso              *string
-	FrecRespiratoria   *string
-	FrecCardiaca       *string
-	FrecCardiacaFetal  *string
-	PerimCefalico      *string
-	Origen             *string
-	PerimAbdominal     *string
-	SAT02              *string
-	FI02               *string
-	PresionArterial    *string
-	Hemoglobina        *string
-	Observacion        *string
-	IMC                *string
-	Gestante           *string
+	IdAtencion        int64
+	IdPaciente        int64
+	IdEmpleado        int64
+	Talla             *string
+	Peso              *string
+	Temperatura       *string
+	Pulso             *string
+	FrecRespiratoria  *string
+	FrecCardiaca      *string
+	FrecCardiacaFetal *string
+	PerimCefalico     *string
+	Origen            *string
+	PerimAbdominal    *string
+	SAT02             *string
+	FI02              *string
+	PresionArterial   *string
+	Hemoglobina       *string
+	Observacion       *string
+	IMC               *string
+	Gestante          *string
 }

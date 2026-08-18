@@ -8,9 +8,10 @@ Galenos Pro Appointments API — REST API en Go (Gin + SQL Server 2022), arquite
 go mod tidy
 go run ./cmd/api        # arranca la API
 go build ./...          # verificar compilación
+.\fix                   # formatea el código y revisa errores estáticos (go vet)
 ```
 
-- **No hay** tests, linter ni CI. Verifica con `go build ./...`. Formatea con `gofmt -w .`.
+- **Linter y Formato**: Ejecuta `.\fix` para formatear el código con `go fmt` y buscar errores con `go vet`.
 - **Swagger**: `docs/docs.go` es **generado** por swaggo ("DO NOT EDIT"). Al cambiar anotaciones `@Summary`/`@Router`/etc. de los handlers, regenéralo con `swag init` (los handlers ya usan `@Router` en comentarios). UI en `/swagger/index.html`.
 - El código y los comentarios **están en español** (identificadores en inglés). Mantén ese estilo.
 - No hacer push ni commit salvo que se pida. Se trabaja en branches de feature (`feature/gustavo`, `feature/carlos`); `main` puede tener cambios staged sin commitear.
