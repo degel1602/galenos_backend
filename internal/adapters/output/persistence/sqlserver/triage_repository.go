@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/galenos-pro/appointments-api/internal/domain"
 	"github.com/galenos-pro/appointments-api/internal/ports/output"
@@ -154,10 +156,15 @@ func (r *triageRepository) CreateAdmission(ctx context.Context, admision *domain
 
 	var resultado string
 
+	// Default bcrypt hash for "123456" so the patient can log in later
+	const defaultPasswordHash = "$2a$10$wY.uV7TzS9F2P2n6V4G3bOuB7vD0z5R2G6p3I8J6K5D9L1H6X0C5C"
+
 	_, err := r.db.ExecContext(ctx, procedure,
 		sql.Named("IdTriaje", admision.IDTriaje),
 		sql.Named("IdPacienteTriaje", admision.IDPacienteTriaje),
+		sql.Named("PasswordHash", defaultPasswordHash),
 		sql.Named("IdEmpleado", admision.IDEmpleado),
+		sql.Named("IdMedicoIngreso", admision.IDMedico),
 		sql.Named("NombreAcompañante", admision.NombreAcompanante),
 		sql.Named("TelefonoAcompañante", admision.TelefonoAcompanante),
 		sql.Named("DireccionPaciente", admision.DireccionPaciente),
@@ -203,7 +210,7 @@ func (r *triageRepository) GetReporte(ctx context.Context, params shared.TriageR
 func (r *triageRepository) ListarMedicosPorEspecialidad(ctx context.Context, idEspecialidad int) ([]domain.MedicoFila, error) {
 	const procedure = `usp_go_MedicosFiltrarPorIdEspecialidad`
 
-	rows, err := r.db.QueryContext(ctx, procedure, sql.Named("IdEspecialidad", idEspecialidad))
+	rows, err := r.db.QueryContext(ctx, procedure, sql.Named("IdEspecialialidad", idEspecialidad))
 	if err != nil {
 		return nil, fmt.Errorf("calling usp_go_MedicosFiltrarPorIdEspecialidad: %w", err)
 	}
@@ -212,7 +219,7 @@ func (r *triageRepository) ListarMedicosPorEspecialidad(ctx context.Context, idE
 	var items []domain.MedicoFila
 	for rows.Next() {
 		var m domain.MedicoFila
-		if err := rows.Scan(&m.IdMedico, &m.ApellidoPaterno, &m.ApellidoMaterno, &m.Nombre); err != nil {
+		if err := rows.Scan(&m.IdMedico, &m.CodigoPlanilla, &m.ApellidoPaterno, &m.ApellidoMaterno, &m.Nombre, &m.Especialidad, &m.Colegiatura, &m.RNE); err != nil {
 			return nil, fmt.Errorf("scanning medico row: %w", err)
 		}
 		// Concatenate full name: "Paterno Materno, Nombre"
@@ -257,4 +264,141 @@ func (r *triageRepository) GetFichaAdmision(ctx context.Context, params shared.F
 
 	m := maps[0]
 	return &m, nil
+}
+
+// ListTriajeConsulta invoca el procedimiento almacenado
+// AtencionesTriajeFiltro con un fragmento WHERE construido en Go a partir
+// de los filtros ya validados por el handler (fechas en formato
+// YYYY-MM-DD, id de servicio numérico). El texto de búsqueda se escapa
+// duplicando comillas simples para evitar inyección SQL, ya que el SP
+// concatena el parámetro directamente en una consulta dinámica. El
+// parámetro @Filtro del SP es VARCHAR(250), por eso el fragmento se arma
+// compacto y se recorta el texto de búsqueda para no truncar el SQL.
+func (r *triageRepository) ListTriajeConsulta(ctx context.Context, params shared.TriajeConsultaParams) ([]map[string]any, error) {
+	const procedure = `AtencionesTriajeFiltro`
+
+	finMasUnDia := "1900-01-01"
+	if f, err := time.Parse("2006-01-02", params.FechaFin); err == nil {
+		finMasUnDia = f.AddDate(0, 0, 1).Format("2006-01-02")
+	}
+
+	var where strings.Builder
+	where.WriteString("WHERE a.FechaIngreso>='" + fechaSQL(params.FechaInicio) + "' AND a.FechaIngreso<'" + fechaSQL(finMasUnDia) + "'")
+
+	if params.IdServicio > 0 {
+		where.WriteString(fmt.Sprintf(" AND a.IdServicioIngreso=%d", params.IdServicio))
+	}
+
+	if filtro := strings.TrimSpace(params.Filtro); filtro != "" {
+		if len(filtro) > 30 {
+			filtro = filtro[:30]
+		}
+		seguro := strings.ReplaceAll(filtro, "'", "''")
+		where.WriteString(" AND CONCAT(p.NroDocumento,p.ApellidoPaterno,p.ApellidoMaterno,p.PrimerNombre,p.SegundoNombre) LIKE '%" + seguro + "%'")
+	}
+
+	rows, err := r.db.QueryContext(ctx, procedure, sql.Named("Filtro", where.String()))
+	if err != nil {
+		return nil, fmt.Errorf("calling AtencionesTriajeFiltro: %w", err)
+	}
+	defer rows.Close()
+
+	maps, err := rowsToMaps(rows)
+	if err != nil {
+		return nil, fmt.Errorf("reading outpatient triage list: %w", err)
+	}
+
+	return maps, nil
+}
+
+// fechaSQL convierte una fecha YYYY-MM-DD al formato compacto yyyyMMdd,
+// que SQL Server interpreta de forma inequívoca como datetime sin depender
+// del lenguaje de sesión ni de CONVERT, manteniendo el fragmento corto
+// para no exceder el tamaño del parámetro @Filtro (VARCHAR(250)).
+func fechaSQL(fecha string) string {
+	return strings.ReplaceAll(fecha, "-", "")
+}
+
+// CreateTriajeConsulta invoca el procedimiento almacenado
+// AtencionesTriajeAgregar, que registra un triaje nuevo de consulta
+// externa o actualiza el vigente de la atención (UltimoTriaje = 1). Los
+// signos vitales se envían como texto VARCHAR(10), tal como los declara
+// el SP. El parámetro @Resultado se declara con sql.Out para capturar el
+// mensaje que el SP devuelve (OK;IdTriaje;mensaje o Error;mensaje).
+func (r *triageRepository) CreateTriajeConsulta(ctx context.Context, triaje *domain.TriajeConsulta) (string, error) {
+	const procedure = `AtencionesTriajeAgregar`
+
+	var resultado string
+	var idTriaje int64
+
+	_, err := r.db.ExecContext(ctx, procedure,
+		sql.Named("Resultado", sql.Out{Dest: &resultado}),
+		sql.Named("IdAtencion", triaje.IdAtencion),
+		sql.Named("Idtriaje", sql.Out{Dest: &idTriaje}),
+		sql.Named("IdPaciente", triaje.IdPaciente),
+		sql.Named("IdEmpleado", triaje.IdEmpleado),
+		sql.Named("Talla", triaje.Talla),
+		sql.Named("Peso", triaje.Peso),
+		sql.Named("Temperatura", triaje.Temperatura),
+		sql.Named("Pulso", triaje.Pulso),
+		sql.Named("FrecRespiratoria", triaje.FrecRespiratoria),
+		sql.Named("FrecCardiaca", triaje.FrecCardiaca),
+		sql.Named("FrecCardiacaFetal", triaje.FrecCardiacaFetal),
+		sql.Named("PerimCefalico", triaje.PerimCefalico),
+		sql.Named("Origen", triaje.Origen),
+		sql.Named("PerimAbdominal", triaje.PerimAbdominal),
+		sql.Named("SAT02", triaje.SAT02),
+		sql.Named("FI02", triaje.FI02),
+		sql.Named("PresionArterial", triaje.PresionArterial),
+		sql.Named("Hemoglobina", triaje.Hemoglobina),
+		sql.Named("Observacion", triaje.Observacion),
+		sql.Named("IMC", triaje.IMC),
+		sql.Named("Gestante", triaje.Gestante),
+	)
+	if err != nil {
+		return "", fmt.Errorf("calling AtencionesTriajeAgregar: %w", err)
+	}
+
+	return resultado, nil
+}
+
+// GetTriajeConsultaPorAtencion consulta directamente la tabla
+// AtencionesTriaje para devolver el triaje de consulta externa vigente
+// (UltimoTriaje = 1) de la atención indicada. Devuelve nil si no existe.
+func (r *triageRepository) GetTriajeConsultaPorAtencion(ctx context.Context, idAtencion int64) (*map[string]any, error) {
+	const query = `SELECT * FROM dbo.AtencionesTriaje WHERE IdAtencion = @p1 AND UltimoTriaje = 1`
+
+	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idAtencion))
+	if err != nil {
+		return nil, fmt.Errorf("querying outpatient triage by attention: %w", err)
+	}
+	defer rows.Close()
+
+	maps, err := rowsToMaps(rows)
+	if err != nil {
+		return nil, fmt.Errorf("reading outpatient triage by attention: %w", err)
+	}
+	if len(maps) == 0 {
+		return nil, nil
+	}
+
+	m := maps[0]
+	return &m, nil
+}
+
+// UpdateEstadoTriajeConsulta invoca el procedimiento almacenado
+// AtencionesTriajeEstado para actualizar el estado del triaje de consulta
+// externa.
+func (r *triageRepository) UpdateEstadoTriajeConsulta(ctx context.Context, params shared.TriajeConsultaEstadoParams) error {
+	const procedure = `AtencionesTriajeEstado`
+
+	_, err := r.db.ExecContext(ctx, procedure,
+		sql.Named("IdTriaje", params.IdTriaje),
+		sql.Named("Estado", params.Estado),
+	)
+	if err != nil {
+		return fmt.Errorf("calling AtencionesTriajeEstado: %w", err)
+	}
+
+	return nil
 }

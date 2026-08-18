@@ -38,4 +38,21 @@ type TriageService interface {
 	// ListarMedicosPorEspecialidad lista los médicos de una especialidad
 	// invocando el SP usp_go_MedicosFiltrarPorIdEspecialidad.
 	ListarMedicosPorEspecialidad(ctx context.Context, idEspecialidad int) ([]domain.MedicoFila, error)
+
+	// ListTriajeConsulta lista la bandeja de triaje de consulta externa
+	// invocando el SP AtencionesTriajeFiltro.
+	ListTriajeConsulta(ctx context.Context, params shared.TriajeConsultaParams) ([]map[string]any, error)
+
+	// CreateTriajeConsulta registra o actualiza el triaje de consulta
+	// externa invocando el SP AtencionesTriajeAgregar. Retorna el
+	// @Resultado informado por el SP.
+	CreateTriajeConsulta(ctx context.Context, triaje *domain.TriajeConsulta) (string, error)
+
+	// GetTriajeConsultaPorAtencion devuelve el triaje de consulta externa
+	// vigente (UltimoTriaje = 1) de una atención, o nil si no existe.
+	GetTriajeConsultaPorAtencion(ctx context.Context, idAtencion int64) (*map[string]any, error)
+
+	// UpdateEstadoTriajeConsulta actualiza el estado de un triaje de
+	// consulta externa invocando el SP AtencionesTriajeEstado.
+	UpdateEstadoTriajeConsulta(ctx context.Context, params shared.TriajeConsultaEstadoParams) error
 }

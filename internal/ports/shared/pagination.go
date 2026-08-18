@@ -102,3 +102,22 @@ type TriageReporteParams struct {
 type FichaAdmisionParams struct {
 	IdCuentaAtencion int64
 }
+
+// TriajeConsultaParams agrupa los filtros de la bandeja de triaje de
+// consulta externa (SP AtencionesTriajeFiltro). El filtro se construye
+// como fragmento WHERE validado en el repositorio; el texto de búsqueda
+// se escapa para evitar inyección SQL.
+type TriajeConsultaParams struct {
+	FechaInicio string
+	FechaFin    string
+	Filtro      string
+	IdServicio  int
+}
+
+// TriajeConsultaEstadoParams agrupa los parámetros del SP
+// AtencionesTriajeEstado, que actualiza el estado de un triaje de
+// consulta externa.
+type TriajeConsultaEstadoParams struct {
+	IdTriaje int64
+	Estado   string
+}

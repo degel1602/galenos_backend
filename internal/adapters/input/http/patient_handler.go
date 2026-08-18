@@ -32,7 +32,7 @@ func NewPatientHandler(service input.PatientService) *PatientHandler {
 // @Produce json
 // @Param page query int false "Número de página (default 1)"
 // @Param pageSize query int false "Tamaño de página (default 20, máximo 100)"
-// @Success 200 {object} apiResponse{data=pageResponsePatients}
+// @Success 200 {object} apiResponse{data=[]patientResponse}
 // @Failure 500 {object} apiResponse{error=apiError} "Error interno"
 // @Router /pacientes [get]
 func (h *PatientHandler) List(c *gin.Context) {

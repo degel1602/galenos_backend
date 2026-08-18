@@ -17,11 +17,6 @@ const docTemplate = `{
     "paths": {
         "/api/v1/evoluciones": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Saves a new medical evolution",
                 "consumes": [
                     "application/json"
@@ -44,16 +39,16 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/evoluciones/paciente/{pacienteId}": {
-            "get": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/evoluciones/paciente/{pacienteId}": {
+            "get": {
                 "description": "Returns the saved medical evolutions for a given registration ID",
                 "consumes": [
                     "application/json"
@@ -74,17 +69,17 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/evoluciones/pacientes": {
-            "get": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
-                "description": "Returns a list of patients currently active",
+                ]
+            }
+        },
+        "/api/v1/evoluciones/pacientes": {
+            "get": {
+                "description": "Returns a list of patients with an attention within the date range (Atenciones.FechaIngreso). If fini/ffin are omitted, returns the most recent 50.",
                 "consumes": [
                     "application/json"
                 ],
@@ -95,16 +90,30 @@ const docTemplate = `{
                     "Evoluciones"
                 ],
                 "summary": "List patients for the medical evolution tray",
-                "responses": {}
-            }
-        },
-        "/api/v1/evoluciones/{idRegAtencion}/motivos": {
-            "get": {
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fecha inicial (YYYY-MM-DD)",
+                        "name": "fini",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha final (YYYY-MM-DD)",
+                        "name": "ffin",
+                        "in": "query"
+                    }
+                ],
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/evoluciones/{idRegAtencion}/motivos": {
+            "get": {
                 "description": "Returns the saved reasons for attention for a given registration ID",
                 "consumes": [
                     "application/json"
@@ -125,14 +134,14 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
-            },
-            "post": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "post": {
                 "description": "Saves a new reason for attention in a patient's evolution",
                 "consumes": [
                     "application/json"
@@ -162,16 +171,55 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/interconsultas": {
-            "post": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
+                ]
+            }
+        },
+        "/api/v1/evoluciones/{idRegAtencion}/sintomas": {
+            "post": {
+                "description": "Reemplaza los síntomas seleccionados de la evolución (sp_go_InsertarEvolucionSintomas)",
+                "consumes": [
+                    "application/json"
                 ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "Guardar síntomas seleccionados de la evolución",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the Registration / Encounter",
+                        "name": "idRegAtencion",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Síntomas seleccionados",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.GuardarSintomasRequest"
+                        }
+                    }
+                ],
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/interconsultas": {
+            "post": {
                 "description": "Creates a new interconsulta request",
                 "consumes": [
                     "application/json"
@@ -194,16 +242,97 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/interconsultas/servicio/{tipoServicio}": {
-            "get": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
+                ]
+            }
+        },
+        "/api/v1/interconsultas/atencion/{idAtencion}": {
+            "get": {
+                "description": "Returns the interconsultas associated with a specific attention/encounter",
+                "consumes": [
+                    "application/json"
                 ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "List interconsultas by attention ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la Atención",
+                        "name": "idAtencion",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/interconsultas/especialidades": {
+            "get": {
+                "description": "Returns the specialties available for interconsulta requests",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "List interconsulta specialties",
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/interconsultas/medicos/{idEspecialidad}": {
+            "get": {
+                "description": "Returns the doctors available for a given interconsulta specialty",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interconsultas"
+                ],
+                "summary": "List doctors by specialty",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la Especialidad",
+                        "name": "idEspecialidad",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/interconsultas/servicio/{tipoServicio}": {
+            "get": {
                 "description": "Returns the interconsultas for a given service type",
                 "consumes": [
                     "application/json"
@@ -224,16 +353,16 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/interconsultas/{id}": {
-            "get": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/interconsultas/{id}": {
+            "get": {
                 "description": "Returns the interconsulta details for a given ID",
                 "consumes": [
                     "application/json"
@@ -254,16 +383,16 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/interconsultas/{id}/estado": {
-            "put": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/interconsultas/{id}/estado": {
+            "put": {
                 "description": "Updates the state of an existing interconsulta",
                 "consumes": [
                     "application/json"
@@ -293,16 +422,16 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/interconsultas/{id}/firma": {
-            "post": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/interconsultas/{id}/firma": {
+            "post": {
                 "description": "Saves the signature for an interconsulta",
                 "consumes": [
                     "application/json"
@@ -332,16 +461,16 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/ordenes": {
-            "post": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/ordenes": {
+            "post": {
                 "description": "Creates a new medical order in a patient's evolution",
                 "consumes": [
                     "application/json"
@@ -364,16 +493,16 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/ordenes/cuenta/{idCuentaAtencion}": {
-            "get": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/ordenes/cuenta/{idRegAtencion}": {
+            "get": {
                 "description": "Returns the medical orders for a given account ID",
                 "consumes": [
                     "application/json"
@@ -388,22 +517,57 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ID de la Cuenta de Atencion",
-                        "name": "idCuentaAtencion",
+                        "description": "ID de la Atencion",
+                        "name": "idRegAtencion",
                         "in": "path",
                         "required": true
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/resultados/imagenes/paciente/{idPaciente}": {
-            "get": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
+                ]
+            }
+        },
+        "/api/v1/ordenes/productos": {
+            "get": {
+                "description": "Busca productos/medicamentos en el catálogo de bienes e insumos con su precio de venta vigente",
+                "consumes": [
+                    "application/json"
                 ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ordenes"
+                ],
+                "summary": "Buscar productos del catálogo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filtro por nombre, código o nombre comercial",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Máximo de resultados (default 50)",
+                        "name": "limite",
+                        "in": "query"
+                    }
+                ],
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/resultados/imagenes/paciente/{idPaciente}": {
+            "get": {
                 "description": "Returns imaging results history for a given patient ID",
                 "consumes": [
                     "application/json"
@@ -424,16 +588,16 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/resultados/laboratorio/paciente/{idPaciente}": {
-            "get": {
+                "responses": {},
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/v1/resultados/laboratorio/paciente/{idPaciente}": {
+            "get": {
                 "description": "Returns laboratory results history for a given patient ID",
                 "consumes": [
                     "application/json"
@@ -454,7 +618,63 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/sintomas/catalogo": {
+            "get": {
+                "description": "Devuelve el catálogo de síntomas agrupado por sistema (Tab_Sintomas_Catalogo)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "Listar catálogo de síntomas",
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "description": "Inserta un síntoma nuevo en el catálogo si no existe",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Evoluciones"
+                ],
+                "summary": "Agregar síntoma al catálogo",
+                "parameters": [
+                    {
+                        "description": "Síntoma a agregar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.AgregarSintomaRequest"
+                        }
+                    }
+                ],
+                "responses": {},
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
             }
         },
         "/appointments": {
@@ -1321,7 +1541,10 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/httpadapter.pageResponsePatients"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/httpadapter.patientResponse"
+                                            }
                                         }
                                     }
                                 }
@@ -1330,6 +1553,86 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Error interno",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Persiste el paciente invocando el SP WebPacienteAgregar_E_H y devuelve el detalle del paciente creado.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pacientes"
+                ],
+                "summary": "Registra un paciente nuevo",
+                "parameters": [
+                    {
+                        "description": "Datos del paciente a registrar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.createPatientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Paciente creado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/httpadapter.patientDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al registrar el paciente",
                         "schema": {
                             "allOf": [
                                 {
@@ -1682,6 +1985,87 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "Verifica con PacientesSePuedeEliminar que el paciente no tenga registros asociados y lo elimina (SP PacientesEliminarPorIdPaciente).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pacientes"
+                ],
+                "summary": "Elimina un paciente",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id del paciente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paciente eliminado",
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.apiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Id inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Paciente no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "409": {
+                        "description": "Paciente con registros asociados, no se puede eliminar",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
             }
         },
         "/paises": {
@@ -1980,119 +2364,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/sis/afiliado/{nrodoc}": {
-            "get": {
-                "description": "Invoca el servicio SOAP externo del SIS (GetSession + ConsultarAfiliadoFuaE) para traer los datos del afiliado.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SIS"
-                ],
-                "summary": "Consulta el paciente afiliado en el SIS",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Número de documento del afiliado",
-                        "name": "nrodoc",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Tipo de documento: 1 = DNI (default), 3 = Carnet de Extranjería",
-                        "name": "strTipoDocumento",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "intOpcion del WS (tipo de consulta contratado; default 1)",
-                        "name": "intOpcion",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "strDisa del WS",
-                        "name": "strDisa",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "strTipoFormato del WS",
-                        "name": "strTipoFormato",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "strNroContrato del WS",
-                        "name": "strNroContrato",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "strCorrelativo del WS",
-                        "name": "strCorrelativo",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/httpadapter.apiResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.SisAfiliado"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Parámetros inválidos",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/httpadapter.apiResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "$ref": "#/definitions/httpadapter.apiError"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "502": {
-                        "description": "Error al consultar el SIS",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/httpadapter.apiResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "$ref": "#/definitions/httpadapter.apiError"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/sis/consumo": {
             "get": {
                 "description": "Invoca el SP webFactOrdenServicioDetaDesFinaListarIdcuenta con el id de la cuenta de atención.",
@@ -2175,19 +2446,22 @@ const docTemplate = `{
         },
         "/sis/diagnosticos": {
             "get": {
-                "description": "Invoca el SP webAtencionesDiagnosticosIdAtencion con el id de la atención.",
+                "description": "Invoca el SP webAtencionesDiagnosticosIdCuentaAtencion con el id de la cuenta de atención. Devuelve los diagnósticos.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "SIS"
                 ],
-                "summary": "Lista los diagnósticos de una atención",
+                "summary": "Consulta los diagnósticos de una atención",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Id de la atención",
-                        "name": "idAtencion",
+                        "description": "Id de la cuenta de atención",
+                        "name": "idCuentaAtencion",
                         "in": "query",
                         "required": true
                     }
@@ -2215,7 +2489,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Parámetro inválido",
+                        "description": "Error de validación",
                         "schema": {
                             "allOf": [
                                 {
@@ -2233,89 +2507,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Error al listar los diagnósticos",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/httpadapter.apiResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "$ref": "#/definitions/httpadapter.apiError"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/sis/filiaciones": {
-            "post": {
-                "description": "Persiste la afiliación SIS del paciente invocando el SP webSisFiliacionesGestionar.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SIS"
-                ],
-                "summary": "Guarda la afiliación SIS de un paciente asegurado",
-                "parameters": [
-                    {
-                        "description": "Datos de la afiliación SIS a guardar",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/httpadapter.sisAfiliacionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Afiliación guardada",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/httpadapter.apiResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Cuerpo inválido",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/httpadapter.apiResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "$ref": "#/definitions/httpadapter.apiError"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Error al guardar la afiliación",
+                        "description": "Error al consultar los diagnósticos",
                         "schema": {
                             "allOf": [
                                 {
@@ -3109,6 +3301,351 @@ const docTemplate = `{
                 }
             }
         },
+        "/triaje/consulta": {
+            "get": {
+                "description": "Devuelve las atenciones de consulta externa con indicador de si tienen triaje (SP AtencionesTriajeFiltro).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Lista la bandeja de triaje de consulta externa",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fecha inicial (YYYY-MM-DD)",
+                        "name": "fini",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha final (YYYY-MM-DD)",
+                        "name": "ffin",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Texto de búsqueda (documento o nombre)",
+                        "name": "filtro",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Id del consultorio/servicio (0 = todos)",
+                        "name": "idServicio",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar la bandeja",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Persiste el triaje de la atención invocando el SP AtencionesTriajeAgregar (inserta si no existe o actualiza el vigente). Devuelve el @Resultado informado por el procedimiento.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Registra o actualiza el triaje de consulta externa",
+                "parameters": [
+                    {
+                        "description": "Datos del triaje de consulta externa",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.createTriajeConsultaRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado informado por el SP",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al registrar el triaje",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje/consulta/atencion/{idAtencion}": {
+            "get": {
+                "description": "Devuelve el triaje vigente (UltimoTriaje = 1) de la atención indicada, o null si no existe.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Obtiene el triaje de consulta externa de una atención",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la atención",
+                        "name": "idAtencion",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al obtener el triaje",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje/consulta/{id}/estado": {
+            "put": {
+                "description": "Actualiza el estado del triaje invocando el SP AtencionesTriajeEstado.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Actualiza el estado de un triaje de consulta externa",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id del triaje",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Nuevo estado",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.triajeConsultaEstadoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Cuerpo inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al actualizar el estado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/triaje/ficha-admision": {
             "get": {
                 "description": "Devuelve los datos del paciente y datos adicionales para generar la ficha de admisión (SP webFichaEmergencia).",
@@ -3167,6 +3704,86 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Error al obtener la ficha",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/triaje/medicos/{idEspecialidad}": {
+            "get": {
+                "description": "Devuelve los médicos de la especialidad indicada (SP usp_go_MedicosFiltrarPorIdEspecialidad).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Triaje"
+                ],
+                "summary": "Lista los médicos de una especialidad",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Id de la especialidad",
+                        "name": "idEspecialidad",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.MedicoFila"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Error al listar los médicos",
                         "schema": {
                             "allOf": [
                                 {
@@ -3495,17 +4112,23 @@ const docTemplate = `{
                 "cantidad": {
                     "type": "integer"
                 },
-                "idDetalleOrden": {
-                    "type": "integer"
-                },
-                "idOrden": {
-                    "type": "integer"
-                },
-                "idServicio": {
-                    "type": "integer"
-                },
-                "nombreServicio": {
+                "codigo": {
                     "type": "string"
+                },
+                "idProducto": {
+                    "type": "integer"
+                },
+                "indicaciones": {
+                    "type": "string"
+                },
+                "nombreProducto": {
+                    "type": "string"
+                },
+                "precio": {
+                    "type": "number"
+                },
+                "total": {
+                    "type": "number"
                 }
             }
         },
@@ -3580,6 +4203,38 @@ const docTemplate = `{
                     "format": "int64"
                 },
                 "lengua": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.MedicoFila": {
+            "type": "object",
+            "properties": {
+                "apellidoMaterno": {
+                    "type": "string"
+                },
+                "apellidoPaterno": {
+                    "type": "string"
+                },
+                "codigoPlanilla": {
+                    "type": "string"
+                },
+                "colegiatura": {
+                    "type": "string"
+                },
+                "especialidad": {
+                    "type": "string"
+                },
+                "idMedico": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                },
+                "nombreCompleto": {
+                    "type": "string"
+                },
+                "rne": {
                     "type": "string"
                 }
             }
@@ -3878,13 +4533,43 @@ const docTemplate = `{
                 "apellidoPaterno": {
                     "type": "string"
                 },
+                "departamento": {
+                    "type": "string"
+                },
+                "departamentoNacimiento": {
+                    "type": "string"
+                },
+                "direccion": {
+                    "type": "string"
+                },
+                "distrito": {
+                    "type": "string"
+                },
+                "distritoNacimiento": {
+                    "type": "string"
+                },
+                "estadoCivil": {
+                    "type": "string"
+                },
                 "fechaNacimiento": {
+                    "type": "string"
+                },
+                "nombreMadre": {
+                    "type": "string"
+                },
+                "nombrePadre": {
                     "type": "string"
                 },
                 "nombres": {
                     "type": "string"
                 },
                 "primerNombre": {
+                    "type": "string"
+                },
+                "provincia": {
+                    "type": "string"
+                },
+                "provinciaNacimiento": {
                     "type": "string"
                 },
                 "segundoNombre": {
@@ -3894,6 +4579,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tercerNombre": {
+                    "type": "string"
+                },
+                "ubigeo": {
                     "type": "string"
                 }
             }
@@ -3930,100 +4618,16 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SisAfiliado": {
+        "domain.SintomaSeleccionado": {
             "type": "object",
             "properties": {
-                "apeMaterno": {
+                "idSintoma": {
+                    "type": "integer"
+                },
+                "sintoma": {
                     "type": "string"
                 },
-                "apePaterno": {
-                    "type": "string"
-                },
-                "contrato": {
-                    "type": "string"
-                },
-                "correlativo": {
-                    "type": "string"
-                },
-                "descEESS": {
-                    "type": "string"
-                },
-                "descEESSUbigeo": {
-                    "type": "string"
-                },
-                "descTipoSeguro": {
-                    "type": "string"
-                },
-                "direccion": {
-                    "type": "string"
-                },
-                "disa": {
-                    "type": "string"
-                },
-                "eess": {
-                    "type": "string"
-                },
-                "eessubigeo": {
-                    "type": "string"
-                },
-                "estado": {
-                    "type": "string"
-                },
-                "fecAfiliacion": {
-                    "type": "string"
-                },
-                "fecCaducidad": {
-                    "type": "string"
-                },
-                "fecNacimiento": {
-                    "type": "string"
-                },
-                "genero": {
-                    "type": "string"
-                },
-                "idError": {
-                    "type": "string"
-                },
-                "idGrupoPoblacional": {
-                    "type": "string"
-                },
-                "idNumReg": {
-                    "type": "string"
-                },
-                "idPlan": {
-                    "type": "string"
-                },
-                "idUbigeo": {
-                    "type": "string"
-                },
-                "msgConfidencial": {
-                    "type": "string"
-                },
-                "nombres": {
-                    "type": "string"
-                },
-                "nroContrato": {
-                    "type": "string"
-                },
-                "nroDocumento": {
-                    "type": "string"
-                },
-                "regimen": {
-                    "type": "string"
-                },
-                "resultado": {
-                    "type": "string"
-                },
-                "tabla": {
-                    "type": "string"
-                },
-                "tipoDocumento": {
-                    "type": "string"
-                },
-                "tipoFormato": {
-                    "type": "string"
-                },
-                "tipoSeguro": {
+                "sistema": {
                     "type": "string"
                 }
             }
@@ -4099,6 +4703,21 @@ const docTemplate = `{
                 }
             }
         },
+        "httpadapter.AgregarSintomaRequest": {
+            "type": "object",
+            "required": [
+                "sintoma",
+                "sistema"
+            ],
+            "properties": {
+                "sintoma": {
+                    "type": "string"
+                },
+                "sistema": {
+                    "type": "string"
+                }
+            }
+        },
         "httpadapter.CreateInterconsultaRequest": {
             "type": "object",
             "required": [
@@ -4126,7 +4745,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "detalles",
-                "idMedico",
                 "idRegAtencion"
             ],
             "properties": {
@@ -4136,14 +4754,25 @@ const docTemplate = `{
                         "$ref": "#/definitions/domain.DetalleOrden"
                     }
                 },
-                "idMedico": {
-                    "type": "integer"
-                },
                 "idRegAtencion": {
                     "type": "integer"
                 },
                 "observacion": {
                     "type": "string"
+                }
+            }
+        },
+        "httpadapter.GuardarSintomasRequest": {
+            "type": "object",
+            "required": [
+                "sintomas"
+            ],
+            "properties": {
+                "sintomas": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.SintomaSeleccionado"
+                    }
                 }
             }
         },
@@ -4228,7 +4857,7 @@ const docTemplate = `{
                 "direccionPaciente": {
                     "type": "string"
                 },
-                "idEmpleado": {
+                "idMedico": {
                     "type": "integer"
                 },
                 "idPacienteTriaje": {
@@ -4272,6 +4901,138 @@ const docTemplate = `{
                     "maxLength": 500
                 },
                 "startsAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpadapter.createPatientRequest": {
+            "type": "object",
+            "properties": {
+                "apellidoMaterno": {
+                    "type": "string"
+                },
+                "apellidoPaterno": {
+                    "type": "string"
+                },
+                "direccionDomicilio": {
+                    "type": "string"
+                },
+                "fechaNacimiento": {
+                    "type": "string"
+                },
+                "idDistritoDomicilio": {
+                    "type": "integer"
+                },
+                "idDistritoNacimiento": {
+                    "type": "integer"
+                },
+                "idDocIdentidad": {
+                    "type": "integer"
+                },
+                "idEstado": {
+                    "type": "integer"
+                },
+                "idEstadoCivil": {
+                    "type": "integer"
+                },
+                "idGradoInstruccion": {
+                    "type": "integer"
+                },
+                "idProcedencia": {
+                    "type": "integer"
+                },
+                "idTipoOcupacion": {
+                    "type": "integer"
+                },
+                "idTipoSeguro": {
+                    "type": "integer"
+                },
+                "idTipoSexo": {
+                    "type": "integer"
+                },
+                "nroDocumento": {
+                    "type": "string"
+                },
+                "nroHistoriaClinica": {
+                    "type": "string"
+                },
+                "primerNombre": {
+                    "type": "string"
+                },
+                "segundoNombre": {
+                    "type": "string"
+                },
+                "telefono": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpadapter.createTriajeConsultaRequest": {
+            "type": "object",
+            "required": [
+                "idAtencion",
+                "idEmpleado",
+                "idPaciente"
+            ],
+            "properties": {
+                "fi02": {
+                    "type": "string"
+                },
+                "frecCardiaca": {
+                    "type": "string"
+                },
+                "frecCardiacaFetal": {
+                    "type": "string"
+                },
+                "frecRespiratoria": {
+                    "type": "string"
+                },
+                "gestante": {
+                    "type": "string"
+                },
+                "hemoglobina": {
+                    "type": "string"
+                },
+                "idAtencion": {
+                    "type": "integer"
+                },
+                "idEmpleado": {
+                    "type": "integer"
+                },
+                "idPaciente": {
+                    "type": "integer"
+                },
+                "imc": {
+                    "type": "string"
+                },
+                "observacion": {
+                    "type": "string"
+                },
+                "origen": {
+                    "type": "string"
+                },
+                "perimAbdominal": {
+                    "type": "string"
+                },
+                "perimCefalico": {
+                    "type": "string"
+                },
+                "peso": {
+                    "type": "string"
+                },
+                "presionArterial": {
+                    "type": "string"
+                },
+                "pulso": {
+                    "type": "string"
+                },
+                "sat02": {
+                    "type": "string"
+                },
+                "talla": {
+                    "type": "string"
+                },
+                "temperatura": {
                     "type": "string"
                 }
             }
@@ -4401,26 +5162,182 @@ const docTemplate = `{
                 }
             }
         },
-        "httpadapter.pageResponsePatients": {
+        "httpadapter.patientDetailResponse": {
             "type": "object",
             "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/httpadapter.patientResponse"
-                    }
+                "autoGenerated": {
+                    "type": "string"
                 },
-                "page": {
+                "birthCenterId": {
                     "type": "integer"
                 },
-                "pageSize": {
+                "birthCountryId": {
                     "type": "integer"
                 },
-                "totalItems": {
+                "birthDistrictId": {
                     "type": "integer"
                 },
-                "totalPages": {
+                "birthRecordNumber": {
+                    "type": "string"
+                },
+                "bloodType": {
+                    "type": "string"
+                },
+                "cellphone": {
+                    "type": "string"
+                },
+                "childOrderNumber": {
                     "type": "integer"
+                },
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "disabilityId": {
+                    "type": "integer"
+                },
+                "docIdentityId": {
+                    "type": "integer"
+                },
+                "documentNumber": {
+                    "type": "string"
+                },
+                "ecoGenCaseNumber": {
+                    "type": "string"
+                },
+                "ecogObsCaseNumber": {
+                    "type": "string"
+                },
+                "educationDegreeId": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "ethnicityId": {
+                    "type": "string"
+                },
+                "familyRecord": {
+                    "type": "string"
+                },
+                "fatherName": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "historyNumber": {
+                    "type": "string"
+                },
+                "homeAddress": {
+                    "type": "string"
+                },
+                "homeCenterId": {
+                    "type": "integer"
+                },
+                "homeCountryId": {
+                    "type": "integer"
+                },
+                "homeDistrictId": {
+                    "type": "integer"
+                },
+                "incapacityId": {
+                    "type": "integer"
+                },
+                "insuranceTypeId": {
+                    "type": "integer"
+                },
+                "languageId": {
+                    "type": "integer"
+                },
+                "maritalStatusId": {
+                    "type": "integer"
+                },
+                "maternalSurname": {
+                    "type": "string"
+                },
+                "motherDocType": {
+                    "type": "string"
+                },
+                "motherDocument": {
+                    "type": "string"
+                },
+                "motherFirstName": {
+                    "type": "string"
+                },
+                "motherMaternalSurname": {
+                    "type": "string"
+                },
+                "motherName": {
+                    "type": "string"
+                },
+                "motherPaternalSurname": {
+                    "type": "string"
+                },
+                "motherSecondName": {
+                    "type": "string"
+                },
+                "numberingTypeId": {
+                    "type": "integer"
+                },
+                "observation": {
+                    "type": "string"
+                },
+                "occupationTypeId": {
+                    "type": "integer"
+                },
+                "originCenterId": {
+                    "type": "integer"
+                },
+                "originCountryId": {
+                    "type": "integer"
+                },
+                "originDistrictId": {
+                    "type": "integer"
+                },
+                "originId": {
+                    "type": "integer"
+                },
+                "paternalSurname": {
+                    "type": "string"
+                },
+                "patientId": {
+                    "type": "integer"
+                },
+                "patientPhoto": {
+                    "type": "string"
+                },
+                "patientSignature": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "rhFactor": {
+                    "type": "string"
+                },
+                "secondName": {
+                    "type": "string"
+                },
+                "sector": {
+                    "type": "string"
+                },
+                "sectorist": {
+                    "type": "string"
+                },
+                "sexTypeId": {
+                    "type": "integer"
+                },
+                "stateId": {
+                    "type": "integer"
+                },
+                "thirdName": {
+                    "type": "string"
+                },
+                "usesWebReniec": {
+                    "type": "boolean"
+                },
+                "xRayCaseNumber": {
+                    "type": "string"
                 }
             }
         },
@@ -4477,104 +5394,6 @@ const docTemplate = `{
                 }
             }
         },
-        "httpadapter.sisAfiliacionRequest": {
-            "type": "object",
-            "properties": {
-                "afiliacionDisa": {
-                    "type": "string"
-                },
-                "afiliacionFecha": {
-                    "type": "string"
-                },
-                "afiliacionNroFormato": {
-                    "type": "string"
-                },
-                "afiliacionNroIntegrante": {
-                    "type": "string"
-                },
-                "afiliacionTipoFormato": {
-                    "type": "string"
-                },
-                "codigo": {
-                    "type": "string"
-                },
-                "codigoEstablAdscripcion": {
-                    "type": "string"
-                },
-                "contrato": {
-                    "type": "string"
-                },
-                "descEESS": {
-                    "type": "string"
-                },
-                "descEessUbigeo": {
-                    "type": "string"
-                },
-                "descTipoSeguro": {
-                    "type": "string"
-                },
-                "documentoNumero": {
-                    "type": "string"
-                },
-                "documentoTipo": {
-                    "type": "string"
-                },
-                "estado": {
-                    "type": "string"
-                },
-                "fBaja": {
-                    "type": "string"
-                },
-                "fBajaOk": {
-                    "type": "string"
-                },
-                "fNacimiento": {
-                    "type": "string"
-                },
-                "genero": {
-                    "type": "string"
-                },
-                "idDistritoDomicilio": {
-                    "type": "string"
-                },
-                "idGrupoPoblacional": {
-                    "type": "string"
-                },
-                "idPlan": {
-                    "type": "string"
-                },
-                "idSiasis": {
-                    "type": "integer"
-                },
-                "idUsuarioAuditoria": {
-                    "type": "integer"
-                },
-                "materno": {
-                    "type": "string"
-                },
-                "motivoBaja": {
-                    "type": "string"
-                },
-                "msgConfidencial": {
-                    "type": "string"
-                },
-                "oNombres": {
-                    "type": "string"
-                },
-                "pNombre": {
-                    "type": "string"
-                },
-                "paterno": {
-                    "type": "string"
-                },
-                "regimen": {
-                    "type": "string"
-                },
-                "tipoSeguro": {
-                    "type": "string"
-                }
-            }
-        },
         "httpadapter.sisFuaAgregarRequest": {
             "type": "object",
             "required": [
@@ -4601,6 +5420,17 @@ const docTemplate = `{
             "properties": {
                 "idCuentaAtencion": {
                     "type": "integer"
+                }
+            }
+        },
+        "httpadapter.triajeConsultaEstadoRequest": {
+            "type": "object",
+            "required": [
+                "estado"
+            ],
+            "properties": {
+                "estado": {
+                    "type": "string"
                 }
             }
         },

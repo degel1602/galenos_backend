@@ -52,7 +52,7 @@ func (r *sqlServerEvolucionRepository) ListPatients(ctx context.Context, fini, f
 
 func mapToPatientListItem(m map[string]any) domain.PatientListItem {
 	var p domain.PatientListItem
-	
+
 	// El SP usp_go_ListarPacientesSegunTipoServicio retorna: IdEpisodio,
 	// IdAtencion, IdCuentaAtencion, Paciente, NroHistoriaClinica, Servicio,
 	// Sexo y cama.
@@ -65,7 +65,7 @@ func mapToPatientListItem(m map[string]any) domain.PatientListItem {
 	p.Ubicacion = getStringFallback(m, "ubicacion", "Servicio", "Emergencia")
 	p.Cama = getStringFallback(m, "cama", "", "NS")
 	p.Estado = getStringFallback(m, "estado", "", "Pendiente")
-	
+
 	return p
 }
 
@@ -112,7 +112,6 @@ func getSexoFallback(m map[string]any) string {
 	}
 	return "0"
 }
-
 
 func (r *sqlServerEvolucionRepository) ListEvoluciones(ctx context.Context, idRegAtencion int) ([]domain.EvolucionFirma, error) {
 	query := `EXEC [dbo].[webEvolucionesFirmaListarIdRegAtencion] @IdRegAtencion = @p1, @NombreDocumento = 'EvolucionMedica'`

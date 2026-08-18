@@ -56,8 +56,8 @@ func (uc *sisUseCase) GetFuaImprimir(ctx context.Context, idCuentaAtencion int64
 }
 
 // ListDiagnosticos delega la consulta de diagnósticos de la atención.
-func (uc *sisUseCase) ListDiagnosticos(ctx context.Context, idAtencion int64) ([]map[string]any, error) {
-	data, err := uc.repo.ListDiagnosticos(ctx, idAtencion)
+func (uc *sisUseCase) ListDiagnosticos(ctx context.Context, idCuentaAtencion int64) ([]map[string]any, error) {
+	data, err := uc.repo.ListDiagnosticos(ctx, idCuentaAtencion)
 	if err != nil {
 		return nil, fmt.Errorf("listing diagnostics: %w", err)
 	}

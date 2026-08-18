@@ -15,7 +15,6 @@ type createAppointmentRequest struct {
 	Reason    string    `json:"reason" binding:"required,max=500"`
 }
 
-
 // createPatientRequest es el cuerpo de POST /api/v1/pacientes. Replica los
 // parámetros del SP WebPacienteAgregar_E_H; los campos opcionales son
 // punteros para que el frontend envíe solo los que recopiló.
@@ -193,7 +192,7 @@ type sisFuaImprimirParams struct {
 
 // sisDiagnosticosParams son los parámetros de GET /api/v1/sis/diagnosticos.
 type sisDiagnosticosParams struct {
-	IdAtencion int64 `form:"idAtencion" binding:"required"`
+	IdCuentaAtencion int64 `form:"idCuentaAtencion" binding:"required"`
 }
 
 // sisCuentaAtencionParams agrupa los parámetros de los listados que usan el
@@ -307,7 +306,7 @@ func (r createTriajeRequest) toDomain() *domain.Triage {
 type createAdmissionFromTriageRequest struct {
 	IDTriaje            *int64  `json:"idTriaje" binding:"required"`
 	IDPacienteTriaje    *int64  `json:"idPacienteTriaje" binding:"required"`
-	IDEmpleado          *int64  `json:"idEmpleado"`
+	IDMedico            *int64  `json:"idMedico"`
 	NombreAcompanante   *string `json:"nombreAcompanante"`
 	TelefonoAcompanante *string `json:"telefonoAcompanante"`
 	DireccionPaciente   *string `json:"direccionPaciente"`
@@ -319,7 +318,7 @@ func (r createAdmissionFromTriageRequest) toDomain() *domain.AdmisionDesdeTriaje
 	return &domain.AdmisionDesdeTriaje{
 		IDTriaje:            r.IDTriaje,
 		IDPacienteTriaje:    r.IDPacienteTriaje,
-		IDEmpleado:          r.IDEmpleado,
+		IDMedico:            r.IDMedico,
 		NombreAcompanante:   r.NombreAcompanante,
 		TelefonoAcompanante: r.TelefonoAcompanante,
 		DireccionPaciente:   r.DireccionPaciente,
@@ -398,4 +397,63 @@ type DiagnosticoRequest struct {
 	Tipo        string `json:"tipo"`
 	Condicion   string `json:"condicion"`
 	Estado      string `json:"estado"`
+}
+
+// createTriajeConsultaRequest es el cuerpo de POST /api/v1/triaje/consulta.
+// Los signos vitales se envían como texto (el SP AtencionesTriajeAgregar
+// los declara VARCHAR(10)); los opcionales son punteros para enviar NULL
+// cuando el frontend no los recopiló.
+type createTriajeConsultaRequest struct {
+	IdAtencion        int64   `json:"idAtencion" binding:"required"`
+	IdPaciente        int64   `json:"idPaciente" binding:"required"`
+	IdEmpleado        int64   `json:"idEmpleado" binding:"required"`
+	Talla             *string `json:"talla"`
+	Peso              *string `json:"peso"`
+	Temperatura       *string `json:"temperatura"`
+	Pulso             *string `json:"pulso"`
+	FrecRespiratoria  *string `json:"frecRespiratoria"`
+	FrecCardiaca      *string `json:"frecCardiaca"`
+	FrecCardiacaFetal *string `json:"frecCardiacaFetal"`
+	PerimCefalico     *string `json:"perimCefalico"`
+	Origen            *string `json:"origen"`
+	PerimAbdominal    *string `json:"perimAbdominal"`
+	SAT02             *string `json:"sat02"`
+	FI02              *string `json:"fi02"`
+	PresionArterial   *string `json:"presionArterial"`
+	Hemoglobina       *string `json:"hemoglobina"`
+	Observacion       *string `json:"observacion"`
+	IMC               *string `json:"imc"`
+	Gestante          *string `json:"gestante"`
+}
+
+// toDomain mapea el request HTTP al objeto de dominio para el SP
+// AtencionesTriajeAgregar.
+func (r createTriajeConsultaRequest) toDomain() *domain.TriajeConsulta {
+	return &domain.TriajeConsulta{
+		IdAtencion:        r.IdAtencion,
+		IdPaciente:        r.IdPaciente,
+		IdEmpleado:        r.IdEmpleado,
+		Talla:             r.Talla,
+		Peso:              r.Peso,
+		Temperatura:       r.Temperatura,
+		Pulso:             r.Pulso,
+		FrecRespiratoria:  r.FrecRespiratoria,
+		FrecCardiaca:      r.FrecCardiaca,
+		FrecCardiacaFetal: r.FrecCardiacaFetal,
+		PerimCefalico:     r.PerimCefalico,
+		Origen:            r.Origen,
+		PerimAbdominal:    r.PerimAbdominal,
+		SAT02:             r.SAT02,
+		FI02:              r.FI02,
+		PresionArterial:   r.PresionArterial,
+		Hemoglobina:       r.Hemoglobina,
+		Observacion:       r.Observacion,
+		IMC:               r.IMC,
+		Gestante:          r.Gestante,
+	}
+}
+
+// triajeConsultaEstadoRequest es el cuerpo de PUT /api/v1/triaje/consulta/:id/estado.
+type triajeConsultaEstadoRequest struct {
+	Estado string `json:"estado" binding:"required"`
 }

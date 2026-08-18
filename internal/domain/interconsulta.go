@@ -17,14 +17,14 @@ type FirmaInterconsulta struct {
 }
 
 type EspecialidadInterconsulta struct {
-	IdEspecialidad  int     `json:"idEspecialidad"`
-	Nombre          *string `json:"nombre"`
+	IdEspecialidad   int     `json:"idEspecialidad"`
+	Nombre           *string `json:"nombre"`
 	DescripcionLarga *string `json:"descripcionLarga"`
 }
 
 type MedicoInterconsulta struct {
-	IdMedico      int     `json:"idMedico"`
-	IdEmpleado    int     `json:"idEmpleado"`
+	IdMedico       int     `json:"idMedico"`
+	IdEmpleado     int     `json:"idEmpleado"`
 	CodigoPlanilla *string `json:"codigoPlanilla"`
-	Medico        *string `json:"medico"`
+	Medico         *string `json:"medico"`
 }

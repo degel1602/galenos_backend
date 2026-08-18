@@ -1,5 +1,3 @@
-// Package usecase implementa los puertos de entrada orquestando el dominio
-// y los puertos de salida. Es la única capa que conoce ambos lados.
 package usecase
 
 import (

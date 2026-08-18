@@ -48,3 +48,31 @@ type Triage struct {
 	Photo                     *string
 	EmployeeID                *int64
 }
+
+// TriajeConsulta representa el registro de triaje de consulta externa que
+// se persiste invocando el procedimiento almacenado
+// AtencionesTriajeAgregar. Los signos vitales se envían como texto (el SP
+// los declara VARCHAR(10)) y los opcionales como punteros para distinguir
+// "no enviado" (NULL) de un valor vacío.
+type TriajeConsulta struct {
+	IdAtencion         int64
+	IdPaciente         int64
+	IdEmpleado         int64
+	Talla              *string
+	Peso               *string
+	Temperatura        *string
+	Pulso              *string
+	FrecRespiratoria   *string
+	FrecCardiaca       *string
+	FrecCardiacaFetal  *string
+	PerimCefalico      *string
+	Origen             *string
+	PerimAbdominal     *string
+	SAT02              *string
+	FI02               *string
+	PresionArterial    *string
+	Hemoglobina        *string
+	Observacion        *string
+	IMC                *string
+	Gestante           *string
+}

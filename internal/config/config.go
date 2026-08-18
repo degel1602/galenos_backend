@@ -111,27 +111,32 @@ func localIPv4() string {
 	return ""
 }
 
-// allowedOriginsWithServer agrega el origen propio de la API (IP
-// configurado y localhost) a la lista de orígenes permitidos, de modo que
-// Swagger y clientes que apuntan a la propia máquina no fallen por CORS.
+// allowedOriginsWithServer agrega a la lista de orígenes permitidos el
+// origen de la propia API (IP configurado y localhost) y, cuando el host es
+// una IP de red, el origen del frontend de desarrollo (http://<IP>:4200),
+// para que los usuarios de la red local no fallen por CORS.
 func allowedOriginsWithServer(csv, port, host string) []string {
 	origins := strings.Split(csv, ",")
-	for _, o := range origins {
-		o = strings.TrimSpace(o)
-		if o == "" {
-			continue
-		}
-		if o == "http://"+host+":"+port || o == "http://localhost:"+port {
-			return origins
-		}
+	for i, o := range origins {
+		origins[i] = strings.TrimSpace(o)
 	}
 
-	serverOrigin := "http://" + host + ":" + port
-	if !strings.Contains(csv, serverOrigin) {
-		origins = append(origins, serverOrigin)
+	appendIfMissing := func(origin string) {
+		if origin == "" {
+			return
+		}
+		for _, o := range origins {
+			if o == origin {
+				return
+			}
+		}
+		origins = append(origins, origin)
 	}
-	if host != "localhost" && !strings.Contains(csv, "http://localhost:"+port) {
-		origins = append(origins, "http://localhost:"+port)
+
+	appendIfMissing("http://" + host + ":" + port)
+	appendIfMissing("http://localhost:" + port)
+	if host != "localhost" {
+		appendIfMissing("http://" + host + ":4200")
 	}
 	return origins
 }

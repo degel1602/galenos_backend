@@ -72,14 +72,18 @@ definitions:
     properties:
       cantidad:
         type: integer
-      idDetalleOrden:
-        type: integer
-      idOrden:
-        type: integer
-      idServicio:
-        type: integer
-      nombreServicio:
+      codigo:
         type: string
+      idProducto:
+        type: integer
+      indicaciones:
+        type: string
+      nombreProducto:
+        type: string
+      precio:
+        type: number
+      total:
+        type: number
     type: object
   domain.Distrito:
     properties:
@@ -129,6 +133,27 @@ definitions:
         format: int64
         type: integer
       lengua:
+        type: string
+    type: object
+  domain.MedicoFila:
+    properties:
+      apellidoMaterno:
+        type: string
+      apellidoPaterno:
+        type: string
+      codigoPlanilla:
+        type: string
+      colegiatura:
+        type: string
+      especialidad:
+        type: string
+      idMedico:
+        type: integer
+      nombre:
+        type: string
+      nombreCompleto:
+        type: string
+      rne:
         type: string
     type: object
   domain.Pais:
@@ -336,17 +361,39 @@ definitions:
         type: string
       apellidoPaterno:
         type: string
+      departamento:
+        type: string
+      departamentoNacimiento:
+        type: string
+      direccion:
+        type: string
+      distrito:
+        type: string
+      distritoNacimiento:
+        type: string
+      estadoCivil:
+        type: string
       fechaNacimiento:
+        type: string
+      nombreMadre:
+        type: string
+      nombrePadre:
         type: string
       nombres:
         type: string
       primerNombre:
+        type: string
+      provincia:
+        type: string
+      provinciaNacimiento:
         type: string
       segundoNombre:
         type: string
       sexo:
         type: string
       tercerNombre:
+        type: string
+      ubigeo:
         type: string
     type: object
   domain.ReniecResult:
@@ -370,69 +417,13 @@ definitions:
       nombre:
         type: string
     type: object
-  domain.SisAfiliado:
+  domain.SintomaSeleccionado:
     properties:
-      apeMaterno:
+      idSintoma:
+        type: integer
+      sintoma:
         type: string
-      apePaterno:
-        type: string
-      contrato:
-        type: string
-      correlativo:
-        type: string
-      descEESS:
-        type: string
-      descEESSUbigeo:
-        type: string
-      descTipoSeguro:
-        type: string
-      direccion:
-        type: string
-      disa:
-        type: string
-      eess:
-        type: string
-      eessubigeo:
-        type: string
-      estado:
-        type: string
-      fecAfiliacion:
-        type: string
-      fecCaducidad:
-        type: string
-      fecNacimiento:
-        type: string
-      genero:
-        type: string
-      idError:
-        type: string
-      idGrupoPoblacional:
-        type: string
-      idNumReg:
-        type: string
-      idPlan:
-        type: string
-      idUbigeo:
-        type: string
-      msgConfidencial:
-        type: string
-      nombres:
-        type: string
-      nroContrato:
-        type: string
-      nroDocumento:
-        type: string
-      regimen:
-        type: string
-      resultado:
-        type: string
-      tabla:
-        type: string
-      tipoDocumento:
-        type: string
-      tipoFormato:
-        type: string
-      tipoSeguro:
+      sistema:
         type: string
     type: object
   domain.TimeSlot:
@@ -482,6 +473,16 @@ definitions:
         format: int64
         type: integer
     type: object
+  httpadapter.AgregarSintomaRequest:
+    properties:
+      sintoma:
+        type: string
+      sistema:
+        type: string
+    required:
+    - sintoma
+    - sistema
+    type: object
   httpadapter.CreateInterconsultaRequest:
     properties:
       idAtencionOrigen:
@@ -504,16 +505,22 @@ definitions:
         items:
           $ref: '#/definitions/domain.DetalleOrden'
         type: array
-      idMedico:
-        type: integer
       idRegAtencion:
         type: integer
       observacion:
         type: string
     required:
     - detalles
-    - idMedico
     - idRegAtencion
+    type: object
+  httpadapter.GuardarSintomasRequest:
+    properties:
+      sintomas:
+        items:
+          $ref: '#/definitions/domain.SintomaSeleccionado'
+        type: array
+    required:
+    - sintomas
     type: object
   httpadapter.SaveEvolucionRequest:
     properties:
@@ -565,7 +572,7 @@ definitions:
     properties:
       direccionPaciente:
         type: string
-      idEmpleado:
+      idMedico:
         type: integer
       idPacienteTriaje:
         type: integer
@@ -600,6 +607,94 @@ definitions:
     - patientId
     - reason
     - startsAt
+    type: object
+  httpadapter.createPatientRequest:
+    properties:
+      apellidoMaterno:
+        type: string
+      apellidoPaterno:
+        type: string
+      direccionDomicilio:
+        type: string
+      fechaNacimiento:
+        type: string
+      idDistritoDomicilio:
+        type: integer
+      idDistritoNacimiento:
+        type: integer
+      idDocIdentidad:
+        type: integer
+      idEstado:
+        type: integer
+      idEstadoCivil:
+        type: integer
+      idGradoInstruccion:
+        type: integer
+      idProcedencia:
+        type: integer
+      idTipoOcupacion:
+        type: integer
+      idTipoSeguro:
+        type: integer
+      idTipoSexo:
+        type: integer
+      nroDocumento:
+        type: string
+      nroHistoriaClinica:
+        type: string
+      primerNombre:
+        type: string
+      segundoNombre:
+        type: string
+      telefono:
+        type: string
+    type: object
+  httpadapter.createTriajeConsultaRequest:
+    properties:
+      fi02:
+        type: string
+      frecCardiaca:
+        type: string
+      frecCardiacaFetal:
+        type: string
+      frecRespiratoria:
+        type: string
+      gestante:
+        type: string
+      hemoglobina:
+        type: string
+      idAtencion:
+        type: integer
+      idEmpleado:
+        type: integer
+      idPaciente:
+        type: integer
+      imc:
+        type: string
+      observacion:
+        type: string
+      origen:
+        type: string
+      perimAbdominal:
+        type: string
+      perimCefalico:
+        type: string
+      peso:
+        type: string
+      presionArterial:
+        type: string
+      pulso:
+        type: string
+      sat02:
+        type: string
+      talla:
+        type: string
+      temperatura:
+        type: string
+    required:
+    - idAtencion
+    - idEmpleado
+    - idPaciente
     type: object
   httpadapter.createTriajeRequest:
     properties:
@@ -684,20 +779,124 @@ definitions:
       tiempoEvolucionCantidadUnidad:
         type: string
     type: object
-  httpadapter.pageResponsePatients:
+  httpadapter.patientDetailResponse:
     properties:
-      items:
-        items:
-          $ref: '#/definitions/httpadapter.patientResponse'
-        type: array
-      page:
+      autoGenerated:
+        type: string
+      birthCenterId:
         type: integer
-      pageSize:
+      birthCountryId:
         type: integer
-      totalItems:
+      birthDistrictId:
         type: integer
-      totalPages:
+      birthRecordNumber:
+        type: string
+      bloodType:
+        type: string
+      cellphone:
+        type: string
+      childOrderNumber:
         type: integer
+      dateOfBirth:
+        type: string
+      disabilityId:
+        type: integer
+      docIdentityId:
+        type: integer
+      documentNumber:
+        type: string
+      ecoGenCaseNumber:
+        type: string
+      ecogObsCaseNumber:
+        type: string
+      educationDegreeId:
+        type: integer
+      email:
+        type: string
+      ethnicityId:
+        type: string
+      familyRecord:
+        type: string
+      fatherName:
+        type: string
+      firstName:
+        type: string
+      historyNumber:
+        type: string
+      homeAddress:
+        type: string
+      homeCenterId:
+        type: integer
+      homeCountryId:
+        type: integer
+      homeDistrictId:
+        type: integer
+      incapacityId:
+        type: integer
+      insuranceTypeId:
+        type: integer
+      languageId:
+        type: integer
+      maritalStatusId:
+        type: integer
+      maternalSurname:
+        type: string
+      motherDocType:
+        type: string
+      motherDocument:
+        type: string
+      motherFirstName:
+        type: string
+      motherMaternalSurname:
+        type: string
+      motherName:
+        type: string
+      motherPaternalSurname:
+        type: string
+      motherSecondName:
+        type: string
+      numberingTypeId:
+        type: integer
+      observation:
+        type: string
+      occupationTypeId:
+        type: integer
+      originCenterId:
+        type: integer
+      originCountryId:
+        type: integer
+      originDistrictId:
+        type: integer
+      originId:
+        type: integer
+      paternalSurname:
+        type: string
+      patientId:
+        type: integer
+      patientPhoto:
+        type: string
+      patientSignature:
+        type: string
+      phone:
+        type: string
+      rhFactor:
+        type: string
+      secondName:
+        type: string
+      sector:
+        type: string
+      sectorist:
+        type: string
+      sexTypeId:
+        type: integer
+      stateId:
+        type: integer
+      thirdName:
+        type: string
+      usesWebReniec:
+        type: boolean
+      xRayCaseNumber:
+        type: string
     type: object
   httpadapter.patientResponse:
     properties:
@@ -734,71 +933,6 @@ definitions:
       thirdName:
         type: string
     type: object
-  httpadapter.sisAfiliacionRequest:
-    properties:
-      afiliacionDisa:
-        type: string
-      afiliacionFecha:
-        type: string
-      afiliacionNroFormato:
-        type: string
-      afiliacionNroIntegrante:
-        type: string
-      afiliacionTipoFormato:
-        type: string
-      codigo:
-        type: string
-      codigoEstablAdscripcion:
-        type: string
-      contrato:
-        type: string
-      descEESS:
-        type: string
-      descEessUbigeo:
-        type: string
-      descTipoSeguro:
-        type: string
-      documentoNumero:
-        type: string
-      documentoTipo:
-        type: string
-      estado:
-        type: string
-      fBaja:
-        type: string
-      fBajaOk:
-        type: string
-      fNacimiento:
-        type: string
-      genero:
-        type: string
-      idDistritoDomicilio:
-        type: string
-      idGrupoPoblacional:
-        type: string
-      idPlan:
-        type: string
-      idSiasis:
-        type: integer
-      idUsuarioAuditoria:
-        type: integer
-      materno:
-        type: string
-      motivoBaja:
-        type: string
-      msgConfidencial:
-        type: string
-      oNombres:
-        type: string
-      pNombre:
-        type: string
-      paterno:
-        type: string
-      regimen:
-        type: string
-      tipoSeguro:
-        type: string
-    type: object
   httpadapter.sisFuaAgregarRequest:
     properties:
       idCuentaAtencion:
@@ -817,6 +951,13 @@ definitions:
         type: integer
     required:
     - idCuentaAtencion
+    type: object
+  httpadapter.triajeConsultaEstadoRequest:
+    properties:
+      estado:
+        type: string
+    required:
+    - estado
     type: object
   httpadapter.updatePatientRequest:
     properties:
@@ -963,6 +1104,31 @@ paths:
       summary: Save a motivo de atencion
       tags:
       - Evoluciones
+  /api/v1/evoluciones/{idRegAtencion}/sintomas:
+    post:
+      consumes:
+      - application/json
+      description: Reemplaza los síntomas seleccionados de la evolución (sp_go_InsertarEvolucionSintomas)
+      parameters:
+      - description: ID of the Registration / Encounter
+        in: path
+        name: idRegAtencion
+        required: true
+        type: integer
+      - description: Síntomas seleccionados
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.GuardarSintomasRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Guardar síntomas seleccionados de la evolución
+      tags:
+      - Evoluciones
   /api/v1/evoluciones/paciente/{pacienteId}:
     get:
       consumes:
@@ -986,7 +1152,18 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns a list of patients currently active
+      description: Returns a list of patients with an attention within the date range
+        (Atenciones.FechaIngreso). If fini/ffin are omitted, returns the most recent
+        50.
+      parameters:
+      - description: Fecha inicial (YYYY-MM-DD)
+        in: query
+        name: fini
+        type: string
+      - description: Fecha final (YYYY-MM-DD)
+        in: query
+        name: ffin
+        type: string
       produces:
       - application/json
       responses: {}
@@ -1084,6 +1261,57 @@ paths:
       summary: Sign an interconsulta
       tags:
       - Interconsultas
+  /api/v1/interconsultas/atencion/{idAtencion}:
+    get:
+      consumes:
+      - application/json
+      description: Returns the interconsultas associated with a specific attention/encounter
+      parameters:
+      - description: ID de la Atención
+        in: path
+        name: idAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List interconsultas by attention ID
+      tags:
+      - Interconsultas
+  /api/v1/interconsultas/especialidades:
+    get:
+      consumes:
+      - application/json
+      description: Returns the specialties available for interconsulta requests
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List interconsulta specialties
+      tags:
+      - Interconsultas
+  /api/v1/interconsultas/medicos/{idEspecialidad}:
+    get:
+      consumes:
+      - application/json
+      description: Returns the doctors available for a given interconsulta specialty
+      parameters:
+      - description: ID de la Especialidad
+        in: path
+        name: idEspecialidad
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: List doctors by specialty
+      tags:
+      - Interconsultas
   /api/v1/interconsultas/servicio/{tipoServicio}:
     get:
       consumes:
@@ -1123,15 +1351,15 @@ paths:
       summary: Create an orden medica
       tags:
       - Ordenes
-  /api/v1/ordenes/cuenta/{idCuentaAtencion}:
+  /api/v1/ordenes/cuenta/{idRegAtencion}:
     get:
       consumes:
       - application/json
       description: Returns the medical orders for a given account ID
       parameters:
-      - description: ID de la Cuenta de Atencion
+      - description: ID de la Atencion
         in: path
-        name: idCuentaAtencion
+        name: idRegAtencion
         required: true
         type: integer
       produces:
@@ -1140,6 +1368,29 @@ paths:
       security:
       - BearerAuth: []
       summary: Get ordenes for a patient account
+      tags:
+      - Ordenes
+  /api/v1/ordenes/productos:
+    get:
+      consumes:
+      - application/json
+      description: Busca productos/medicamentos en el catálogo de bienes e insumos
+        con su precio de venta vigente
+      parameters:
+      - description: Filtro por nombre, código o nombre comercial
+        in: query
+        name: q
+        type: string
+      - description: Máximo de resultados (default 50)
+        in: query
+        name: limite
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Buscar productos del catálogo
       tags:
       - Ordenes
   /api/v1/resultados/imagenes/paciente/{idPaciente}:
@@ -1180,6 +1431,38 @@ paths:
       summary: Get laboratory results for a patient
       tags:
       - Resultados
+  /api/v1/sintomas/catalogo:
+    get:
+      consumes:
+      - application/json
+      description: Devuelve el catálogo de síntomas agrupado por sistema (Tab_Sintomas_Catalogo)
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Listar catálogo de síntomas
+      tags:
+      - Evoluciones
+    post:
+      consumes:
+      - application/json
+      description: Inserta un síntoma nuevo en el catálogo si no existe
+      parameters:
+      - description: Síntoma a agregar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.AgregarSintomaRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Agregar síntoma al catálogo
+      tags:
+      - Evoluciones
   /appointments:
     post:
       consumes:
@@ -1657,7 +1940,9 @@ paths:
             - $ref: '#/definitions/httpadapter.apiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/httpadapter.pageResponsePatients'
+                  items:
+                    $ref: '#/definitions/httpadapter.patientResponse'
+                  type: array
               type: object
         "500":
           description: Error interno
@@ -1671,7 +1956,98 @@ paths:
       summary: Lista pacientes paginados
       tags:
       - Pacientes
+    post:
+      consumes:
+      - application/json
+      description: Persiste el paciente invocando el SP WebPacienteAgregar_E_H y devuelve
+        el detalle del paciente creado.
+      parameters:
+      - description: Datos del paciente a registrar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.createPatientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Paciente creado
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/httpadapter.patientDetailResponse'
+              type: object
+        "400":
+          description: Cuerpo inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "500":
+          description: Error al registrar el paciente
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+      summary: Registra un paciente nuevo
+      tags:
+      - Pacientes
   /pacientes/{id}:
+    delete:
+      description: Verifica con PacientesSePuedeEliminar que el paciente no tenga
+        registros asociados y lo elimina (SP PacientesEliminarPorIdPaciente).
+      parameters:
+      - description: Id del paciente
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paciente eliminado
+          schema:
+            $ref: '#/definitions/httpadapter.apiResponse'
+        "400":
+          description: Id inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "404":
+          description: Paciente no encontrado
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "409":
+          description: Paciente con registros asociados, no se puede eliminar
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+      summary: Elimina un paciente
+      tags:
+      - Pacientes
     put:
       consumes:
       - application/json
@@ -2028,73 +2404,6 @@ paths:
       summary: Lista servicios por tipo de servicio
       tags:
       - Catalogos
-  /sis/afiliado/{nrodoc}:
-    get:
-      description: Invoca el servicio SOAP externo del SIS (GetSession + ConsultarAfiliadoFuaE)
-        para traer los datos del afiliado.
-      parameters:
-      - description: Número de documento del afiliado
-        in: path
-        name: nrodoc
-        required: true
-        type: string
-      - description: 'Tipo de documento: 1 = DNI (default), 3 = Carnet de Extranjería'
-        in: query
-        name: strTipoDocumento
-        type: integer
-      - description: intOpcion del WS (tipo de consulta contratado; default 1)
-        in: query
-        name: intOpcion
-        type: integer
-      - description: strDisa del WS
-        in: query
-        name: strDisa
-        type: string
-      - description: strTipoFormato del WS
-        in: query
-        name: strTipoFormato
-        type: string
-      - description: strNroContrato del WS
-        in: query
-        name: strNroContrato
-        type: string
-      - description: strCorrelativo del WS
-        in: query
-        name: strCorrelativo
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/httpadapter.apiResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/domain.SisAfiliado'
-              type: object
-        "400":
-          description: Parámetros inválidos
-          schema:
-            allOf:
-            - $ref: '#/definitions/httpadapter.apiResponse'
-            - properties:
-                error:
-                  $ref: '#/definitions/httpadapter.apiError'
-              type: object
-        "502":
-          description: Error al consultar el SIS
-          schema:
-            allOf:
-            - $ref: '#/definitions/httpadapter.apiResponse'
-            - properties:
-                error:
-                  $ref: '#/definitions/httpadapter.apiError'
-              type: object
-      summary: Consulta el paciente afiliado en el SIS
-      tags:
-      - SIS
   /sis/consumo:
     get:
       description: Invoca el SP webFactOrdenServicioDetaDesFinaListarIdcuenta con
@@ -2142,12 +2451,14 @@ paths:
       - SIS
   /sis/diagnosticos:
     get:
-      description: Invoca el SP webAtencionesDiagnosticosIdAtencion con el id de la
-        atención.
+      consumes:
+      - application/json
+      description: Invoca el SP webAtencionesDiagnosticosIdCuentaAtencion con el id
+        de la cuenta de atención. Devuelve los diagnósticos.
       parameters:
-      - description: Id de la atención
+      - description: Id de la cuenta de atención
         in: query
-        name: idAtencion
+        name: idCuentaAtencion
         required: true
         type: integer
       produces:
@@ -2165,7 +2476,7 @@ paths:
                   type: array
               type: object
         "400":
-          description: Parámetro inválido
+          description: Error de validación
           schema:
             allOf:
             - $ref: '#/definitions/httpadapter.apiResponse'
@@ -2174,7 +2485,7 @@ paths:
                   $ref: '#/definitions/httpadapter.apiError'
               type: object
         "500":
-          description: Error al listar los diagnósticos
+          description: Error al consultar los diagnósticos
           schema:
             allOf:
             - $ref: '#/definitions/httpadapter.apiResponse'
@@ -2182,52 +2493,7 @@ paths:
                 error:
                   $ref: '#/definitions/httpadapter.apiError'
               type: object
-      summary: Lista los diagnósticos de una atención
-      tags:
-      - SIS
-  /sis/filiaciones:
-    post:
-      consumes:
-      - application/json
-      description: Persiste la afiliación SIS del paciente invocando el SP webSisFiliacionesGestionar.
-      parameters:
-      - description: Datos de la afiliación SIS a guardar
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/httpadapter.sisAfiliacionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Afiliación guardada
-          schema:
-            allOf:
-            - $ref: '#/definitions/httpadapter.apiResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Cuerpo inválido
-          schema:
-            allOf:
-            - $ref: '#/definitions/httpadapter.apiResponse'
-            - properties:
-                error:
-                  $ref: '#/definitions/httpadapter.apiError'
-              type: object
-        "500":
-          description: Error al guardar la afiliación
-          schema:
-            allOf:
-            - $ref: '#/definitions/httpadapter.apiResponse'
-            - properties:
-                error:
-                  $ref: '#/definitions/httpadapter.apiError'
-              type: object
-      summary: Guarda la afiliación SIS de un paciente asegurado
+      summary: Consulta los diagnósticos de una atención
       tags:
       - SIS
   /sis/fua:
@@ -2667,6 +2933,203 @@ paths:
       summary: Admisiona un paciente con triaje
       tags:
       - Triaje
+  /triaje/consulta:
+    get:
+      description: Devuelve las atenciones de consulta externa con indicador de si
+        tienen triaje (SP AtencionesTriajeFiltro).
+      parameters:
+      - description: Fecha inicial (YYYY-MM-DD)
+        in: query
+        name: fini
+        required: true
+        type: string
+      - description: Fecha final (YYYY-MM-DD)
+        in: query
+        name: ffin
+        required: true
+        type: string
+      - description: Texto de búsqueda (documento o nombre)
+        in: query
+        name: filtro
+        type: string
+      - description: Id del consultorio/servicio (0 = todos)
+        in: query
+        name: idServicio
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "400":
+          description: Parámetros inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "500":
+          description: Error al listar la bandeja
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+      summary: Lista la bandeja de triaje de consulta externa
+      tags:
+      - Triaje
+    post:
+      consumes:
+      - application/json
+      description: Persiste el triaje de la atención invocando el SP AtencionesTriajeAgregar
+        (inserta si no existe o actualiza el vigente). Devuelve el @Resultado informado
+        por el procedimiento.
+      parameters:
+      - description: Datos del triaje de consulta externa
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.createTriajeConsultaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultado informado por el SP
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Cuerpo inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "500":
+          description: Error al registrar el triaje
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+      summary: Registra o actualiza el triaje de consulta externa
+      tags:
+      - Triaje
+  /triaje/consulta/{id}/estado:
+    put:
+      consumes:
+      - application/json
+      description: Actualiza el estado del triaje invocando el SP AtencionesTriajeEstado.
+      parameters:
+      - description: Id del triaje
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nuevo estado
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.triajeConsultaEstadoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Operación exitosa
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Cuerpo inválido
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "500":
+          description: Error al actualizar el estado
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+      summary: Actualiza el estado de un triaje de consulta externa
+      tags:
+      - Triaje
+  /triaje/consulta/atencion/{idAtencion}:
+    get:
+      description: Devuelve el triaje vigente (UltimoTriaje = 1) de la atención indicada,
+        o null si no existe.
+      parameters:
+      - description: Id de la atención
+        in: path
+        name: idAtencion
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Parámetros inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "500":
+          description: Error al obtener el triaje
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+      summary: Obtiene el triaje de consulta externa de una atención
+      tags:
+      - Triaje
   /triaje/ficha-admision:
     get:
       description: Devuelve los datos del paciente y datos adicionales para generar
@@ -2708,6 +3171,50 @@ paths:
                   $ref: '#/definitions/httpadapter.apiError'
               type: object
       summary: Obtiene la ficha de admisión de un paciente
+      tags:
+      - Triaje
+  /triaje/medicos/{idEspecialidad}:
+    get:
+      description: Devuelve los médicos de la especialidad indicada (SP usp_go_MedicosFiltrarPorIdEspecialidad).
+      parameters:
+      - description: Id de la especialidad
+        in: path
+        name: idEspecialidad
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.MedicoFila'
+                  type: array
+              type: object
+        "400":
+          description: Parámetros inválidos
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+        "500":
+          description: Error al listar los médicos
+          schema:
+            allOf:
+            - $ref: '#/definitions/httpadapter.apiResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/httpadapter.apiError'
+              type: object
+      summary: Lista los médicos de una especialidad
       tags:
       - Triaje
   /triaje/pendientes-admision:

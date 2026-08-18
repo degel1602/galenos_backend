@@ -30,7 +30,7 @@ type SisService interface {
 
 	// ListDiagnosticos consulta los diagnósticos de una atención invocando el
 	// SP webAtencionesDiagnosticosIdAtencion.
-	ListDiagnosticos(ctx context.Context, idAtencion int64) ([]map[string]any, error)
+	ListDiagnosticos(ctx context.Context, idCuentaAtencion int64) ([]map[string]any, error)
 
 	// ListMedicamentos consulta los medicamentos de una cuenta de atención
 	// invocando el SP webMedicamentosListarIdCuentaAtencion.

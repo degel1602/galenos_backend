@@ -150,14 +150,15 @@ func (h *SisHandler) GetFuaImprimir(c *gin.Context) {
 
 // ListDiagnosticos maneja GET /api/v1/sis/diagnosticos.
 //
-// @Summary Lista los diagnósticos de una atención
-// @Description Invoca el SP webAtencionesDiagnosticosIdAtencion con el id de la atención.
+// @Summary Consulta los diagnósticos de una atención
+// @Description Invoca el SP webAtencionesDiagnosticosIdCuentaAtencion con el id de la cuenta de atención. Devuelve los diagnósticos.
 // @Tags SIS
+// @Accept json
 // @Produce json
-// @Param idAtencion query int true "Id de la atención"
+// @Param idCuentaAtencion query int true "Id de la cuenta de atención"
 // @Success 200 {object} apiResponse{data=[]object} "Lista de diagnósticos"
-// @Failure 400 {object} apiResponse{error=apiError} "Parámetro inválido"
-// @Failure 500 {object} apiResponse{error=apiError} "Error al listar los diagnósticos"
+// @Failure 400 {object} apiResponse{error=apiError} "Error de validación"
+// @Failure 500 {object} apiResponse{error=apiError} "Error al consultar los diagnósticos"
 // @Router /sis/diagnosticos [get]
 func (h *SisHandler) ListDiagnosticos(c *gin.Context) {
 	var params sisDiagnosticosParams
@@ -166,12 +167,12 @@ func (h *SisHandler) ListDiagnosticos(c *gin.Context) {
 		return
 	}
 
-	if params.IdAtencion <= 0 {
-		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idAtencion debe ser un entero positivo")
+	if params.IdCuentaAtencion <= 0 {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idCuentaAtencion debe ser un entero positivo")
 		return
 	}
 
-	items, err := h.service.ListDiagnosticos(c.Request.Context(), params.IdAtencion)
+	items, err := h.service.ListDiagnosticos(c.Request.Context(), params.IdCuentaAtencion)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "SIS_DIAGNOSTICS_LIST_FAILED", err.Error())
 		return

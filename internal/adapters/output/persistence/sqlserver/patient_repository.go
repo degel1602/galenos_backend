@@ -30,7 +30,7 @@ func (r *patientRepository) List(ctx context.Context, page shared.PageRequest) (
 
 	const listQuery = `
 		SELECT IdPaciente, NroDocumento, NroHistoriaClinica, ApellidoPaterno,
-		       ApellidoMaterno, PrimerNombre, SegundoNombre, TercerNombre, FechaNacimiento
+		       ApellidoMaterno, PrimerNombre, SegundoNombre, TercerNombre, FechaNacimiento, IdTipoSexo
 		FROM pacientes 
 		WHERE ISNULL(NroDocumento, '') <> '' 
 		ORDER BY NroDocumento
@@ -65,6 +65,7 @@ func (r *patientRepository) List(ctx context.Context, page shared.PageRequest) (
 			&secondName,
 			&thirdName,
 			&birthDate,
+			&patient.SexTypeID,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scanning patient row: %w", err)
 		}
@@ -228,7 +229,8 @@ func (r *patientRepository) Search(ctx context.Context, params shared.PatientSea
 			ISNULL(ApellidoPaterno, '') AS ApellidoPaterno,
 			ISNULL(ApellidoMaterno, '') AS ApellidoMaterno,
 			ISNULL(PrimerNombre, '') AS PrimerNombre,
-			FechaNacimiento
+			FechaNacimiento,
+			IdTipoSexo
 		FROM pacientes
 		WHERE
 			(@Nrodoc       = '' OR NroDocumento       LIKE @Nrodoc + '%')
@@ -266,6 +268,7 @@ func (r *patientRepository) Search(ctx context.Context, params shared.PatientSea
 			&patient.MaternalSurname,
 			&patient.FirstName,
 			&birthDate,
+			&patient.SexTypeID,
 		); err != nil {
 			return nil, fmt.Errorf("scanning patient search row: %w", err)
 		}

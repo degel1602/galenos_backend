@@ -89,3 +89,42 @@ func (uc *triageUseCase) ListarMedicosPorEspecialidad(ctx context.Context, idEsp
 	}
 	return items, nil
 }
+
+// ListTriajeConsulta delega en el repositorio (SP AtencionesTriajeFiltro)
+// y devuelve la bandeja de triaje de consulta externa.
+func (uc *triageUseCase) ListTriajeConsulta(ctx context.Context, params shared.TriajeConsultaParams) ([]map[string]any, error) {
+	items, err := uc.repo.ListTriajeConsulta(ctx, params)
+	if err != nil {
+		return nil, fmt.Errorf("listing outpatient triage: %w", err)
+	}
+	return items, nil
+}
+
+// CreateTriajeConsulta delega en el repositorio (SP
+// AtencionesTriajeAgregar) y devuelve el @Resultado informado por el SP.
+func (uc *triageUseCase) CreateTriajeConsulta(ctx context.Context, triaje *domain.TriajeConsulta) (string, error) {
+	result, err := uc.repo.CreateTriajeConsulta(ctx, triaje)
+	if err != nil {
+		return "", fmt.Errorf("registering outpatient triage: %w", err)
+	}
+	return result, nil
+}
+
+// GetTriajeConsultaPorAtencion delega en el repositorio y devuelve el
+// triaje de consulta externa vigente de la atención.
+func (uc *triageUseCase) GetTriajeConsultaPorAtencion(ctx context.Context, idAtencion int64) (*map[string]any, error) {
+	item, err := uc.repo.GetTriajeConsultaPorAtencion(ctx, idAtencion)
+	if err != nil {
+		return nil, fmt.Errorf("getting outpatient triage by attention: %w", err)
+	}
+	return item, nil
+}
+
+// UpdateEstadoTriajeConsulta delega en el repositorio (SP
+// AtencionesTriajeEstado) para actualizar el estado del triaje.
+func (uc *triageUseCase) UpdateEstadoTriajeConsulta(ctx context.Context, params shared.TriajeConsultaEstadoParams) error {
+	if err := uc.repo.UpdateEstadoTriajeConsulta(ctx, params); err != nil {
+		return fmt.Errorf("updating outpatient triage state: %w", err)
+	}
+	return nil
+}

@@ -144,10 +144,10 @@ func (r *sisRepository) listRows(ctx context.Context, procedure string, args ...
 	return maps, nil
 }
 
-// ListDiagnosticos invoca webAtencionesDiagnosticosIdAtencion con el id de
-// la atención y devuelve los diagnósticos de esa atención.
-func (r *sisRepository) ListDiagnosticos(ctx context.Context, idAtencion int64) ([]map[string]any, error) {
-	return r.listRows(ctx, `webAtencionesDiagnosticosIdAtencion`, sql.Named("IdAtencion", idAtencion))
+// ListDiagnosticos invoca webAtencionesDiagnosticosIdCuentaAtencion con el id de
+// la cuenta de atención y devuelve los diagnósticos de esa atención.
+func (r *sisRepository) ListDiagnosticos(ctx context.Context, idCuentaAtencion int64) ([]map[string]any, error) {
+	return r.listRows(ctx, `webAtencionesDiagnosticosIdCuentaAtencion`, sql.Named("Parametros", fmt.Sprintf("%d", idCuentaAtencion)))
 }
 
 // ListMedicamentos invoca webMedicamentosListarIdCuentaAtencion con el id

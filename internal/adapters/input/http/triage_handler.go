@@ -3,6 +3,7 @@ package httpadapter
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -183,7 +184,13 @@ func (h *TriageHandler) CreateAdmission(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.CreateAdmission(c.Request.Context(), req.toDomain())
+	domainObj := req.toDomain()
+	if idEmpleado := c.GetInt("idEmpleado"); idEmpleado != 0 {
+		empID := int64(idEmpleado)
+		domainObj.IDEmpleado = &empID
+	}
+
+	result, err := h.service.CreateAdmission(c.Request.Context(), domainObj)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "ADMISSION_FROM_TRIAGE_FAILED", err.Error())
 		return
@@ -287,8 +294,8 @@ func (h *TriageHandler) ListMedicosPorEspecialidad(c *gin.Context) {
 		return
 	}
 	id, err := strconv.ParseInt(raw, 10, 64)
-	if err != nil || id <= 0 {
-		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idEspecialidad debe ser un entero positivo")
+	if err != nil || id < 0 {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idEspecialidad debe ser un entero positivo o 0")
 		return
 	}
 
@@ -299,4 +306,170 @@ func (h *TriageHandler) ListMedicosPorEspecialidad(c *gin.Context) {
 	}
 
 	respondSuccess(c, http.StatusOK, items)
+}
+
+// ListTriajeConsulta maneja GET /api/v1/triaje/consulta.
+//
+// @Summary Lista la bandeja de triaje de consulta externa
+// @Description Devuelve las atenciones de consulta externa con indicador de si tienen triaje (SP AtencionesTriajeFiltro).
+// @Tags Triaje
+// @Produce json
+// @Param fini query string true "Fecha inicial (YYYY-MM-DD)"
+// @Param ffin query string true "Fecha final (YYYY-MM-DD)"
+// @Param filtro query string false "Texto de búsqueda (documento o nombre)"
+// @Param idServicio query int false "Id del consultorio/servicio (0 = todos)"
+// @Success 200 {object} apiResponse{data=[]object}
+// @Failure 400 {object} apiResponse{error=apiError} "Parámetros inválidos"
+// @Failure 500 {object} apiResponse{error=apiError} "Error al listar la bandeja"
+// @Router /triaje/consulta [get]
+func (h *TriageHandler) ListTriajeConsulta(c *gin.Context) {
+	params := shared.TriajeConsultaParams{
+		FechaInicio: c.Query("fini"),
+		FechaFin:    c.Query("ffin"),
+		Filtro:      c.Query("filtro"),
+	}
+
+	if params.FechaInicio == "" || params.FechaFin == "" {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "fini y ffin son obligatorios (YYYY-MM-DD)")
+		return
+	}
+
+	// Validar el formato de las fechas antes de armar el fragmento WHERE.
+	if _, err := time.Parse("2006-01-02", params.FechaInicio); err != nil {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "fini debe ser YYYY-MM-DD")
+		return
+	}
+	if _, err := time.Parse("2006-01-02", params.FechaFin); err != nil {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "ffin debe ser YYYY-MM-DD")
+		return
+	}
+
+	if raw := c.Query("idServicio"); raw != "" {
+		v, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil || v < 0 {
+			respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idServicio debe ser un entero no negativo")
+			return
+		}
+		params.IdServicio = int(v)
+	}
+
+	items, err := h.service.ListTriajeConsulta(c.Request.Context(), params)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "TRIAGE_CONSULTA_LIST_FAILED", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, items)
+}
+
+// CreateTriajeConsulta maneja POST /api/v1/triaje/consulta.
+//
+// @Summary Registra o actualiza el triaje de consulta externa
+// @Description Persiste el triaje de la atención invocando el SP AtencionesTriajeAgregar (inserta si no existe o actualiza el vigente). Devuelve el @Resultado informado por el procedimiento.
+// @Tags Triaje
+// @Accept json
+// @Produce json
+// @Param request body createTriajeConsultaRequest true "Datos del triaje de consulta externa"
+// @Success 200 {object} apiResponse{data=object} "Resultado informado por el SP"
+// @Failure 400 {object} apiResponse{error=apiError} "Cuerpo inválido"
+// @Failure 500 {object} apiResponse{error=apiError} "Error al registrar el triaje"
+// @Router /triaje/consulta [post]
+func (h *TriageHandler) CreateTriajeConsulta(c *gin.Context) {
+	var req createTriajeConsultaRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+		return
+	}
+
+	domainObj := req.toDomain()
+	if idEmpleado := c.GetInt("idEmpleado"); idEmpleado != 0 {
+		domainObj.IdEmpleado = int64(idEmpleado)
+	}
+
+	result, err := h.service.CreateTriajeConsulta(c.Request.Context(), domainObj)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "TRIAGE_CONSULTA_REGISTER_FAILED", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, map[string]string{"resultado": result})
+}
+
+// GetTriajeConsultaPorAtencion maneja GET /api/v1/triaje/consulta/atencion/:idAtencion.
+//
+// @Summary Obtiene el triaje de consulta externa de una atención
+// @Description Devuelve el triaje vigente (UltimoTriaje = 1) de la atención indicada, o null si no existe.
+// @Tags Triaje
+// @Produce json
+// @Param idAtencion path int true "Id de la atención"
+// @Success 200 {object} apiResponse{data=object}
+// @Failure 400 {object} apiResponse{error=apiError} "Parámetros inválidos"
+// @Failure 500 {object} apiResponse{error=apiError} "Error al obtener el triaje"
+// @Router /triaje/consulta/atencion/{idAtencion} [get]
+func (h *TriageHandler) GetTriajeConsultaPorAtencion(c *gin.Context) {
+	raw := c.Param("idAtencion")
+	if raw == "" {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idAtencion es obligatorio")
+		return
+	}
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || id <= 0 {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "idAtencion debe ser un entero positivo")
+		return
+	}
+
+	item, err := h.service.GetTriajeConsultaPorAtencion(c.Request.Context(), id)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "TRIAGE_CONSULTA_GET_FAILED", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, item)
+}
+
+// UpdateEstadoTriajeConsulta maneja PUT /api/v1/triaje/consulta/:id/estado.
+//
+// @Summary Actualiza el estado de un triaje de consulta externa
+// @Description Actualiza el estado del triaje invocando el SP AtencionesTriajeEstado.
+// @Tags Triaje
+// @Accept json
+// @Produce json
+// @Param id path int true "Id del triaje"
+// @Param request body triajeConsultaEstadoRequest true "Nuevo estado"
+// @Success 200 {object} apiResponse{data=object} "Operación exitosa"
+// @Failure 400 {object} apiResponse{error=apiError} "Cuerpo inválido"
+// @Failure 500 {object} apiResponse{error=apiError} "Error al actualizar el estado"
+// @Router /triaje/consulta/{id}/estado [put]
+func (h *TriageHandler) UpdateEstadoTriajeConsulta(c *gin.Context) {
+	raw := c.Param("id")
+	if raw == "" {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "id es obligatorio")
+		return
+	}
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || id <= 0 {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "id debe ser un entero positivo")
+		return
+	}
+
+	var req triajeConsultaEstadoRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+		return
+	}
+	if req.Estado == "" {
+		respondError(c, http.StatusBadRequest, "VALIDATION_ERROR", "estado es obligatorio")
+		return
+	}
+
+	err = h.service.UpdateEstadoTriajeConsulta(c.Request.Context(), shared.TriajeConsultaEstadoParams{
+		IdTriaje: id,
+		Estado:   req.Estado,
+	})
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "TRIAGE_CONSULTA_STATE_FAILED", err.Error())
+		return
+	}
+
+	respondSuccess(c, http.StatusOK, map[string]bool{"ok": true})
 }
