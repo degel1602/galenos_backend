@@ -31,6 +31,13 @@ type Config struct {
 	SISURL            string
 	SISDNIAutorizado  string
 	SISTimeout        time.Duration
+	FirmaPeruTokenURL     string
+	FirmaPeruClientID     string
+	FirmaPeruClientSecret string
+	FirmaPeruPublicURL    string
+	FirmaPeruTimeout      time.Duration
+	FirmaPeruSignedDir    string
+	SevenZipPath          string
 	AuthUsername      string
 	AuthPassword      string
 	AuthSecret        string
@@ -78,6 +85,13 @@ func Load() (*Config, error) {
 		SISURL:            envOrDefault("SIS_URL", "http://app.sis.gob.pe/sisWSAFI/Service.asmx"),
 		SISDNIAutorizado:  envOrDefault("SIS_DNI_AUTORIZADO", ""),
 		SISTimeout:        envDurationOrDefault("SIS_TIMEOUT", 30*time.Second),
+		FirmaPeruTokenURL:     envOrDefault("FIRMAPERU_TOKEN_URL", "https://apps.firmaperu.gob.pe/admin/api/security/generate-token"),
+		FirmaPeruClientID:     os.Getenv("FIRMAPERU_CLIENT_ID"),
+		FirmaPeruClientSecret: os.Getenv("FIRMAPERU_CLIENT_SECRET"),
+		FirmaPeruPublicURL:    os.Getenv("FIRMAPERU_PUBLIC_URL"),
+		FirmaPeruTimeout:      envDurationOrDefault("FIRMAPERU_TIMEOUT", 60*time.Second),
+		FirmaPeruSignedDir:    os.Getenv("FIRMAPERU_SIGNED_DIR"),
+		SevenZipPath:          envOrDefault("SEVENZIP_PATH", `C:\Program Files\7-Zip\7z.exe`),
 		AuthUsername:      apiUsername,
 		AuthPassword:      apiPassword,
 		AuthSecret:        jwtSecret,
