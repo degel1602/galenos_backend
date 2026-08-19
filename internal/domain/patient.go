@@ -6,10 +6,12 @@ import "time"
 // exactamente las columnas expuestas por la consulta a la tabla pacientes
 // (NroDocumento, ApellidoPaterno, ApellidoMaterno, PrimerNombre,
 // SegundoNombre, TercerNombre) así como por el SP usp_go_listarpacientes
-// (IdPaciente, NroHistoriaClinica, FechaNacimiento).
+// (IdPaciente, NroHistoriaClinica, FechaNacimiento, TipoDocumento).
 type Patient struct {
 	PatientID         int64
 	DocumentNumber    string
+	DocumentType      *string
+	DocIdentityID     *int64
 	HistoryNumber     string
 	PaternalSurname   string
 	MaternalSurname   string

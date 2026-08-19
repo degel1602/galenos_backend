@@ -11,11 +11,13 @@ import (
 type patientResponse struct {
 	PatientID         int64      `json:"patientId"`
 	DocumentNumber    string     `json:"documentNumber"`
+	TipoDocumento     *string    `json:"tipoDocumento,omitempty"`
+	DocIdentityID     *int64     `json:"docIdentityId,omitempty"`
 	HistoryNumber     string     `json:"historyNumber"`
 	PaternalSurname   string     `json:"paternalSurname"`
 	MaternalSurname   string     `json:"maternalSurname"`
 	FirstName         string     `json:"firstName"`
-	SecondName        string     `json:"secondName"`
+	SecondName        string     `json:"segundoNombre"`
 	ThirdName         string     `json:"thirdName"`
 	DateOfBirth       *time.Time `json:"dateOfBirth,omitempty"`
 	HomeDistrictID    *int64     `json:"homeDistrictId,omitempty"`
@@ -31,6 +33,8 @@ func toPatientResponse(p domain.Patient) patientResponse {
 	return patientResponse{
 		PatientID:         p.PatientID,
 		DocumentNumber:    p.DocumentNumber,
+		TipoDocumento:     p.DocumentType,
+		DocIdentityID:     p.DocIdentityID,
 		HistoryNumber:     p.HistoryNumber,
 		PaternalSurname:   p.PaternalSurname,
 		MaternalSurname:   p.MaternalSurname,
@@ -461,5 +465,23 @@ func toDatosInstitucionResponse(d domain.DatosInstitucion) datosInstitucionRespo
 		LogoHospi:  d.LogoHospi,
 		LogoMinsa:  d.LogoMinsa,
 		UbigeoHosp: d.UbigeoHosp,
+	}
+}
+
+type parametroResponse struct {
+	Tipo       *string  `json:"tipo,omitempty"`
+	Codigo     *string  `json:"codigo,omitempty"`
+	ValorTexto *string  `json:"valorTexto,omitempty"`
+	ValorInt   *int64   `json:"valorInt,omitempty"`
+	ValorFloat *float64 `json:"valorFloat,omitempty"`
+}
+
+func toParametroResponse(p domain.Parametro) parametroResponse {
+	return parametroResponse{
+		Tipo:       p.Tipo,
+		Codigo:     p.Codigo,
+		ValorTexto: p.ValorTexto,
+		ValorInt:   p.ValorInt,
+		ValorFloat: p.ValorFloat,
 	}
 }

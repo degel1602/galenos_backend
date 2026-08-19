@@ -455,3 +455,34 @@ func (r *catalogRepository) ListEspecialidades(ctx context.Context) ([]domain.Es
 
 	return items, nil
 }
+
+// GetParametro invoca el SP usp_go_webParametroSeleccionarPorId, que
+// devuelve en una única fila los valores (Tipo, Codigo, ValorTexto,
+// ValorInt, ValorFloat) del parámetro solicitado. Devuelve nil si el SP
+// no retorna filas.
+func (r *catalogRepository) GetParametro(ctx context.Context, idParametro int64) (*domain.Parametro, error) {
+	const procedure = `usp_go_webParametroSeleccionarPorId`
+
+	rows, err := r.db.QueryContext(ctx, procedure, sql.Named("IdParametro", idParametro))
+	if err != nil {
+		return nil, fmt.Errorf("calling usp_go_webParametroSeleccionarPorId: %w", err)
+	}
+	defer rows.Close()
+
+	maps, err := rowsToMaps(rows)
+	if err != nil {
+		return nil, fmt.Errorf("reading parametro: %w", err)
+	}
+	if len(maps) == 0 {
+		return nil, nil
+	}
+
+	m := maps[0]
+	return &domain.Parametro{
+		Tipo:       rowString(m, "Tipo"),
+		Codigo:     rowString(m, "Codigo"),
+		ValorTexto: rowString(m, "ValorTexto"),
+		ValorInt:   rowInt64(m, "ValorInt"),
+		ValorFloat: rowFloat64(m, "ValorFloat"),
+	}, nil
+}

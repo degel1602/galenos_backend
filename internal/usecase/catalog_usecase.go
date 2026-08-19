@@ -153,3 +153,11 @@ func (uc *catalogUseCase) ListEspecialidades(ctx context.Context) ([]domain.Espe
 	}
 	return items, nil
 }
+
+func (uc *catalogUseCase) GetParametro(ctx context.Context, idParametro int64) (*domain.Parametro, error) {
+	item, err := uc.repo.GetParametro(ctx, idParametro)
+	if err != nil {
+		return nil, fmt.Errorf("getting parametro: %w", err)
+	}
+	return item, nil
+}

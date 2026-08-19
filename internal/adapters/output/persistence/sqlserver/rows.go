@@ -3,6 +3,7 @@ package sqlserver
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -125,6 +126,41 @@ func rowBool(row map[string]any, names ...string) *bool {
 			case int:
 				b := v != 0
 				return &b
+			}
+		}
+	}
+	return nil
+}
+
+// rowFloat64 devuelve el valor numérico de punto flotante de una columna.
+// Retorna nil si la columna no existe o es NULL.
+func rowFloat64(row map[string]any, names ...string) *float64 {
+	for _, name := range names {
+		if value, ok := lookup(row, name); ok {
+			switch v := value.(type) {
+			case nil:
+				return nil
+			case float64:
+				return &v
+			case float32:
+				f := float64(v)
+				return &f
+			case int64:
+				f := float64(v)
+				return &f
+			case int:
+				f := float64(v)
+				return &f
+			case []byte:
+				f, err := strconv.ParseFloat(string(v), 64)
+				if err == nil {
+					return &f
+				}
+			case string:
+				f, err := strconv.ParseFloat(v, 64)
+				if err == nil {
+					return &f
+				}
 			}
 		}
 	}
