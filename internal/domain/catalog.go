@@ -122,3 +122,13 @@ type Especialidad struct {
 	ID     int64
 	Nombre *string
 }
+
+// Parametro contiene los valores de un parámetro configurable
+// (SP usp_go_webParametroSeleccionarPorId @IdParametro).
+type Parametro struct {
+	Tipo       *string
+	Codigo     *string
+	ValorTexto *string
+	ValorInt   *int64
+	ValorFloat *float64
+}

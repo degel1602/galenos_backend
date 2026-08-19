@@ -58,6 +58,15 @@ go run ./cmd/api
 
 Al arrancar, la API hace `PING` a SQL Server; si el host no es alcanzable (red/VPN) o la contraseña es incorrecta, falla rápido con el error correspondiente en el log.
 
+### Formato y Linter (Validación de código)
+
+Para revisar y formatear el código rápidamente antes de hacer un commit, ejecuta el script de Windows incluido en la raíz del proyecto:
+
+```bash
+.\fix
+```
+
+Este comando ejecuta internamente `go fmt ./...` (para formatear el código) y `go vet ./...` (el linter oficial estricto de Go).
 ## Endpoints
 
 Base: `http://localhost:8080/api/v1`

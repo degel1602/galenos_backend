@@ -415,6 +415,36 @@ func (h *CatalogHandler) ListEspecialidades(c *gin.Context) {
 	respondSuccess(c, http.StatusOK, dtoItems)
 }
 
+// GetParametro maneja GET /api/v1/parametros/:idParametro.
+//
+// @Summary Obtiene un parámetro por id
+// @Description Devuelve los valores de un parámetro (SP usp_go_webParametroSeleccionarPorId).
+// @Tags Catalogos
+// @Produce json
+// @Param idParametro path int true "Id del parámetro"
+// @Success 200 {object} apiResponse{data=domain.Parametro}
+// @Failure 400 {object} apiResponse{error=apiError} "Id inválido"
+// @Failure 404 {object} apiResponse{error=apiError} "Parámetro no encontrado"
+// @Failure 500 {object} apiResponse{error=apiError} "Error interno"
+// @Router /parametros/{idParametro} [get]
+func (h *CatalogHandler) GetParametro(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("idParametro"), 10, 64)
+	if err != nil || id <= 0 {
+		respondError(c, http.StatusBadRequest, "INVALID_ID", "id inválido")
+		return
+	}
+	item, err := h.service.GetParametro(c.Request.Context(), id)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
+		return
+	}
+	if item == nil {
+		respondError(c, http.StatusNotFound, "PARAMETRO_NOT_FOUND", "parámetro no encontrado")
+		return
+	}
+	respondSuccess(c, http.StatusOK, toParametroResponse(*item))
+}
+
 // parseID extrae y valida el path param "id" como entero.
 func parseID(c *gin.Context) (int64, bool) {
 	raw := c.Param("id")
