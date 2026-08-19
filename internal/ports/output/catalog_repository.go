@@ -28,4 +28,5 @@ type CatalogRepository interface {
 	ListServicios(ctx context.Context, idTipoServicio int64) ([]domain.Servicio, error)
 	ListEspecialidades(ctx context.Context) ([]domain.Especialidad, error)
 	GetDatosInstitucion(ctx context.Context) (*domain.DatosInstitucion, error)
+	GetParametro(ctx context.Context, idParametro int64) (*domain.Parametro, error)
 }

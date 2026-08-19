@@ -98,6 +98,7 @@ func NewRouter(p RouterParams) *gin.Engine {
 		v1.GET("/servicios/:idTipoServicio", p.CatalogHandler.ListServicios)
 		v1.GET("/datos-institucion", p.CatalogHandler.GetDatosInstitucion)
 		v1.GET("/especialidades", p.CatalogHandler.ListEspecialidades)
+		v1.GET("/parametros/:idParametro", p.CatalogHandler.GetParametro)
 
 		reniec := v1.Group("/reniec")
 		{

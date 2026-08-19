@@ -215,72 +215,52 @@ func (r *patientRepository) GetByDocumentNumberAndType(ctx context.Context, docu
 	return &patient, nil
 }
 
-// Search ejecuta una consulta directa parametrizada en lugar de llamar al
-// SP para evitar el "Parameter Sniffing" de SQL Server, que genera planes de
-// ejecución subóptimos cuando se invoca desde drivers externos (go-mssqldb,
-// ODBC) en contraste con SSMS. El hint OPTIMIZE FOR UNKNOWN garantiza un plan
-// estable. Los filtros vacíos son ignorados por la cláusula OR IsNull.
+// Search invoca el procedimiento almacenado usp_go_listarpacientes con los
+// filtros opcionales del buscador. Los filtros vacíos se ignoran y el SP
+// retorna el listado con las columnas TipoDocumento y SegundoNombre entre
+// las habituales. Se mapea por nombre de columna para resistir cambios del
+// resultado del SP sin modificar el adaptador.
 func (r *patientRepository) Search(ctx context.Context, params shared.PatientSearchParams) ([]domain.Patient, error) {
-	const query = `
-		SELECT TOP 100
-			IdPaciente,
-			ISNULL(NroDocumento, '') AS NroDocumento,
-			NroHistoriaClinica,
-			ISNULL(ApellidoPaterno, '') AS ApellidoPaterno,
-			ISNULL(ApellidoMaterno, '') AS ApellidoMaterno,
-			ISNULL(PrimerNombre, '') AS PrimerNombre,
-			FechaNacimiento,
-			IdTipoSexo
-		FROM pacientes
-		WHERE
-			(@Nrodoc       = '' OR NroDocumento       LIKE @Nrodoc + '%')
-			AND (@NroHc    = '' OR NroHistoriaClinica LIKE @NroHc + '%')
-			AND (@Paterno  = '' OR ApellidoPaterno    LIKE @Paterno + '%')
-			AND (@Materno  = '' OR ApellidoMaterno    LIKE @Materno + '%')
-			AND (@Nombres  = '' OR PrimerNombre       LIKE @Nombres + '%')
-		ORDER BY ApellidoPaterno, ApellidoMaterno, PrimerNombre
-		OPTION (OPTIMIZE FOR UNKNOWN)`
+	const procedure = `usp_go_listarpacientes`
 
-	rows, err := r.db.QueryContext(ctx, query,
+	rows, err := r.db.QueryContext(ctx, procedure,
 		sql.Named("Nrodoc", params.DocumentNumber),
 		sql.Named("NroHc", params.HistoryNumber),
-		sql.Named("Paterno", params.PaternalSurname),
-		sql.Named("Materno", params.MaternalSurname),
+		sql.Named("ApellidoPaterno", params.PaternalSurname),
+		sql.Named("ApellidoMaterno", params.MaternalSurname),
 		sql.Named("Nombres", params.Names),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("querying patients search: %w", err)
+		return nil, fmt.Errorf("calling usp_go_listarpacientes: %w", err)
 	}
 	defer rows.Close()
 
-	patients := make([]domain.Patient, 0, 100)
-	for rows.Next() {
-		var (
-			patient       domain.Patient
-			historyNumber sql.NullString
-			birthDate     sql.NullTime
-		)
-		if err := rows.Scan(
-			&patient.PatientID,
-			&patient.DocumentNumber,
-			&historyNumber,
-			&patient.PaternalSurname,
-			&patient.MaternalSurname,
-			&patient.FirstName,
-			&birthDate,
-			&patient.SexTypeID,
-		); err != nil {
-			return nil, fmt.Errorf("scanning patient search row: %w", err)
-		}
-		patient.HistoryNumber = historyNumber.String
-		if birthDate.Valid {
-			d := birthDate.Time
-			patient.DateOfBirth = &d
-		}
-		patients = append(patients, patient)
+	maps, err := rowsToMaps(rows)
+	if err != nil {
+		return nil, fmt.Errorf("reading patients search: %w", err)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterating patient search rows: %w", err)
+
+	patients := make([]domain.Patient, 0, len(maps))
+	for _, m := range maps {
+		p := domain.Patient{
+			PatientID:       derefInt64(rowInt64(m, "IdPaciente")),
+			DocumentNumber:  derefString(rowString(m, "NroDocumento")),
+			HistoryNumber:   derefString(rowString(m, "NroHistoriaClinica")),
+			PaternalSurname: derefString(rowString(m, "ApellidoPaterno")),
+			MaternalSurname: derefString(rowString(m, "ApellidoMaterno")),
+			FirstName:       derefString(rowString(m, "PrimerNombre")),
+			SecondName:      derefString(rowString(m, "SegundoNombre")),
+			ThirdName:       derefString(rowString(m, "TercerNombre")),
+			DocumentType:    rowString(m, "TipoDocumento"),
+			DocIdentityID:   rowInt64(m, "IdDocIdentidad"),
+		}
+		if v := rowTime(m, "FechaNacimiento"); v != nil {
+			p.DateOfBirth = v
+		}
+		if v := rowInt64(m, "IdTipoSexo"); v != nil {
+			p.SexTypeID = v
+		}
+		patients = append(patients, p)
 	}
 
 	return patients, nil
@@ -435,6 +415,14 @@ func (r *patientRepository) Update(ctx context.Context, id int64, update domain.
 func derefInt64(p *int64) int64 {
 	if p == nil {
 		return 0
+	}
+	return *p
+}
+
+// derefString devuelve "" cuando el puntero es nil.
+func derefString(p *string) string {
+	if p == nil {
+		return ""
 	}
 	return *p
 }
