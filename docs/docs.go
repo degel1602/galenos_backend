@@ -1294,6 +1294,807 @@ const docTemplate = `{
                 }
             }
         },
+        "/firmaperu/documentos/{uuid}": {
+            "get": {
+                "description": "URL interna usada por el Firmador (documentToSign) para descargar el documento que será firmado. Requiere el UUID devuelto en POST /firmaperu/firmar.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Descarga el documento original por firmar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID del proceso de firma",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documento original",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Documento no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "URL interna a la que el Firmador (uploadDocumentSigned) devuelve el documento firmado. Acepta el archivo como multipart (campo file) o como cuerpo plano.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Recibe el documento firmado del Firmador",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID del proceso de firma",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Documento firmado (multipart)",
+                        "name": "file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.apiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Documento vacío o inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Proceso de firma no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/firmaperu/documentos/{uuid}/firmado": {
+            "get": {
+                "description": "Devuelve el documento ya firmado (PAdES/XAdES/CAdES) o 404 si el Firmador aún no lo subió.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Descarga el documento firmado",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID del proceso de firma",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documento firmado",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Documento no disponible aún o no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/firmaperu/documentos/{uuid}/lote": {
+            "get": {
+                "description": "URL interna usada por el Firmador en modo lote (documentToSign): descarga un archivo 7z con todos los documentos del lote por firmar.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Descarga el 7z con los documentos del lote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID del proceso de firma",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Archivo 7z con los documentos",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Lote no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "URL interna a la que el Firmador (uploadDocumentSigned) devuelve el 7z con los documentos firmados del lote. Acepta el archivo como multipart (campo signed_file) o como cuerpo plano.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Recibe el 7z firmado del lote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID del proceso de firma",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Archivo 7z con los documentos firmados (multipart)",
+                        "name": "signed_file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpadapter.apiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Archivo vacío o inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Lote no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/firmaperu/documentos/{uuid}/lote/firmado": {
+            "get": {
+                "description": "Devuelve el archivo 7z con los documentos ya firmados del lote o 404 si el Firmador aún no lo subió.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Descarga el 7z firmado del lote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID del proceso de firma",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Archivo 7z firmado",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Lote no disponible aún",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/firmaperu/firmar": {
+            "post": {
+                "description": "Almacena el documento por firmar y devuelve la cadena base64 que el frontend debe pasar a startSignature(port, param) de firmaperu.min.js. El Firmador local descargará el documento (documentToSign), el usuario firmará con su DNIe y devolverá el firmado a uploadDocumentSigned (ambas URLs internas al param).",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Inicia un proceso de firma digital con el Firmador Web",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Documento a firmar (PDF para PAdES, XML para XAdES, cualquier archivo para CAdES)",
+                        "name": "document",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Imagen PNG (base64 o data-URL) del estampado visible de la firma; por defecto se usa el logo por omisión",
+                        "name": "imageEstampado",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Formato de firma: PAdES (default) | XAdES | CAdES",
+                        "name": "signatureFormat",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nivel de firma: B (default) | T | LTA",
+                        "name": "signatureLevel",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Empaquetado: enveloped (default) | enveloping | detached | internallydetached",
+                        "name": "signaturePackaging",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL del servicio de sello de tiempo TSA (obligatorio si signatureLevel=T/LTA)",
+                        "name": "webTsa",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuario de la TSA",
+                        "name": "userTsa",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password de la TSA",
+                        "name": "passwordTsa",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Identificador de la firma en el documento",
+                        "name": "contactInfo",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Motivo de la firma",
+                        "name": "signatureReason",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "URL de la imagen PNG del estampado a usar en la firma visible",
+                        "name": "imageToStamp",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Estilo de la representación gráfica: 0 sin representación, 1 horizontal (default), 2 vertical, 3 solo estampado, 4 solo descripción",
+                        "name": "signatureStyle",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Tamaño de fuente del estampado (default 14)",
+                        "name": "stampTextSize",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ancho de línea del estampado (default 37)",
+                        "name": "stampWordWrap",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Página donde se coloca la firma visible (default 1)",
+                        "name": "stampPage",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Posición horizontal de la firma",
+                        "name": "positionx",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Posición vertical de la firma",
+                        "name": "positiony",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Muestra el panel de posición de la firma en el Firmador (default false)",
+                        "name": "visiblePosition",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Firma los documentos uno a uno (default false)",
+                        "name": "oneByOne",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Rol del firmante",
+                        "name": "role",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Firma de certificación (limita cambios posteriores)",
+                        "name": "certificationSignature",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/httpadapter.firmaPeruInitResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros o documento inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "413": {
+                        "description": "Documento excede el tamaño máximo",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "502": {
+                        "description": "Error al obtener token o preparar el proceso",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/firmaperu/lote": {
+            "post": {
+                "description": "Recibe múltiples documentos (campo 'document') y devuelve el param base64 para startSignature. El Firmador descargará un 7z con todos los documentos (documentToSign) y devolverá el 7z firmado (uploadDocumentSigned); el usuario firma todos con un solo PIN del DNIe.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Inicia una firma por lote (varios documentos, un solo PIN)",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Documentos a firmar (repetir el campo por cada PDF)",
+                        "name": "document",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Imagen PNG (base64 o data-URL) del estampado visible de la firma",
+                        "name": "imageEstampado",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Formato de firma: PAdES (default)",
+                        "name": "signatureFormat",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nivel de firma: B (default) | T | LTA",
+                        "name": "signatureLevel",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Motivo de la firma",
+                        "name": "signatureReason",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Estilo de la representación gráfica (default 1)",
+                        "name": "signatureStyle",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Tamaño de fuente del estampado (default 14)",
+                        "name": "stampTextSize",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ancho de línea del estampado (default 37)",
+                        "name": "stampWordWrap",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Página donde se coloca la firma visible (default 1)",
+                        "name": "stampPage",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Posición horizontal de la firma",
+                        "name": "positionx",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Posición vertical de la firma",
+                        "name": "positiony",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Rol del firmante",
+                        "name": "role",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/httpadapter.firmaPeruInitResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros o documentos inválidos",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "413": {
+                        "description": "Documento excede el tamaño máximo",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "502": {
+                        "description": "Error al obtener token o preparar el lote",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/firmaperu/params/{uuid}": {
+            "post": {
+                "description": "Endpoint interno expuesto en param_url del wrapper: el Firmador local lo llama (form-urlencoded) con el param_token de un solo uso y responde con el JSON base64 de los parámetros de firma (documentToSign, uploadDocumentSigned, token, etc.).",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "FirmaPeru"
+                ],
+                "summary": "Devuelve los parámetros de firma al Firmador local",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID del proceso de firma",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token de un único uso entregado en el wrapper",
+                        "name": "param_token",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JSON base64 con los parámetros de firma",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "param_token inválido",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Proceso de firma no encontrado",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "502": {
+                        "description": "Error al obtener el token de la plataforma",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/httpadapter.apiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "$ref": "#/definitions/httpadapter.apiError"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/fuentes-financiamiento": {
             "get": {
                 "description": "Devuelve el catálogo de fuentes de financiamiento (SP usp_go_ListarFuentesFinanciamiento).",
@@ -5235,6 +6036,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "tiempoEvolucionCantidadUnidad": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpadapter.firmaPeruInitResponse": {
+            "type": "object",
+            "properties": {
+                "documentNameUUID": {
+                    "type": "string"
+                },
+                "paramBase64": {
                     "type": "string"
                 }
             }

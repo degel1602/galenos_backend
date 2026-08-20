@@ -22,6 +22,7 @@ import (
 
 	"github.com/galenos-pro/appointments-api/docs"
 	httpadapter "github.com/galenos-pro/appointments-api/internal/adapters/input/http"
+	"github.com/galenos-pro/appointments-api/internal/adapters/output/firmaperu"
 	"github.com/galenos-pro/appointments-api/internal/adapters/output/persistence/sqlserver"
 	"github.com/galenos-pro/appointments-api/internal/adapters/output/reniec"
 	"github.com/galenos-pro/appointments-api/internal/adapters/output/sis"
@@ -87,12 +88,23 @@ func run() error {
 		Timeout:       cfg.SISTimeout,
 	})
 
+	// --- Adaptador de salida: Firmador Web de Firma Perú ---
+	firmaPeruClient := firmaperu.New(firmaperu.Config{
+		TokenURL:     cfg.FirmaPeruTokenURL,
+		ClientID:     cfg.FirmaPeruClientID,
+		ClientSecret: cfg.FirmaPeruClientSecret,
+		Timeout:      cfg.FirmaPeruTimeout,
+	})
+	firmaPeruStore := firmaperu.NewMemoryStore(cfg.FirmaPeruSignedDir)
+	firmaPeruArchive := firmaperu.NewSevenZipTool(cfg.SevenZipPath)
+
 	// --- Núcleo de dominio: casos de uso implementando los puertos de entrada ---
 	appointmentService := usecase.NewAppointmentUseCase(appointmentRepo)
 	patientService := usecase.NewPatientUseCase(patientRepo)
 	catalogService := usecase.NewCatalogUseCase(catalogRepo)
 	reniecService := usecase.NewReniecUseCase(reniecClient)
 	sisService := usecase.NewSisUseCase(sisClient, sisRepo)
+	firmaPeruService := usecase.NewFirmaPeruUseCase(firmaPeruClient, firmaPeruStore, firmaPeruArchive)
 	triageService := usecase.NewTriageUseCase(triageRepo)
 	evolucionService := usecase.NewEvolucionUseCase(evolucionRepo)
 	motivoService := usecase.NewMotivoService(motivoRepo)
@@ -115,6 +127,7 @@ func run() error {
 	catalogHandler := httpadapter.NewCatalogHandler(catalogService)
 	reniecHandler := httpadapter.NewReniecHandler(reniecService)
 	sisHandler := httpadapter.NewSisHandler(sisService)
+	firmaPeruHandler := httpadapter.NewFirmaPeruHandler(firmaPeruService, cfg.FirmaPeruPublicURL)
 	triageHandler := httpadapter.NewTriageHandler(triageService)
 	authHandler := httpadapter.NewAuthHandler(authService)
 	evolucionHandler := httpadapter.NewEvolucionHandler(evolucionService)
@@ -130,6 +143,7 @@ func run() error {
 		CatalogHandler:       catalogHandler,
 		ReniecHandler:        reniecHandler,
 		SisHandler:           sisHandler,
+		FirmaPeruHandler:     firmaPeruHandler,
 		TriageHandler:        triageHandler,
 		AuthHandler:          authHandler,
 		EvolucionHandler:     evolucionHandler,

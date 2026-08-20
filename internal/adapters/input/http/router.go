@@ -27,6 +27,7 @@ type RouterParams struct {
 	ResultadoHandler     *ResultadoHandler
 	InterconsultaHandler *InterconsultaHandler
 	SintomaHandler       *SintomaHandler
+	FirmaPeruHandler     *FirmaPeruHandler
 	AuthService          input.AuthService
 	AllowedOrigins       []string
 }
@@ -116,6 +117,21 @@ func NewRouter(p RouterParams) *gin.Engine {
 			sis.GET("/medicamentos", p.SisHandler.ListMedicamentos)
 			sis.GET("/procedimientos", p.SisHandler.ListProcedimientos)
 			sis.GET("/consumo", p.SisHandler.ListConsumo)
+		}
+
+		firmaperu := v1.Group("/firmaperu")
+		{
+			firmaperu.POST("/firmar", p.FirmaPeruHandler.Firmar)
+			firmaperu.POST("/lote", p.FirmaPeruHandler.FirmarLote)
+			firmaperu.POST("/params/:uuid", p.FirmaPeruHandler.ParametrosFirma)
+			firmaperu.GET("/estampado.png", p.FirmaPeruHandler.Estampado)
+			firmaperu.GET("/estampado/:uuid", p.FirmaPeruHandler.EstampadoUuid)
+			firmaperu.GET("/documentos/:uuid", p.FirmaPeruHandler.DescargarDocumento)
+			firmaperu.POST("/documentos/:uuid", p.FirmaPeruHandler.RecibirDocumentoFirmado)
+			firmaperu.GET("/documentos/:uuid/firmado", p.FirmaPeruHandler.DescargarDocumentoFirmado)
+			firmaperu.GET("/documentos/:uuid/lote", p.FirmaPeruHandler.DescargarLoteDocumentos)
+			firmaperu.POST("/documentos/:uuid/lote", p.FirmaPeruHandler.RecibirLoteFirmado)
+			firmaperu.GET("/documentos/:uuid/lote/firmado", p.FirmaPeruHandler.DescargarLoteFirmado)
 		}
 
 		triaje := v1.Group("/triaje")
