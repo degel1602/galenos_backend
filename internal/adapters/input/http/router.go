@@ -28,6 +28,7 @@ type RouterParams struct {
 	InterconsultaHandler *InterconsultaHandler
 	SintomaHandler       *SintomaHandler
 	FirmaPeruHandler     *FirmaPeruHandler
+	DiagnosticoHandler   *DiagnosticoHandler
 	AuthService          input.AuthService
 	AllowedOrigins       []string
 }
@@ -188,6 +189,11 @@ func NewRouter(p RouterParams) *gin.Engine {
 		{
 			sintomas.GET("/catalogo", p.SintomaHandler.HandleListarCatalogo)
 			sintomas.POST("/catalogo", p.SintomaHandler.HandleAgregarCatalogo)
+		}
+
+		diagnosticos := protected.Group("/diagnosticos")
+		{
+			diagnosticos.GET("/search", p.DiagnosticoHandler.SearchDiagnosticos)
 		}
 	}
 

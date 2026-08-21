@@ -21,7 +21,7 @@ func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, 
 	// Columnas devueltas:
 	//   IdProducto, IdPuntoCarga, IdMovimiento, Codigo, Nombre, cantidad,
 	//   IdOrden, IdLabEstado, FechaSolicitud, FechaResultado, Resultado
-	query := "EXEC webHistorialExamenLaboratorio @IdPaciente = @p1"
+	query := "EXEC usp_go_SelectHistoriaLaboratorio @p1"
 
 	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idPaciente))
 	if err != nil {
@@ -45,7 +45,7 @@ func (r *ResultadoRepository) ListarLaboratorioPorPaciente(ctx context.Context, 
 			return nil, fmt.Errorf("error escaneando resultado laboratorio: %w", err)
 		}
 
-		mapFilaLaboratorio(&res, idMovimiento, nombre, fechaResultado, codigo, resultado)
+		mapFilaResultado(&res, idMovimiento, nombre, fechaResultado, codigo, resultado)
 		resultados = append(resultados, res)
 	}
 
@@ -62,7 +62,7 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 	//   IdProducto, Codigo, FechaResultado, FechaRegistro, IdPuntoCarga, IdMovimiento,
 	//   Nombre, Cantidad, IdImagEstado, Resultado, IdOrden, DiaAtencion,
 	//   MesAtencion, NombreDiaAtencion, AnioAtencion
-	query := "EXEC webHistorialExamenImageneologia @IdPaciente = @p1"
+	query := "EXEC usp_go_SelectHistorialExamenImageneologia @p1"
 
 	rows, err := r.db.QueryContext(ctx, query, sql.Named("p1", idPaciente))
 	if err != nil {
@@ -80,15 +80,19 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 		var codigo, fechaResultado, nombre, resultado, mes, nombreDia sql.NullString
 		var fechaRegistro sql.NullTime
 
+		var fechaRegistroDate, fechaResultadoDate, tieneResultado, diasTranscurridos, diasSinResultado, estadoGerencial, nivelAlerta, mensajeAlerta, esAlerta, esCritico sql.NullString
+
 		if err := rows.Scan(
-			&idProducto, &codigo, &fechaResultado, &fechaRegistro, &idPuntoCarga, &idMovimiento,
-			&nombre, &cantidad, &idImagEstado, &resultado, &idOrden, &dia,
-			&mes, &nombreDia, &anio,
+			&idProducto, &codigo, &nombre, &cantidad, &idMovimiento, &idPuntoCarga,
+			&idImagEstado, &idOrden, &fechaRegistro, &fechaResultado, &fechaRegistroDate,
+			&fechaResultadoDate, &dia, &mes, &nombreDia, &anio, &resultado,
+			&tieneResultado, &diasTranscurridos, &diasSinResultado, &estadoGerencial,
+			&nivelAlerta, &mensajeAlerta, &esAlerta, &esCritico,
 		); err != nil {
 			return nil, fmt.Errorf("error escaneando resultado imagen: %w", err)
 		}
 
-		mapFilaImagen(&res, idMovimiento, nombre, fechaResultado, codigo, resultado)
+		mapFilaResultado(&res, idMovimiento, nombre, fechaResultado, codigo, resultado)
 		resultados = append(resultados, res)
 	}
 
@@ -99,25 +103,7 @@ func (r *ResultadoRepository) ListarImagenesPorPaciente(ctx context.Context, idP
 	return resultados, nil
 }
 
-func mapFilaLaboratorio(res *domain.Resultado, idMovimiento sql.NullInt64, nombre, fechaResultado, codigo, resultado sql.NullString) {
-	if idMovimiento.Valid {
-		res.IdResultado = int(idMovimiento.Int64)
-	}
-	if nombre.Valid {
-		res.NombreExamen = nombre.String
-	}
-	if fechaResultado.Valid {
-		res.FechaExamen = fechaResultado.String
-	}
-	if codigo.Valid {
-		res.Detalle = codigo.String
-	}
-	if resultado.Valid && resultado.String != "" {
-		res.Estado = resultado.String
-	}
-}
-
-func mapFilaImagen(res *domain.Resultado, idMovimiento sql.NullInt64, nombre, fechaResultado, codigo, resultado sql.NullString) {
+func mapFilaResultado(res *domain.Resultado, idMovimiento sql.NullInt64, nombre, fechaResultado, codigo, resultado sql.NullString) {
 	if idMovimiento.Valid {
 		res.IdResultado = int(idMovimiento.Int64)
 	}

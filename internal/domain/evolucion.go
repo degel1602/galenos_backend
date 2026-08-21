@@ -18,7 +18,10 @@ type EvolucionFirma struct {
 	IdRegAtencion      int    `json:"idRegAtencion"`
 	IdFirma            int    `json:"idFirma"`
 	NombreDocumento    string `json:"nombreDocumento"`
+	NombreArchivo      string `json:"nombreArchivo"`
+	RutaBase           string `json:"rutaBase"`
 	DataB64            string `json:"dataB64"`
 	IdEmpleadoRegistra int    `json:"idEmpleadoRegistra"`
 	FechaRegistro      string `json:"fechaRegistro"`
+	Estado             int    `json:"estado"`
 }
